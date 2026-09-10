@@ -1,0 +1,37 @@
+// src/assets/scss/theming/_material-themes.scss
+@use '@angular/material' as mat;
+
+// Include theming for Angular Material with `mat.theme()`.
+// This Sass mixin defines CSS variables for Angular Material components
+// according to the Material 3 design spec.
+html {
+  height: 100%;
+
+  @include mat.theme(
+    (
+      color: (
+        primary: mat.$rose-palette,
+        tertiary: mat.$orange-palette,
+      ),
+      typography: Roboto,
+      density: 0,
+    )
+  );
+}
+
+body {
+  color-scheme: light;
+  background-color: var(--mat-sys-surface);
+  color: var(--mat-sys-on-surface);
+  font: var(--mat-sys-body-medium);
+  margin: 0;
+  height: 100%;
+}
+
+body.theme-light {
+  color-scheme: light;
+}
+
+body.theme-dark {
+  color-scheme: dark;
+}
