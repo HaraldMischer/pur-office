@@ -1,0 +1,29 @@
+// pur-office/src/app/commons/utils/errors/firebase-error-message.spec.ts
+
+import { getFirebaseErrorMessage } from './firebase-error-message';
+
+describe('getFirebaseErrorMessage', () => {
+  it('should return a friendly message for known Firebase auth errors', () => {
+    const message = getFirebaseErrorMessage({ code: 'auth/invalid-credential' });
+
+    expect(message).toBe('E-Mail-Adresse oder Passwort ist nicht korrekt.');
+  });
+
+  it('should return a friendly message for permission errors', () => {
+    const message = getFirebaseErrorMessage({ code: 'permission-denied' });
+
+    expect(message).toBe('Du hast keine Berechtigung fuer diese Aktion.');
+  });
+
+  it('should return the fallback message for unknown errors', () => {
+    const message = getFirebaseErrorMessage({ code: 'unknown-error' });
+
+    expect(message).toBe('Die Aktion konnte nicht ausgefuehrt werden.');
+  });
+
+  it('should return the fallback message when the error is not Firebase-like', () => {
+    const message = getFirebaseErrorMessage('kaputt');
+
+    expect(message).toBe('Die Aktion konnte nicht ausgefuehrt werden.');
+  });
+});

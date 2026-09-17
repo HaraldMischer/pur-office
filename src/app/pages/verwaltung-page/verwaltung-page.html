@@ -1,0 +1,202 @@
+<!-- pur-office/src/app/pages/verwaltung-page/verwaltung-page.html -->
+
+<section class="page-shell">
+  <h1>Verwaltung</h1>
+
+  <section class="verwaltung-section">
+    <h2>Benutzer anlegen</h2>
+
+    <form
+      class="pur-form pur-form--grid verwaltung-form"
+      [formGroup]="benutzerForm"
+      aria-label="Benutzerzugang vorbereiten"
+      (ngSubmit)="onSubmit()"
+    >
+      <div class="verwaltung-form__identity">
+        <mat-form-field appearance="outline" class="pur-form__field">
+          <mat-label>E-Mail-Adresse</mat-label>
+          <input
+            formControlName="email"
+            matInput
+            type="email"
+            autocomplete="off"
+            inputmode="email"
+          />
+
+          @if (benutzerForm.controls.email.hasError('required')) {
+            <mat-error>E-Mail-Adresse ist erforderlich.</mat-error>
+          } @else if (benutzerForm.controls.email.hasError('email')) {
+            <mat-error>Bitte eine gültige E-Mail-Adresse eingeben.</mat-error>
+          }
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="pur-form__field">
+          <mat-label>Anzeigename</mat-label>
+          <input formControlName="anzeigename" matInput type="text" autocomplete="off" />
+
+          @if (benutzerForm.controls.anzeigename.hasError('required')) {
+            <mat-error>Anzeigename ist erforderlich.</mat-error>
+          }
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="pur-form__field">
+          <mat-label>Benutzerrolle</mat-label>
+          <mat-select formControlName="userRole">
+            @for (rolle of rollen; track rolle.value) {
+              <mat-option [value]="rolle.value">{{ rolle.label }}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+      </div>
+
+      <fieldset class="verwaltung-form__group" formGroupName="erlaubteBereiche">
+        <legend>Erlaubte Bereiche</legend>
+
+        <div class="verwaltung-form__areas">
+          @for (bereich of bereiche; track bereich.value) {
+            <mat-checkbox [formControlName]="bereich.value">{{ bereich.label }}</mat-checkbox>
+          }
+        </div>
+
+        @if (
+          benutzerForm.controls.erlaubteBereiche.touched &&
+          benutzerForm.controls.erlaubteBereiche.hasError('mindestensEinBereich')
+        ) {
+          <p class="pur-form__error" role="alert">Mindestens ein Bereich ist erforderlich.</p>
+        }
+      </fieldset>
+
+      <fieldset class="verwaltung-form__group">
+        <legend>Firmen- und Filialzugriffe</legend>
+
+        <div class="verwaltung-form__accesses" formArrayName="zugriffe">
+          @for (zugriff of zugriffe.controls; track zugriff; let index = $index) {
+            <div class="verwaltung-form__access" [formGroupName]="index">
+              <mat-form-field appearance="outline" class="pur-form__field">
+                <mat-label>Firma-ID</mat-label>
+                <input formControlName="firmaId" matInput type="text" autocomplete="off" />
+                @if (zugriff.controls.firmaId.hasError('required')) {
+                  <mat-error>Firma-ID ist erforderlich.</mat-error>
+                }
+              </mat-form-field>
+
+              <mat-form-field appearance="outline" class="pur-form__field">
+                <mat-label>Filial-IDs</mat-label>
+                <textarea formControlName="filialIds" matInput rows="2"></textarea>
+                <mat-hint>Mit Komma, Semikolon oder Zeilenumbruch trennen</mat-hint>
+                @if (zugriff.controls.filialIds.hasError('required')) {
+                  <mat-error>Mindestens eine Filial-ID ist erforderlich.</mat-error>
+                }
+              </mat-form-field>
+
+              <button
+                matIconButton
+                type="button"
+                aria-label="Zugriff entfernen"
+                matTooltip="Zugriff entfernen"
+                (click)="removeZugriff(index)"
+              >
+                <mat-icon aria-hidden="true">delete</mat-icon>
+              </button>
+            </div>
+          }
+        </div>
+
+        <button matButton="outlined" type="button" (click)="addZugriff()">
+          <mat-icon aria-hidden="true">add</mat-icon>
+          Zugriff hinzufügen
+        </button>
+      </fieldset>
+
+      <fieldset class="verwaltung-form__group">
+        <legend>Zugang</legend>
+
+        <mat-button-toggle-group formControlName="zugangsart" aria-label="Art der Passwortvergabe">
+          <mat-button-toggle value="einrichtungslink"
+            >Benutzer legt Passwort fest</mat-button-toggle
+          >
+          <mat-button-toggle value="master-passwort">Passwort durch Master</mat-button-toggle>
+        </mat-button-toggle-group>
+
+        @if (benutzerForm.controls.zugangsart.value === 'master-passwort') {
+          <div class="verwaltung-form__passwords">
+            <mat-form-field appearance="outline" class="pur-form__field">
+              <mat-label>Anfangspasswort</mat-label>
+              <input
+                formControlName="passwort"
+                matInput
+                type="password"
+                autocomplete="new-password"
+              />
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="pur-form__field">
+              <mat-label>Passwort bestätigen</mat-label>
+              <input
+                formControlName="passwortBestaetigung"
+                matInput
+                type="password"
+                autocomplete="new-password"
+              />
+            </mat-form-field>
+          </div>
+
+          @if (benutzerForm.hasError('passwortZuKurz')) {
+            <p class="pur-form__error" role="alert">
+              Das Passwort muss mindestens 8 Zeichen haben.
+            </p>
+          } @else if (benutzerForm.hasError('passwoerterUngleich')) {
+            <p class="pur-form__error" role="alert">Die Passwörter stimmen nicht überein.</p>
+          }
+        }
+      </fieldset>
+
+      @if (verwaltungStore.error(); as error) {
+        <p class="pur-form__error" role="alert">{{ error }}</p>
+      }
+
+      @if (verwaltungStore.createdBenutzer(); as benutzer) {
+        <div class="verwaltung-form__result">
+          <p class="pur-form__success" role="status">
+            Benutzer {{ benutzer.email }} wurde angelegt.
+          </p>
+
+          @if (benutzer.passwortEinrichtungslink; as einrichtungslink) {
+            <div class="verwaltung-form__setup-link">
+              <mat-form-field appearance="outline" class="pur-form__field">
+                <mat-label>Passwort-Einrichtungslink</mat-label>
+                <input matInput readonly [value]="einrichtungslink" />
+              </mat-form-field>
+
+              <button
+                matIconButton
+                type="button"
+                aria-label="Passwort-Einrichtungslink kopieren"
+                matTooltip="Link kopieren"
+                [cdkCopyToClipboard]="einrichtungslink"
+                (cdkCopyToClipboardCopied)="onLinkKopiert($event)"
+              >
+                <mat-icon aria-hidden="true">content_copy</mat-icon>
+              </button>
+            </div>
+          }
+
+          @if (linkKopiert()) {
+            <p class="verwaltung-form__copy-status" role="status">Link wurde kopiert.</p>
+          }
+        </div>
+      }
+
+      <div class="verwaltung-form__actions">
+        <button
+          matButton="filled"
+          type="submit"
+          [disabled]="benutzerForm.invalid || verwaltungStore.inProgress()"
+        >
+          <mat-icon aria-hidden="true">person_add</mat-icon>
+          {{ verwaltungStore.inProgress() ? 'Benutzer wird angelegt' : 'Benutzer anlegen' }}
+        </button>
+      </div>
+    </form>
+  </section>
+</section>

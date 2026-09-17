@@ -1,0 +1,45 @@
+// pur-office/src/assets/scss/modules/forms.scss
+
+.pur-form {
+  gap: 1rem;
+
+  &__field {
+    min-width: 0;
+  }
+
+  &__submit {
+    width: 100%;
+  }
+
+  &__error {
+    margin: 0;
+    padding: 0.75rem 1rem;
+    border: 1px solid var(--mat-sys-error);
+    border-radius: 0.5rem;
+    color: var(--mat-sys-error);
+    font: var(--mat-sys-body-medium);
+  }
+
+  &--flex {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+
+    .pur-form__field {
+      flex: 1 1 260px;
+    }
+
+    .pur-form__error {
+      flex: 1 0 100%;
+    }
+  }
+
+  &--grid {
+    display: grid;
+
+    .pur-form__field,
+    .pur-form__submit {
+      width: 100%;
+    }
+  }
+}

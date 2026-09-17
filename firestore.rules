@@ -1,0 +1,25 @@
+// pur-office/firestore.rules
+
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    // Pur Office: Profile werden nur durch das Admin SDK geschrieben.
+    match /benutzer/{uid} {
+      allow get: if isAuthenticated() && request.auth.uid == uid;
+      allow list: if false;
+      allow create, update, delete: if false;
+    }
+
+    // Übergang: Angemeldete Benutzer behalten auf allen alten Collections
+    // den bisherigen Zugriff. Neue Pur-Office-Collections müssen hier
+    // ausdrücklich ausgeschlossen und separat abgesichert werden.
+    match /{collection}/{document=**} {
+      allow read, write: if isAuthenticated() && collection != 'benutzer';
+    }
+  }
+}

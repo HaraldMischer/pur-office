@@ -10,7 +10,7 @@ html {
   @include mat.theme(
     (
       color: (
-        primary: mat.$rose-palette,
+        primary: mat.$azure-palette,
         tertiary: mat.$orange-palette,
       ),
       typography: Roboto,
@@ -35,3 +35,17 @@ body.theme-light {
 body.theme-dark {
   color-scheme: dark;
 }
+
+
+//mat.$red-palette
+//mat.$green-palette
+//mat.$blue-palette
+//mat.$yellow-palette
+//mat.$cyan-palette
+//mat.$magenta-palette
+//mat.$orange-palette
+//mat.$chartreuse-palette
+//mat.$spring-green-palette
+//mat.$azure-palette
+//mat.$violet-palette
+//mat.$rose-palette

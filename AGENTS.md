@@ -9,19 +9,31 @@
 - Jede neu angelegte Quelltext- oder Konfigurationsdatei beginnt, soweit der Dateityp Kommentare unterstuetzt, mit einem Kommentar, der den Projektpfad der Datei angibt.
 - Commit-Kommentare werden in diesem Projekt auf Deutsch formuliert.
 
-## Architektur
-- Firestore dient als lesende Datenquelle; die App erzeugt keine eigenen Daten.
-- Firestore Rules bleiben bewusst einfach und sichern nur Zugriff und Besitz. Fachliche Regeln, Feldvalidierung und UI-Logik werden in der Anwendung umgesetzt.
-- Feature-Bereiche werden lazy geladen.
-- Persistenter App-State wird zentral und nachvollziehbar gekapselt.
+## Projektziel
+- Das fachliche und architektonische Zielbild steht in `docs/projekt-plan.md`.
+- Der aktuelle Umsetzungsstand steht in `docs/projekt-stand.md`.
+- Konkrete naechste Arbeitsschritte stehen in `docs/next_todo.md`.
+- Agents richten neue Umsetzung an diesen Dokumenten aus.
 
-## Architektur-Schichten
-- Components enthalten UI und einfache Formular- oder Interaktionslogik.
-- Stores halten App-State, Lade- und Fehlerzustaende und orchestrieren Service-Aufrufe.
-- Services kapseln externe Systeme und technische Zugriffe, z. B. Firebase Auth und Firestore.
+## Projektstruktur
+- Echte Seiten liegen unter `src/app/pages`.
+- Wiederverwendbare Components liegen unter `src/app/components`.
+- App-Shell-Components liegen unter `src/app/components/app-shell`.
+- Die Sidebar liegt unter `src/app/components/app-shell/app-sidenav`.
+- Die Toolbar liegt unter `src/app/components/app-shell/app-toolbar`.
+- Gemeinsame Modelle, Mapper, Konstanten, Utilities und Typen liegen unter `src/app/commons`.
+- Guards liegen unter `src/app/guards`.
+- Services liegen unter `src/app/services`.
+- Allgemeine technische Services liegen unter `src/app/services/core`.
 - Firebase-nahe Services liegen unter `src/app/services/firebase`.
-- Stores liegen unter `src/app/stores` und sind nach `app`, `domain` oder Feature-Bereich gegliedert.
-- Der bevorzugte Datenfluss ist `Component -> Store -> Service -> Firebase/Firestore`.
+- Stores liegen unter `src/app/stores`.
+- App-weite Stores liegen unter `src/app/stores/app`, z. B. `src/app/stores/app/benutzer.store.ts`.
+- Fachliche Domain-Stores liegen unter `src/app/stores/domain`.
+
+## Template-Schreibweise
+- Einfache Seiten-Sections werden ohne `aria-labelledby` geschrieben.
+- Dafuer werden auch keine nur zu diesem Zweck angelegten `id`-Attribute auf Titeln verwendet.
+- `pur-form` wird immer mit genau einem Layout-Modifier verwendet, z. B. `pur-form pur-form--grid` oder `pur-form pur-form--flex`.
 
 ## Naming
 - Fachliche Projekt- und Domaenenbegriffe im UI, in Modellen und in Firestore-Pfaden werden auf Deutsch gehalten.
@@ -48,6 +60,7 @@
 
 ## Wichtige Befehle
 Fuehre Befehle aus dem Projekt-Root aus:
+
 ```bash
 npm run build
 npm test
@@ -76,7 +89,9 @@ Hinweise:
 ```bash
 npm test
 ```
+
 - Fuehre bei Build-, Template- oder groesseren UI-Aenderungen zusaetzlich aus:
+
 ```bash
 npm run build
 ```

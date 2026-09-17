@@ -1,0 +1,27 @@
+// pur-office/src/app/pages/dashboard-page/dashboard-page.spec.ts
+
+import { TestBed } from '@angular/core/testing';
+
+import { DashboardPage } from './dashboard-page';
+
+describe('DashboardPage', () => {
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
+      imports: [DashboardPage],
+    }).compileComponents();
+  });
+
+  it('should create the page', () => {
+    const fixture = TestBed.createComponent(DashboardPage);
+
+    expect(fixture.componentInstance).toBeTruthy();
+  });
+
+  it('should render the page title', () => {
+    const fixture = TestBed.createComponent(DashboardPage);
+    fixture.detectChanges();
+    const compiled = fixture.nativeElement as HTMLElement;
+
+    expect(compiled.querySelector('h1')?.textContent).toContain('Dashboard');
+  });
+});

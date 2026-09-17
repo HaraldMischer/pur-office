@@ -1,0 +1,26 @@
+// pur-office/src/assets/scss/modules/cards.scss
+
+.pur-card {
+  .mat-mdc-card-header {
+    padding: 1.5rem 1.5rem 0;
+  }
+
+  .mat-mdc-card-header-text {
+    width: 100%;
+  }
+
+  .mat-mdc-card-title {
+    color: var(--mat-sys-primary);
+    font: var(--mat-sys-display-small);
+  }
+
+  .mat-mdc-card-subtitle {
+    margin-top: 0.5rem;
+    color: var(--mat-sys-on-surface-variant);
+    font: var(--mat-sys-body-large);
+  }
+
+  .mat-mdc-card-content {
+    padding: 1.5rem;
+  }
+}

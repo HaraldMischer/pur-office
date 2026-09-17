@@ -1,0 +1,42 @@
+<!-- pur-office/src/app/components/app-shell/app-toolbar/app-toolbar.html -->
+
+<mat-toolbar class="app-toolbar">
+  <button
+    matIconButton
+    type="button"
+    aria-label="Hauptnavigation umschalten"
+    (click)="navigationToggle.emit()"
+  >
+    <mat-icon aria-hidden="true">{{ sidenavOpened() ? 'arrow_back_ios' : 'menu' }}</mat-icon>
+  </button>
+
+  <span class="app-toolbar__title">{{ title }}</span>
+  <span class="app-toolbar__spacer" aria-hidden="true"></span>
+
+  <span
+    class="app-toolbar__login-status"
+    [class.app-toolbar__login-status--active]="isAuthenticated()"
+  >
+    Auth: {{ isAuthenticated() ? 'eingeloggt' : 'offen' }}
+  </span>
+
+  <span class="app-toolbar__login-status" [class.app-toolbar__login-status--active]="isLoggedIn()">
+    Profil: {{ isLoggedIn() ? 'geladen' : 'fehlt' }}
+  </span>
+
+  @if (isAuthenticated()) {
+    <a matIconButton aria-label="Passwort ändern" routerLink="/konto/passwort">
+      <mat-icon aria-hidden="true">password</mat-icon>
+    </a>
+
+    <button
+      matIconButton
+      type="button"
+      aria-label="Abmelden"
+      [disabled]="inProgress()"
+      (click)="logout()"
+    >
+      <mat-icon aria-hidden="true">logout</mat-icon>
+    </button>
+  }
+</mat-toolbar>

@@ -1,0 +1,33 @@
+// pur-office/src/app/app.scss
+
+.app-shell {
+  min-height: 100dvh;
+  background: var(--mat-sys-surface);
+}
+
+.app-sidenav {
+  width: 17rem;
+  border-radius: 0;
+  border-inline-end: 1px solid var(--mat-sys-outline-variant);
+  background: var(--mat-sys-surface-container);
+}
+
+.app-content {
+  min-height: 100dvh;
+}
+
+.app-main {
+  padding: 2rem calc(2rem + env(safe-area-inset-right)) calc(2rem + env(safe-area-inset-bottom))
+    calc(2rem + env(safe-area-inset-left));
+}
+
+@media (max-width: 720px) {
+  .app-sidenav {
+    width: min(19rem, 84vw);
+  }
+
+  .app-main {
+    padding: 1.25rem calc(1.25rem + env(safe-area-inset-right))
+      calc(1.25rem + env(safe-area-inset-bottom)) calc(1.25rem + env(safe-area-inset-left));
+  }
+}

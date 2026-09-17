@@ -1,0 +1,37 @@
+// pur-office/src/app/components/app-shell/app-toolbar/app-toolbar.scss
+
+.app-toolbar {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  gap: 0.75rem;
+  border-block-end: 1px solid var(--mat-sys-outline-variant);
+  background: var(--mat-sys-surface);
+  color: var(--mat-sys-on-surface);
+}
+
+.app-toolbar__title {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.app-toolbar__spacer {
+  flex: 1 1 auto;
+}
+
+
+.app-toolbar__login-status {
+  border: 1px solid var(--mat-sys-outline-variant);
+  border-radius: 999px;
+  padding: 0.25rem 0.65rem;
+  color: var(--mat-sys-on-surface-variant);
+  font-size: 0.78rem;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+.app-toolbar__login-status--active {
+  border-color: var(--mat-sys-primary);
+  color: var(--mat-sys-primary);
+}

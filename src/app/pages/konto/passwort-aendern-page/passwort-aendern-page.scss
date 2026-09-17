@@ -1,0 +1,13 @@
+// pur-office/src/app/pages/konto/passwort-aendern-page/passwort-aendern-page.scss
+
+.passwort-page {
+  width: 100%;
+  max-width: 34rem;
+  margin: 0 auto;
+
+  &__success {
+    margin: 0;
+    color: var(--mat-sys-primary);
+    font: var(--mat-sys-body-medium);
+  }
+}

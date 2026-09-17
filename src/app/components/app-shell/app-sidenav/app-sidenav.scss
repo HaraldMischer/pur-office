@@ -1,0 +1,19 @@
+// pur-office/src/app/components/app-shell/app-sidenav/app-sidenav.scss
+
+.app-sidenav__content {
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+}
+
+.app-brand-toolbar {
+  gap: 0.75rem;
+  border-block-end: 1px solid var(--mat-sys-outline-variant);
+  background: var(--mat-sys-surface-container);
+  color: var(--mat-sys-primary);
+}
+
+.active-nav-item {
+  background: var(--mat-sys-secondary-container);
+  color: var(--mat-sys-on-secondary-container);
+}

@@ -1,0 +1,64 @@
+<!-- pur-office/src/app/pages/auth/login-page/login-page.html -->
+
+<section class="pur-page">
+  <mat-card class="pur-card">
+    <mat-card-header>
+      <mat-card-title>Anmelden <button (click)="patchLoginForm()">pur-master</button></mat-card-title>
+      <mat-card-subtitle>Melde dich mit deiner E-Mail-Adresse an.</mat-card-subtitle>
+    </mat-card-header>
+
+    <mat-card-content>
+      <form
+        class="pur-form pur-form--grid"
+        [formGroup]="loginForm"
+        aria-label="Bei Pur Office anmelden"
+        (submit)="$event.preventDefault(); submitLogin()"
+      >
+        <mat-form-field appearance="outline" class="pur-form__field">
+          <mat-label>E-Mail-Adresse</mat-label>
+          <input
+            formControlName="email"
+            matInput
+            type="email"
+            autocomplete="email"
+            inputmode="email"
+          />
+
+          @if (loginForm.controls.email.hasError('required')) {
+            <mat-error>E-Mail-Adresse ist erforderlich.</mat-error>
+          } @else if (loginForm.controls.email.hasError('email')) {
+            <mat-error>Bitte eine gültige E-Mail-Adresse eingeben.</mat-error>
+          }
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="pur-form__field">
+          <mat-label>Passwort</mat-label>
+          <input
+            formControlName="password"
+            matInput
+            type="password"
+            autocomplete="current-password"
+          />
+
+          @if (loginForm.controls.password.hasError('required')) {
+            <mat-error>Passwort ist erforderlich.</mat-error>
+          }
+        </mat-form-field>
+
+        @if (error()) {
+          <p class="pur-form__error" role="alert">{{ error() }}</p>
+        }
+
+        <button
+          class="pur-form__submit"
+          matButton="filled"
+          type="submit"
+          [disabled]="loginForm.invalid || inProgress()"
+        >
+          <mat-icon aria-hidden="true">login</mat-icon>
+          Anmelden
+        </button>
+      </form>
+    </mat-card-content>
+  </mat-card>
+</section>
