@@ -1,5 +1,48 @@
 // pur-office/src/assets/scss/base/_layout.scss
 
+.pur-page-section {
+  display: grid;
+  gap: 1rem;
+}
+
 .pur-page {
+  display: grid;
+  gap: 1.5rem;
   width: 100%;
+
+  &__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    min-width: 0;
+  }
+
+  &__title {
+    margin: 0;
+    min-width: 0;
+    color: var(--mat-sys-primary);
+    font: var(--mat-sys-display-small);
+  }
+
+  &__section-title {
+    margin: 0;
+    font: var(--mat-sys-title-large);
+  }
+
+  &__header > button,
+  &__header > mat-button-toggle-group {
+    max-width: 100%;
+  }
+
+  @media (max-width: 480px) {
+    &__header {
+      display: grid;
+    }
+
+    &__header > button,
+    &__header > mat-button-toggle-group {
+      width: 100%;
+    }
+  }
 }

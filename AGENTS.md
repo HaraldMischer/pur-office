@@ -3,6 +3,7 @@
 # Projekt-Vorgaben
 
 ## Projektregeln
+
 - Jede Code-Aenderung erfordert vorher ein Okay vom Benutzer.
 - Beschreibe vor jeder Code-Aenderung zuerst kurz, was geaendert werden soll und in welchen Dateien; warte danach auf das ausdrueckliche Okay des Benutzers, bevor du die Aenderung umsetzt.
 - Ohne ausdrueckliches Okay des Benutzers werden keine Dateien angelegt, geaendert oder geloescht.
@@ -10,12 +11,14 @@
 - Commit-Kommentare werden in diesem Projekt auf Deutsch formuliert.
 
 ## Projektziel
+
 - Das fachliche und architektonische Zielbild steht in `docs/projekt-plan.md`.
 - Der aktuelle Umsetzungsstand steht in `docs/projekt-stand.md`.
 - Konkrete naechste Arbeitsschritte stehen in `docs/next_todo.md`.
 - Agents richten neue Umsetzung an diesen Dokumenten aus.
 
 ## Projektstruktur
+
 - Echte Seiten liegen unter `src/app/pages`.
 - Wiederverwendbare Components liegen unter `src/app/components`.
 - App-Shell-Components liegen unter `src/app/components/app-shell`.
@@ -31,11 +34,14 @@
 - Fachliche Domain-Stores liegen unter `src/app/stores/domain`.
 
 ## Template-Schreibweise
+
+- Groessere zusammenhaengende Template-Bereiche erhalten kurze HTML-Kommentare zur Orientierung, z. B. `<!-- Benutzerkarte -->` oder `<!-- Hauptnavigation -->`. Nur den Bereich benennen, keine ausfuehrlichen Erklaerungen und keine Kommentare fuer jedes einzelne Element.
 - Einfache Seiten-Sections werden ohne `aria-labelledby` geschrieben.
 - Dafuer werden auch keine nur zu diesem Zweck angelegten `id`-Attribute auf Titeln verwendet.
 - `pur-form` wird immer mit genau einem Layout-Modifier verwendet, z. B. `pur-form pur-form--grid` oder `pur-form pur-form--flex`.
 
 ## Naming
+
 - Fachliche Projekt- und Domaenenbegriffe im UI, in Modellen und in Firestore-Pfaden werden auf Deutsch gehalten.
 - Technische Aktionen und uebliche Code-Verben bleiben auf Englisch, z. B. `load`, `get`, `set`, `subscribe`, `filter`, `map` und `handle`.
 - Kombiniere englische technische Verben mit deutschen Domaenenbegriffen, z. B. `loadMitarbeiter`, `getMitarbeiter`, `updateFilter` und `handleMitarbeiterSelect`.
@@ -49,66 +55,19 @@
 - Innerhalb eines Firestore-Pfads wird keine Sprache gemischt.
 - Technische Begriffe aus Frameworks, Libraries und APIs bleiben in der jeweils etablierten Schreibweise, z. B. `uid`, `email`, `Auth`, `Firestore` und `Timestamp`.
 
-# Angular-Vorgaben
+## Styles und UI
 
-## Projektueberblick
-- Dies ist eine Angular-Anwendung mit dem Namen `pur-office`.
-- Das Projekt nutzt Angular CLI mit dem Builder `@angular/build:application`.
-- Styles werden standardmaessig mit SCSS geschrieben.
-- Unit-Tests nutzen Angulars `@angular/build:unit-test` Builder mit Vitest.
-- Paketmanager: npm.
+- Nutze Angular Material/CDK als bestehendes UI-System.
+- Komponentenbezogene Styles liegen in der jeweiligen Component-SCSS-Datei; bewusst wiederverwendbare Styles liegen unter `src/assets/scss`.
+- Beachte die vorhandenen Prettier-Einstellungen aus `package.json`.
 
-## Wichtige Befehle
-Fuehre Befehle aus dem Projekt-Root aus:
+## Arbeitsweise und Pruefungen
 
-```bash
-npm run build
-npm test
-npm run start-web
-```
-
-Hinweise:
-- `npm test` ist als `CI=1 ng test --watch=false` konfiguriert und soll ohne Watch-Modus beenden.
-- Nutze `npm run start-web` fuer den lokalen Angular-Dev-Server.
-- Bevorzuge die vorhandenen npm-Skripte statt Framework-Binaries direkt aufzurufen.
-
-## Entwicklungsrichtlinien
-- Folge den vorhandenen Angular-Standalone-Component-Mustern.
-- Halte dich an Angular-CLI-Konventionen fuer Dateinamen, Selektoren, Imports und Projektstruktur.
-- Halte Aenderungen klein und auf das angefragte Verhalten fokussiert.
-- Fuehre keine unnoetigen Refactorings ein, waehrend du ein Feature oder einen Fix umsetzt.
-- Lege Styles in den Component-SCSS-Dateien ab, ausser ein Style ist bewusst global.
-- Nutze Angular Material/CDK, wenn das Projekt es bereits verwendet, statt ein zweites UI-System hinzuzufuegen.
-
-## Testrichtlinien
-- Ergaenze oder aktualisiere `.spec.ts` Dateien bei Verhaltensaenderungen.
-- Nutze Vitest-Globals wie `describe`, `it` und `expect`; das Projekt ist mit `vitest/globals` konfiguriert.
-- Nutze Angular `TestBed` fuer Component- und Service-Tests.
-- Fuehre vor Abschluss von Code-Aenderungen aus:
-
-```bash
-npm test
-```
-
-- Fuehre bei Build-, Template- oder groesseren UI-Aenderungen zusaetzlich aus:
-
-```bash
-npm run build
-```
-
-## Code-Stil
-- Beachte die vorhandenen Prettier-Einstellungen aus `package.json`: Single Quotes und 100 Zeichen Print Width.
-- Schreibe TypeScript moeglichst strict-freundlich und vermeide `any`, ausser es gibt einen klaren Grund.
-- Bevorzuge klare, lesbare Namen statt Abkuerzungen.
-- Kommentiere offensichtlichen Code nicht; nutze kurze Kommentare nur fuer nicht-triviale Logik.
-
-## Abhaengigkeiten
-- Fuege keine Dependencies hinzu, ausser sie vereinfachen die Umsetzung klar oder passen zur bestehenden Projektrichtung.
-- Wenn eine Dependency noetig ist, aktualisiere `package.json` und `package-lock.json` gemeinsam.
-- Halte Karma/Jasmine-Pakete aus diesem Projekt heraus; Tests laufen mit Vitest.
-
-## Sicherheit
-- Ueberschreibe keine unzusammenhaengenden Aenderungen des Nutzers.
-- Loesche keine generierten Dateien oder Konfigurationsdateien, ausser die Aufgabe verlangt es ausdruecklich.
-- Vermeide destruktive Git-Befehle.
-- Wenn ein Befehl wegen lokaler Berechtigungen fehlschlaegt, erklaere das Problem und wiederhole ihn nur mit den minimal noetigen Berechtigungen.
+- Halte Aenderungen auf die vereinbarte Aufgabe beschraenkt; keine unnoetigen Refactorings.
+- Erhalte bestehende Aenderungen des Benutzers. Dateien nur loeschen, wenn es zur vereinbarten Aufgabe gehoert; keine destruktiven Git-Aktionen ohne ausdruecklichen Auftrag.
+- Verwende die vorhandenen npm-Skripte aus dem Projekt-Root. Der lokale Dev-Server startet mit `npm run start-web`.
+- Fuege Dependencies nur bei begruendetem Bedarf hinzu und aktualisiere `package.json` und `package-lock.json` gemeinsam.
+- Tests bleiben bei Vitest; keine Karma-/Jasmine-Pakete einfuehren.
+- Ergaenze oder aktualisiere passende `.spec.ts` Dateien bei Verhaltensaenderungen.
+- Fuehre vor Abschluss von Code-Aenderungen `npm test` ohne Watch-Modus aus.
+- Fuehre bei Build-, Template- oder groesseren UI-Aenderungen zusaetzlich `npm run build` aus.

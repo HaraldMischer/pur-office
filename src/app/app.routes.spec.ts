@@ -7,7 +7,7 @@ import { routes } from './app.routes';
 
 describe('app routes', () => {
   it('should protect the password route by authentication', () => {
-    const passwordRoute = routes.find((route) => route.path === 'konto/passwort');
+    const passwordRoute = routes.find((route) => route.path === 'passwort');
 
     expect(passwordRoute).toBeDefined();
     expect(passwordRoute?.canActivate).toEqual([authGuard]);

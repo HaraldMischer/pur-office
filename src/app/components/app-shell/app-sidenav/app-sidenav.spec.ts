@@ -18,12 +18,14 @@ class AppSidenavHost {
 
 describe('AppSidenav', () => {
   let benutzerStoreMock: {
+    benutzerProfil: ReturnType<typeof vi.fn>;
     darfBereichNutzen: ReturnType<typeof vi.fn>;
     istMaster: ReturnType<typeof vi.fn>;
   };
 
   beforeEach(async () => {
     benutzerStoreMock = {
+      benutzerProfil: vi.fn().mockReturnValue(null),
       darfBereichNutzen: vi.fn((bereich: TAppBereich) =>
         ['dashboard', 'schichtplan', 'mitarbeiter', 'verwaltung'].includes(bereich),
       ),
@@ -50,6 +52,28 @@ describe('AppSidenav', () => {
     const compiled = fixture.nativeElement as HTMLElement;
 
     expect(compiled.querySelector('.app-brand-toolbar')?.textContent).toContain('Pur Office');
+  });
+
+  it('should show the account name and full email', () => {
+    benutzerStoreMock.benutzerProfil.mockReturnValue({
+      anzeigename: 'Pur System Master',
+      email: 'pur-system-master@example.com',
+    });
+    const fixture = TestBed.createComponent(AppSidenavHost);
+    fixture.detectChanges();
+    const card = (fixture.nativeElement as HTMLElement).querySelector('.pur-card--user');
+
+    expect(card?.textContent).toContain('Pur System Master');
+    expect(card?.querySelector('small')?.textContent).toBe('pur-system-master@example.com');
+  });
+
+  it('should show the fallback without a profile', () => {
+    const fixture = TestBed.createComponent(AppSidenavHost);
+    fixture.detectChanges();
+    const card = (fixture.nativeElement as HTMLElement).querySelector('.pur-card--user');
+
+    expect(card?.textContent).toContain('Nicht angemeldet');
+    expect(card?.querySelector('small')).toBeNull();
   });
 
   it('should render the allowed main navigation', () => {

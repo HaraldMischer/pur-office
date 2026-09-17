@@ -2,12 +2,14 @@
 
 <section class="pur-page">
   <mat-card class="pur-card">
+    <!-- Kartenkopf -->
     <mat-card-header>
       <mat-card-title>Anmelden <button (click)="patchLoginForm()">pur-master</button></mat-card-title>
       <mat-card-subtitle>Melde dich mit deiner E-Mail-Adresse an.</mat-card-subtitle>
     </mat-card-header>
 
     <mat-card-content>
+      <!-- Anmeldeformular -->
       <form
         class="pur-form pur-form--grid"
         [formGroup]="loginForm"
@@ -45,10 +47,12 @@
           }
         </mat-form-field>
 
+        <!-- Fehlermeldung -->
         @if (error()) {
           <p class="pur-form__error" role="alert">{{ error() }}</p>
         }
 
+        <!-- Anmeldung -->
         <button
           class="pur-form__submit"
           matButton="filled"

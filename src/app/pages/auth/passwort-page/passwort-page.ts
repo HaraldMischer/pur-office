@@ -1,4 +1,4 @@
-// pur-office/src/app/pages/konto/passwort-aendern-page/passwort-aendern-page.ts
+// pur-office/src/app/pages/auth/passwort-page/passwort-page.ts
 
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import {
@@ -36,7 +36,7 @@ const passwoerterGleichValidator: ValidatorFn = (
 };
 
 @Component({
-  selector: 'app-passwort-aendern-page',
+  selector: 'app-passwort-page',
   imports: [
     MatButtonModule,
     MatCardModule,
@@ -46,11 +46,11 @@ const passwoerterGleichValidator: ValidatorFn = (
     ReactiveFormsModule,
   ],
   providers: [PasswortStore],
-  templateUrl: './passwort-aendern-page.html',
-  styleUrl: './passwort-aendern-page.scss',
+  templateUrl: './passwort-page.html',
+  styleUrl: './passwort-page.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class PasswortAendernPage {
+export class PasswortPage {
   readonly passwortStore = inject(PasswortStore);
   readonly passwortForm = new FormGroup<TPasswortForm>(
     {

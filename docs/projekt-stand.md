@@ -32,7 +32,7 @@ Dieses Dokument beschreibt den aktuellen Umsetzungsstand im Code. Das fachliche 
 - [x] Routen fuer `/dashboard`, `/schichtplan` und `/mitarbeiter` werden per `loadComponent` geladen.
 - [x] `/` leitet auf `/dashboard` weiter.
 - [x] Die Route `/verwaltung` und die `verwaltung-page` sind als Grundgeruest umgesetzt.
-- [x] Die geschuetzte Route `/konto/passwort` ermoeglicht angemeldeten Benutzern eine Passwortaenderung.
+- [x] Die geschuetzte Route `/passwort` ermoeglicht angemeldeten Benutzern eine Passwortaenderung.
 
 ## Firebase-Grundlage
 
@@ -71,7 +71,7 @@ Dieses Dokument beschreibt den aktuellen Umsetzungsstand im Code. Das fachliche 
 - [x] Die Function erzeugt einen Passwort-Einrichtungslink; er wird nur im lokalen Seitenzustand angezeigt und kann kopiert werden.
 - [x] Bei der Benutzeranlage kann alternativ ein mindestens 8 Zeichen langes Anfangspasswort durch den Master vergeben werden.
 - [x] Direkt vergebene Passwoerter werden nur an Firebase Authentication uebermittelt und nicht in Firestore gespeichert.
-- [x] Angemeldete Benutzer koennen ihr Passwort nach erneuter Authentifizierung ueber die Toolbar und `/konto/passwort` aendern.
+- [x] Angemeldete Benutzer koennen ihr Passwort nach erneuter Authentifizierung ueber die Toolbar und `/passwort` aendern.
 - [x] Neues Passwort und Bestaetigung werden clientseitig validiert; es gelten mindestens 8 Zeichen.
 - [x] Bei fehlgeschlagener Profilerstellung wird der angelegte Auth-Benutzer zurueckgerollt.
 

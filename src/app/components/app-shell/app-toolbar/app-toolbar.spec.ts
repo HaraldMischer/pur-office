@@ -103,6 +103,6 @@ describe('AppToolbar', () => {
     const compiled = fixture.nativeElement as HTMLElement;
     const link = compiled.querySelector<HTMLAnchorElement>('[aria-label="Passwort ändern"]');
 
-    expect(link?.getAttribute('href')).toBe('/konto/passwort');
+    expect(link?.getAttribute('href')).toBe('/passwort');
   });
 });

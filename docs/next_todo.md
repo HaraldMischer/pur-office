@@ -62,7 +62,7 @@ Schritte 4: Zugang und Sicherheit
 Umgesetzte Zugangsarten:
 - `Benutzer legt Passwort fest`: Die Function erzeugt einen Einrichtungslink, den der Master kopiert und sicher weitergibt.
 - `Passwort durch Master`: Der Master vergibt ein bestaetigtes Anfangspasswort mit mindestens 8 Zeichen. Es wird nur an Firebase Authentication uebergeben und nicht in Firestore gespeichert.
-- Angemeldete Benutzer koennen ihr Passwort ueber die geschuetzte Seite `/konto/passwort` nach erneuter Authentifizierung aendern.
+- Angemeldete Benutzer koennen ihr Passwort ueber die geschuetzte Seite `/passwort` nach erneuter Authentifizierung aendern.
 
 Rules-Status:
 Die lokale Uebergangsregel erhaelt fuer alle Top-Level-Collections ausser `benutzer` den bisherigen Lese- und Schreibzugriff angemeldeter Benutzer. Fuer `benutzer/{uid}` ist nur das Lesen des eigenen Profils erlaubt; alle Client-Schreibzugriffe und Listenabfragen sind gesperrt. Vier Emulator-Tests bestaetigen Altzugriff, Auth-Pflicht, Profilzugriff und Schreibschutz. Ein Deployment ist noch nicht erfolgt.

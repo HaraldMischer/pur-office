@@ -1,11 +1,30 @@
 <!-- pur-office/src/app/components/app-shell/app-sidenav/app-sidenav.html -->
 
 <div class="app-sidenav__content">
+  <!-- Brand Toolbar -->
   <mat-toolbar class="app-brand-toolbar">
     <mat-icon aria-hidden="true">business</mat-icon>
     <span>{{ title() }}</span>
   </mat-toolbar>
 
+  <!-- Benutzerkarte -->
+  <mat-card class="pur-card pur-card--user" appearance="outlined">
+    <mat-card-content>
+      <div class="pur-card__avatar" aria-hidden="true">
+        <mat-icon>account_circle</mat-icon>
+      </div>
+      <div class="pur-card__text">
+        <span>{{
+          benutzerProfil()?.anzeigename || (benutzerProfil() ? 'Benutzer' : 'Nicht angemeldet')
+        }}</span>
+        @if (benutzerProfil()?.email) {
+          <small [matTooltip]="benutzerProfil()?.email ?? ''">{{ benutzerProfil()?.email }}</small>
+        }
+      </div>
+    </mat-card-content>
+  </mat-card>
+
+  <!-- Hauptnavigation -->
   <mat-nav-list aria-label="Hauptnavigation">
     @for (item of navigationItems(); track item.route) {
       <a

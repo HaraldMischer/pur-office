@@ -1,6 +1,7 @@
 <!-- pur-office/src/app/components/app-shell/app-toolbar/app-toolbar.html -->
 
 <mat-toolbar class="app-toolbar">
+  <!-- Navigation und Titel -->
   <button
     matIconButton
     type="button"
@@ -13,19 +14,20 @@
   <span class="app-toolbar__title">{{ title }}</span>
   <span class="app-toolbar__spacer" aria-hidden="true"></span>
 
+  <!-- Anmeldestatus -->
   <span
     class="app-toolbar__login-status"
     [class.app-toolbar__login-status--active]="isAuthenticated()"
   >
     Auth: {{ isAuthenticated() ? 'eingeloggt' : 'offen' }}
   </span>
-
   <span class="app-toolbar__login-status" [class.app-toolbar__login-status--active]="isLoggedIn()">
     Profil: {{ isLoggedIn() ? 'geladen' : 'fehlt' }}
   </span>
 
+  <!-- Kontoaktionen -->
   @if (isAuthenticated()) {
-    <a matIconButton aria-label="Passwort ändern" routerLink="/konto/passwort">
+    <a matIconButton aria-label="Passwort ändern" routerLink="/passwort">
       <mat-icon aria-hidden="true">password</mat-icon>
     </a>
 

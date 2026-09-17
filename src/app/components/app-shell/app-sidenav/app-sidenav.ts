@@ -11,8 +11,10 @@ import {
   signal,
 } from '@angular/core';
 import { MatIconModule } from '@angular/material/icon';
+import { MatCardModule } from '@angular/material/card';
 import { MatListModule } from '@angular/material/list';
 import { MatToolbarModule } from '@angular/material/toolbar';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 
 import { TAppBereich } from '../../../commons/models/app/app-bereich';
@@ -28,13 +30,22 @@ interface NavigationItem {
 
 @Component({
   selector: 'app-sidenav',
-  imports: [RouterLink, RouterLinkActive, MatIconModule, MatListModule, MatToolbarModule],
+  imports: [
+    RouterLink,
+    RouterLinkActive,
+    MatCardModule,
+    MatIconModule,
+    MatListModule,
+    MatToolbarModule,
+    MatTooltipModule,
+  ],
   templateUrl: './app-sidenav.html',
   styleUrl: './app-sidenav.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AppSidenav {
   private readonly _benutzerStore = inject(BenutzerStore);
+  readonly benutzerProfil = this._benutzerStore.benutzerProfil;
 
   readonly isHandset = input(false);
   readonly navigationSelected = output<void>();

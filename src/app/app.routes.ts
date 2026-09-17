@@ -36,12 +36,10 @@ export const routes: Routes = [
       import('./pages/mitarbeiter-page/mitarbeiter-page').then((m) => m.MitarbeiterPage),
   },
   {
-    path: 'konto/passwort',
+    path: 'passwort',
     canActivate: [authGuard],
     loadComponent: () =>
-      import('./pages/konto/passwort-aendern-page/passwort-aendern-page').then(
-        (m) => m.PasswortAendernPage,
-      ),
+      import('./pages/auth/passwort-page/passwort-page').then((m) => m.PasswortPage),
   },
   {
     path: 'verwaltung',

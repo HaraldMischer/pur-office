@@ -9,6 +9,7 @@ import { App } from './app';
 
 describe('App', () => {
   let benutzerStoreMock: {
+    benutzerProfil: ReturnType<typeof vi.fn>;
     initAuthState: ReturnType<typeof vi.fn>;
     isAuthenticated: ReturnType<typeof vi.fn>;
     isLoggedIn: ReturnType<typeof vi.fn>;
@@ -20,6 +21,7 @@ describe('App', () => {
 
   beforeEach(async () => {
     benutzerStoreMock = {
+      benutzerProfil: vi.fn().mockReturnValue(null),
       initAuthState: vi.fn(),
       isAuthenticated: vi.fn().mockReturnValue(false),
       isLoggedIn: vi.fn().mockReturnValue(false),

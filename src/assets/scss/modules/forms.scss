@@ -7,6 +7,41 @@
     min-width: 0;
   }
 
+  &__row {
+    display: grid;
+    gap: 1rem;
+
+    &--flex {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: flex-start;
+
+      > .pur-form__field {
+        flex: 1 1 260px;
+      }
+
+      @media (max-width: 600px) {
+        > .pur-form__field {
+          flex-basis: 100%;
+        }
+      }
+    }
+  }
+
+  &__group {
+    display: grid;
+    gap: 1rem;
+    min-width: 0;
+    margin: 0;
+    padding: 0;
+    border: 0;
+
+    legend {
+      margin-bottom: 0.75rem;
+      font: var(--mat-sys-title-medium);
+    }
+  }
+
   &__submit {
     width: 100%;
   }
@@ -31,6 +66,12 @@
 
     .pur-form__error {
       flex: 1 0 100%;
+    }
+
+    @media (max-width: 600px) {
+      .pur-form__field {
+        flex-basis: 100%;
+      }
     }
   }
 

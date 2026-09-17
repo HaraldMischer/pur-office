@@ -1,18 +1,22 @@
 <!-- pur-office/src/app/pages/verwaltung-page/verwaltung-page.html -->
 
-<section class="page-shell">
-  <h1>Verwaltung</h1>
+<section class="pur-page">
+  <!-- Seitenkopf -->
+  <header class="pur-page__header">
+    <h1 class="pur-page__title">Verwaltung</h1>
+  </header>
 
-  <section class="verwaltung-section">
-    <h2>Benutzer anlegen</h2>
+  <section class="pur-page-section">
+    <h2 class="pur-page__section-title">Benutzer anlegen</h2>
 
     <form
-      class="pur-form pur-form--grid verwaltung-form"
+      class="pur-form pur-form--grid"
       [formGroup]="benutzerForm"
       aria-label="Benutzerzugang vorbereiten"
       (ngSubmit)="onSubmit()"
     >
-      <div class="verwaltung-form__identity">
+      <!-- Benutzerdaten -->
+      <div class="pur-form__row pur-form__row--flex">
         <mat-form-field appearance="outline" class="pur-form__field">
           <mat-label>E-Mail-Adresse</mat-label>
           <input
@@ -49,10 +53,11 @@
         </mat-form-field>
       </div>
 
-      <fieldset class="verwaltung-form__group" formGroupName="erlaubteBereiche">
+      <!-- Erlaubte Bereiche -->
+      <fieldset class="pur-form__group" formGroupName="erlaubteBereiche">
         <legend>Erlaubte Bereiche</legend>
 
-        <div class="verwaltung-form__areas">
+        <div class="pur-form__row pur-form__row--flex">
           @for (bereich of bereiche; track bereich.value) {
             <mat-checkbox [formControlName]="bereich.value">{{ bereich.label }}</mat-checkbox>
           }
@@ -66,15 +71,21 @@
         }
       </fieldset>
 
-      <fieldset class="verwaltung-form__group">
+      <!-- Firmen- und Filialzugriffe -->
+      <fieldset class="pur-form__group">
         <legend>Firmen- und Filialzugriffe</legend>
 
-        <div class="verwaltung-form__accesses" formArrayName="zugriffe">
+        <div class="pur-form__row" formArrayName="zugriffe">
           @for (zugriff of zugriffe.controls; track zugriff; let index = $index) {
-            <div class="verwaltung-form__access" [formGroupName]="index">
+            <div class="pur-form__row" [formGroupName]="index">
               <mat-form-field appearance="outline" class="pur-form__field">
                 <mat-label>Firma-ID</mat-label>
-                <input formControlName="firmaId" matInput type="text" autocomplete="off" />
+                <input
+                  [formControl]="zugriff.controls.firmaId"
+                  matInput
+                  type="text"
+                  autocomplete="off"
+                />
                 @if (zugriff.controls.firmaId.hasError('required')) {
                   <mat-error>Firma-ID ist erforderlich.</mat-error>
                 }
@@ -82,7 +93,7 @@
 
               <mat-form-field appearance="outline" class="pur-form__field">
                 <mat-label>Filial-IDs</mat-label>
-                <textarea formControlName="filialIds" matInput rows="2"></textarea>
+                <textarea [formControl]="zugriff.controls.filialIds" matInput rows="2"></textarea>
                 <mat-hint>Mit Komma, Semikolon oder Zeilenumbruch trennen</mat-hint>
                 @if (zugriff.controls.filialIds.hasError('required')) {
                   <mat-error>Mindestens eine Filial-ID ist erforderlich.</mat-error>
@@ -108,7 +119,8 @@
         </button>
       </fieldset>
 
-      <fieldset class="verwaltung-form__group">
+      <!-- Passwortvergabe -->
+      <fieldset class="pur-form__group">
         <legend>Zugang</legend>
 
         <mat-button-toggle-group formControlName="zugangsart" aria-label="Art der Passwortvergabe">
@@ -119,7 +131,7 @@
         </mat-button-toggle-group>
 
         @if (benutzerForm.controls.zugangsart.value === 'master-passwort') {
-          <div class="verwaltung-form__passwords">
+          <div class="pur-form__row pur-form__row--flex">
             <mat-form-field appearance="outline" class="pur-form__field">
               <mat-label>Anfangspasswort</mat-label>
               <input
@@ -151,18 +163,20 @@
         }
       </fieldset>
 
+      <!-- Fehlermeldung -->
       @if (verwaltungStore.error(); as error) {
         <p class="pur-form__error" role="alert">{{ error }}</p>
       }
 
+      <!-- Ergebnis und Einrichtungslink -->
       @if (verwaltungStore.createdBenutzer(); as benutzer) {
-        <div class="verwaltung-form__result">
+        <div class="pur-form__row">
           <p class="pur-form__success" role="status">
             Benutzer {{ benutzer.email }} wurde angelegt.
           </p>
 
           @if (benutzer.passwortEinrichtungslink; as einrichtungslink) {
-            <div class="verwaltung-form__setup-link">
+            <div class="pur-form__row">
               <mat-form-field appearance="outline" class="pur-form__field">
                 <mat-label>Passwort-Einrichtungslink</mat-label>
                 <input matInput readonly [value]="einrichtungslink" />
@@ -182,12 +196,13 @@
           }
 
           @if (linkKopiert()) {
-            <p class="verwaltung-form__copy-status" role="status">Link wurde kopiert.</p>
+            <p role="status">Link wurde kopiert.</p>
           }
         </div>
       }
 
-      <div class="verwaltung-form__actions">
+      <!-- Benutzer anlegen -->
+      <div>
         <button
           matButton="filled"
           type="submit"

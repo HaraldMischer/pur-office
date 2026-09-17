@@ -1,13 +1,15 @@
-<!-- pur-office/src/app/pages/konto/passwort-aendern-page/passwort-aendern-page.html -->
+<!-- pur-office/src/app/pages/auth/passwort-page/passwort-page.html -->
 
 <section class="passwort-page">
   <mat-card class="pur-card">
+    <!-- Kartenkopf -->
     <mat-card-header>
       <mat-card-title>Passwort ändern</mat-card-title>
       <mat-card-subtitle>Bestätige zuerst dein aktuelles Passwort.</mat-card-subtitle>
     </mat-card-header>
 
     <mat-card-content>
+      <!-- Passwortformular -->
       <form class="pur-form pur-form--grid" [formGroup]="passwortForm" (ngSubmit)="onSubmit()">
         <mat-form-field appearance="outline" class="pur-form__field">
           <mat-label>Aktuelles Passwort</mat-label>
@@ -42,6 +44,7 @@
           />
         </mat-form-field>
 
+        <!-- Fehlermeldungen -->
         @if (passwortForm.hasError('passwoerterUngleich')) {
           <p class="pur-form__error" role="alert">Die Passwörter stimmen nicht überein.</p>
         }
@@ -50,10 +53,12 @@
           <p class="pur-form__error" role="alert">{{ error }}</p>
         }
 
+        <!-- Erfolgsmeldung -->
         @if (passwortStore.erfolgreich()) {
           <p class="passwort-page__success" role="status">Das Passwort wurde geändert.</p>
         }
 
+        <!-- Passwort aendern -->
         <button
           class="pur-form__submit"
           matButton="filled"
