@@ -3,7 +3,7 @@
   "version": "0.0.0",
   "scripts": {
     "start-web": "ng serve",
-    "deploy-hosting": "",
+    "deploy-hosting": "printf 'Pur Office deployen? Firebase-Projekt: pur-system | Hosting: pur-office.web.app | Fortfahren? (j/N) '; read -r confirm; if [ \"$confirm\" = \"j\" ]; then npm run build && firebase deploy --project pur-system --only hosting:pur-office; else echo 'Deploy abgebrochen.'; exit 0; fi",
     "deploy-rules": "firebase deploy --only firestore:rules",
     "deploy-functions": "firebase deploy --only functions:pur-office",
     "build": "ng build",

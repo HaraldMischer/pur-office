@@ -2,6 +2,12 @@
   "projects": {
     "default": "pur-system"
   },
-  "targets": {},
+  "targets": {
+    "pur-system": {
+      "hosting": {
+        "pur-office": ["pur-office"]
+      }
+    }
+  },
   "etags": {}
 }
