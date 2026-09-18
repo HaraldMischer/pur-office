@@ -1,6 +1,5 @@
 // pur-office/src/app/pages/verwaltung-page/verwaltung-page.ts
 
-import { ClipboardModule } from '@angular/cdk/clipboard';
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import {
   AbstractControl,
@@ -13,7 +12,6 @@ import {
   Validators,
 } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
-import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
@@ -21,9 +19,13 @@ import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatTooltipModule } from '@angular/material/tooltip';
 
+import { DatenzugriffAuswahl } from '../../components/datenzugriff-auswahl/datenzugriff-auswahl';
+import { DATENZUGRIFF_MOCK } from './datenzugriff.mock';
+
 import { TAppBereich } from '../../commons/models/app/app-bereich';
-import { IBenutzerAnlage, TUserRole, TZugangsart } from '../../commons/models/domain/benutzer';
+import { IBenutzerAnlage, TUserRole } from '../../commons/models/domain/benutzer';
 import { BenutzerVerwaltungStore } from '../../stores/domain/benutzer-verwaltung.store';
+import { MatDivider } from '@angular/material/list';
 
 type TErlaubteBereicheForm = { [K in TAppBereich]: FormControl<boolean> };
 type TZugriffForm = { firmaId: FormControl<string>; filialIds: FormControl<string> };
@@ -33,27 +35,7 @@ type TBenutzerAnlageForm = {
   userRole: FormControl<TUserRole>;
   erlaubteBereiche: FormGroup<TErlaubteBereicheForm>;
   zugriffe: FormArray<FormGroup<TZugriffForm>>;
-  zugangsart: FormControl<TZugangsart>;
   passwort: FormControl<string>;
-  passwortBestaetigung: FormControl<string>;
-};
-
-const zugangValidator: ValidatorFn = (control: AbstractControl): ValidationErrors | null => {
-  const value = control.value as {
-    zugangsart?: TZugangsart;
-    passwort?: string;
-    passwortBestaetigung?: string;
-  };
-
-  if (value.zugangsart !== 'master-passwort') {
-    return null;
-  }
-
-  if (!value.passwort || value.passwort.length < 8) {
-    return { passwortZuKurz: true };
-  }
-
-  return value.passwort === value.passwortBestaetigung ? null : { passwoerterUngleich: true };
 };
 
 const nichtLeerValidator: ValidatorFn = (control: AbstractControl): ValidationErrors | null =>
@@ -78,9 +60,8 @@ const mindestensEinBereichValidator: ValidatorFn = (
 @Component({
   selector: 'app-verwaltung-page',
   imports: [
-    ClipboardModule,
+    DatenzugriffAuswahl,
     MatButtonModule,
-    MatButtonToggleModule,
     MatCheckboxModule,
     MatFormFieldModule,
     MatIconModule,
@@ -88,6 +69,7 @@ const mindestensEinBereichValidator: ValidatorFn = (
     MatSelectModule,
     MatTooltipModule,
     ReactiveFormsModule,
+    MatDivider,
   ],
   providers: [BenutzerVerwaltungStore],
   templateUrl: './verwaltung-page.html',
@@ -96,7 +78,9 @@ const mindestensEinBereichValidator: ValidatorFn = (
 })
 export class VerwaltungPage {
   readonly verwaltungStore = inject(BenutzerVerwaltungStore);
-  readonly linkKopiert = signal(false);
+  readonly datenzugriffVorschau = true;
+  readonly unternehmerVorschau = DATENZUGRIFF_MOCK;
+  readonly passwortSichtbar = signal(false);
   readonly rollen: ReadonlyArray<{ value: TUserRole; label: string }> = [
     { value: 'filiale', label: 'Filiale' },
     { value: 'office', label: 'Office' },
@@ -108,36 +92,34 @@ export class VerwaltungPage {
     { value: 'mitarbeiter', label: 'Mitarbeiter' },
     { value: 'verwaltung', label: 'Verwaltung' },
   ];
-  readonly benutzerForm = new FormGroup<TBenutzerAnlageForm>(
-    {
-      email: new FormControl('', {
-        nonNullable: true,
-        validators: [Validators.required, Validators.email],
-      }),
-      anzeigename: new FormControl('', {
-        nonNullable: true,
-        validators: [Validators.required, nichtLeerValidator],
-      }),
-      userRole: new FormControl<TUserRole>('filiale', {
-        nonNullable: true,
-        validators: [Validators.required],
-      }),
-      erlaubteBereiche: new FormGroup<TErlaubteBereicheForm>(
-        {
-          dashboard: new FormControl(true, { nonNullable: true }),
-          schichtplan: new FormControl(false, { nonNullable: true }),
-          mitarbeiter: new FormControl(false, { nonNullable: true }),
-          verwaltung: new FormControl(false, { nonNullable: true }),
-        },
-        { validators: [mindestensEinBereichValidator] },
-      ),
-      zugriffe: new FormArray<FormGroup<TZugriffForm>>([]),
-      zugangsart: new FormControl<TZugangsart>('einrichtungslink', { nonNullable: true }),
-      passwort: new FormControl('', { nonNullable: true }),
-      passwortBestaetigung: new FormControl('', { nonNullable: true }),
-    },
-    { validators: [zugangValidator] },
-  );
+  readonly benutzerForm = new FormGroup<TBenutzerAnlageForm>({
+    email: new FormControl('', {
+      nonNullable: true,
+      validators: [Validators.required, Validators.email],
+    }),
+    anzeigename: new FormControl('', {
+      nonNullable: true,
+      validators: [Validators.required, nichtLeerValidator],
+    }),
+    userRole: new FormControl<TUserRole>('filiale', {
+      nonNullable: true,
+      validators: [Validators.required],
+    }),
+    erlaubteBereiche: new FormGroup<TErlaubteBereicheForm>(
+      {
+        dashboard: new FormControl(true, { nonNullable: true }),
+        schichtplan: new FormControl(false, { nonNullable: true }),
+        mitarbeiter: new FormControl(false, { nonNullable: true }),
+        verwaltung: new FormControl(false, { nonNullable: true }),
+      },
+      { validators: [mindestensEinBereichValidator] },
+    ),
+    zugriffe: new FormArray<FormGroup<TZugriffForm>>([]),
+    passwort: new FormControl('', {
+      nonNullable: true,
+      validators: [Validators.required, Validators.minLength(8)],
+    }),
+  });
 
   get zugriffe(): FormArray<FormGroup<TZugriffForm>> {
     return this.benutzerForm.controls.zugriffe;
@@ -163,7 +145,7 @@ export class VerwaltungPage {
   }
 
   async onSubmit(): Promise<void> {
-    if (this.verwaltungStore.inProgress()) {
+    if (this.datenzugriffVorschau || this.verwaltungStore.inProgress()) {
       return;
     }
 
@@ -172,18 +154,12 @@ export class VerwaltungPage {
       return;
     }
 
-    this.linkKopiert.set(false);
-
     try {
       await this.verwaltungStore.createBenutzer(anlage);
       this.resetForm();
     } catch {
       // Der Store stellt die benutzerfreundliche Fehlermeldung bereit.
     }
-  }
-
-  onLinkKopiert(kopiert: boolean): void {
-    this.linkKopiert.set(kopiert);
   }
 
   getBenutzerAnlage(): IBenutzerAnlage | null {
@@ -215,12 +191,16 @@ export class VerwaltungPage {
           .map((filialId) => filialId.trim())
           .filter(Boolean),
       })),
-      zugangsart: formValue.zugangsart,
-      ...(formValue.zugangsart === 'master-passwort' ? { passwort: formValue.passwort } : {}),
+      passwort: formValue.passwort,
     };
   }
 
+  togglePasswortSichtbarkeit(): void {
+    this.passwortSichtbar.update((sichtbar) => !sichtbar);
+  }
+
   private resetForm(): void {
+    this.passwortSichtbar.set(false);
     this.zugriffe.clear();
     this.benutzerForm.reset({
       email: '',
@@ -232,9 +212,7 @@ export class VerwaltungPage {
         mitarbeiter: false,
         verwaltung: false,
       },
-      zugangsart: 'einrichtungslink',
       passwort: '',
-      passwortBestaetigung: '',
     });
   }
 }

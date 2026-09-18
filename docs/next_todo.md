@@ -1,11 +1,15 @@
 <!-- pur-office/docs/next_todo.md -->
 
+<!-- Datenzugriff-Vorschau -->
+Die Verwaltungsseite zeigt den Datenzugriff vorerst mit lokalen Beispieldaten: Unternehmer, Firmen und deren Filialen. Alle drei Selects starten mit Einfachauswahl; `unternehmerMehrfach`, `firmenMehrfach` und `filialenMehrfach` aktivieren jeweils die Mehrfachauswahl. Firmen sind nach Unternehmer gruppiert. Interne Auswahlschluessel enthalten die Unternehmerzuordnung. Abgewaehlte Unternehmer verlieren ihre abhaengige Auswahl; das Abwaehlen einer Firma entfernt ihre Filialauswahl. Die Benutzeranlage ist in dieser Vorschau auch im Submit-Handler gesperrt. Offen: Firebase-Anbindung an `purCustomers/{unternehmerId}/company/{firmaId}/branches`, Erweiterung der gespeicherten Zugriffe um den Unternehmer und serverseitige Zugehoerigkeitspruefung. Erst danach die Benutzeranlage wieder aktivieren.
+
+
 # Offene Todos
 
 ## 4. Todo: Verwaltungsbereich und Benutzeranlage umsetzen
 
 > **Status: Noch nicht abgeschlossen.**  
-> Die sicheren Uebergangs-Rules sind lokal implementiert und im Emulator getestet. Offen bleiben die Pruefung mit den realen Altanwendungen und das anschliessende Deployment in das gemeinsame Firebase-Projekt.
+> Altanwendungspruefung und Deployment sind laut Benutzer abgeschlossen. Die neue Umstellung auf ausschliessliche Passwortvergabe durch den Master muss noch deployed und im Gesamtablauf geprueft werden.
 
 Ziel:
 Ein Benutzer mit `userRole: master` kann im geschuetzten Bereich `/verwaltung` vorkonfigurierte Benutzerzugaenge anlegen. Eine Selbstregistrierung bleibt ausgeschlossen. Die Angular-App uebergibt die Benutzerdaten an eine geschuetzte Firebase Cloud Function. Die Function prueft die Master-Rolle serverseitig und legt mit dem Firebase Admin SDK sowohl den Firebase-Auth-Benutzer als auch das Firestore-Dokument `benutzer/{uid}` an. Die bestehende Sitzung des Masters bleibt dabei erhalten.
@@ -51,21 +55,20 @@ Schritte 3: Serverseitige Benutzeranlage
 8. [x] Verstaendliche Fehlercodes an die Angular-App zurueckgeben.
 
 Schritte 4: Zugang und Sicherheit
-1. [x] Auswahl zwischen direkter Passwortvergabe durch den Master und Passwort-Einrichtungslink umsetzen.
-2. [x] Sicheren Versand oder eine sichere Uebergabe des Einrichtungslinks festlegen.
+1. [x] Anfangspasswort ausschliesslich durch den Master in einem Passwortfeld mit Ein-/Ausblendfunktion vergeben lassen.
+2. [x] Anfangspasswort durch den Master sicher an den Benutzer uebergeben lassen.
 3. [x] Sicherstellen, dass der neu angelegte Benutzer nicht im Browser des Masters angemeldet wird.
 4. [x] Uebergangs-Rules lokal umsetzen und im Emulator testen: alte Collections bleiben fuer angemeldete Benutzer freigegeben, `benutzer` wird geschuetzt.
 5. [x] Die serverseitige Master-Pruefung unabhaengig von Navigation und Angular Guards testen.
 6. [x] Eigene Benutzeroberflaeche fuer einen spaeteren Passwortwechsel durch den angemeldeten Benutzer umsetzen.
-7. [ ] Uebergangs-Rules mit den realen Altanwendungen pruefen und erst danach deployen.
+7. [x] Uebergangs-Rules mit den realen Altanwendungen pruefen und erst danach deployen (vom Benutzer bestaetigt).
 
-Umgesetzte Zugangsarten:
-- `Benutzer legt Passwort fest`: Die Function erzeugt einen Einrichtungslink, den der Master kopiert und sicher weitergibt.
-- `Passwort durch Master`: Der Master vergibt ein bestaetigtes Anfangspasswort mit mindestens 8 Zeichen. Es wird nur an Firebase Authentication uebergeben und nicht in Firestore gespeichert.
+Umgesetzte Passwortvergabe:
+- `Passwort durch Master`: Der Master vergibt ein Anfangspasswort mit mindestens 8 Zeichen. Es wird nur an Firebase Authentication uebergeben und nicht in Firestore gespeichert.
 - Angemeldete Benutzer koennen ihr Passwort ueber die geschuetzte Seite `/passwort` nach erneuter Authentifizierung aendern.
 
 Rules-Status:
-Die lokale Uebergangsregel erhaelt fuer alle Top-Level-Collections ausser `benutzer` den bisherigen Lese- und Schreibzugriff angemeldeter Benutzer. Fuer `benutzer/{uid}` ist nur das Lesen des eigenen Profils erlaubt; alle Client-Schreibzugriffe und Listenabfragen sind gesperrt. Vier Emulator-Tests bestaetigen Altzugriff, Auth-Pflicht, Profilzugriff und Schreibschutz. Ein Deployment ist noch nicht erfolgt.
+Die lokale Uebergangsregel erhaelt fuer alle Top-Level-Collections ausser `benutzer` den bisherigen Lese- und Schreibzugriff angemeldeter Benutzer. Fuer `benutzer/{uid}` ist nur das Lesen des eigenen Profils erlaubt; alle Client-Schreibzugriffe und Listenabfragen sind gesperrt. Vier Emulator-Tests bestaetigen Altzugriff, Auth-Pflicht, Profilzugriff und Schreibschutz. Pruefung mit den realen Altanwendungen und Deployment sind laut Benutzer erfolgreich abgeschlossen.
 
 Schritte 5: Tests und Abschluss
 1. [x] Tests fuer Route, Guard, Navigation und Verwaltungsformular ergaenzen.
@@ -80,7 +83,7 @@ Erledigt wenn:
 - [x] Firebase-Auth-Benutzer und `benutzer/{uid}` werden konsistent angelegt.
 - [x] Rolle, erlaubte Bereiche sowie Firmen- und Filialzugriffe werden vorkonfiguriert.
 - [x] Der Master bleibt waehrend der Benutzeranlage angemeldet.
-- [x] Der neue Benutzer erhaelt einen Passwort-Einrichtungslink.
+- [x] Der Master vergibt ein Anfangspasswort; der Benutzer kann es nach Anmeldung aendern.
 - [x] Eine oeffentliche Selbstregistrierung ist weiterhin nicht vorhanden.
 - [x] Fehler hinterlassen weder ein unvollstaendiges Auth-Konto noch ein unvollstaendiges Benutzerprofil.
 - [ ] Die globale Firestore-Schreibfreigabe wurde durch collection-spezifische Rules ersetzt, ohne die Altanwendungen zu beeintraechtigen.

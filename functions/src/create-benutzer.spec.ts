@@ -17,7 +17,7 @@ describe('handleCreateBenutzer', () => {
         filialIds: ['filiale-1'],
       },
     ],
-    zugangsart: 'einrichtungslink',
+    passwort: 'SicheresPasswort123!',
   };
 
   function createDependencies() {
@@ -27,7 +27,6 @@ describe('handleCreateBenutzer', () => {
         userRole: 'master',
       }),
       createAuthBenutzer: vi.fn().mockResolvedValue({ uid: 'neu-123' }),
-      generatePasswordResetLink: vi.fn().mockResolvedValue('https://example.com/reset'),
       setBenutzerDokument: vi.fn().mockResolvedValue(undefined),
       deleteAuthBenutzer: vi.fn().mockResolvedValue(undefined),
       logRollbackError: vi.fn(),
@@ -49,13 +48,14 @@ describe('handleCreateBenutzer', () => {
     expect(dependencies.createAuthBenutzer).toHaveBeenCalledWith({
       email: data.email,
       displayName: data.anzeigename,
+      password: data.passwort,
     });
-    expect(dependencies.generatePasswordResetLink).toHaveBeenCalledWith(data.email);
-    expect(dependencies.setBenutzerDokument).toHaveBeenCalledWith('neu-123', data);
+    const { passwort, ...profil } = data;
+    expect(dependencies.setBenutzerDokument).toHaveBeenCalledWith('neu-123', profil);
+    expect(dependencies.setBenutzerDokument.mock.calls[0][1]).not.toHaveProperty('passwort');
     expect(result).toEqual({
       uid: 'neu-123',
       email: data.email,
-      passwortEinrichtungslink: 'https://example.com/reset',
     });
   });
 
@@ -122,7 +122,6 @@ describe('handleCreateBenutzer', () => {
     const dependencies = createDependencies();
     const passwordData: ICreateBenutzerData = {
       ...data,
-      zugangsart: 'master-passwort',
       passwort: 'SicheresPasswort123!',
     };
 
@@ -136,25 +135,27 @@ describe('handleCreateBenutzer', () => {
       displayName: data.anzeigename,
       password: passwordData.passwort,
     });
-    expect(dependencies.generatePasswordResetLink).not.toHaveBeenCalled();
-    expect(result.passwortEinrichtungslink).toBeNull();
+    expect(result).toEqual({ uid: 'neu-123', email: data.email });
   });
 
-  it('should reject a short password chosen by the master', async () => {
-    const dependencies = createDependencies();
+  it.each([undefined, '', 'short'])(
+    'should reject a missing or short password: %s',
+    async (passwort) => {
+      const dependencies = createDependencies();
 
-    await expect(
-      handleCreateBenutzer(
-        {
-          auth: { uid: 'master-123' },
-          data: { ...data, zugangsart: 'master-passwort', passwort: 'short' },
-        },
-        dependencies,
-      ),
-    ).rejects.toMatchObject({ code: 'invalid-argument' });
+      await expect(
+        handleCreateBenutzer(
+          {
+            auth: { uid: 'master-123' },
+            data: { ...data, passwort },
+          },
+          dependencies,
+        ),
+      ).rejects.toMatchObject({ code: 'invalid-argument' });
 
-    expect(dependencies.createAuthBenutzer).not.toHaveBeenCalled();
-  });
+      expect(dependencies.createAuthBenutzer).not.toHaveBeenCalled();
+    },
+  );
 
   it('should return an understandable error for an existing email address', async () => {
     const dependencies = createDependencies();
@@ -173,18 +174,6 @@ describe('handleCreateBenutzer', () => {
     ).rejects.toMatchObject<Partial<HttpsError>>({
       code: 'already-exists',
     });
-  });
-
-  it('should delete the auth user when creating the password setup link fails', async () => {
-    const dependencies = createDependencies();
-    dependencies.generatePasswordResetLink.mockRejectedValue(new Error('Link error'));
-
-    await expect(
-      handleCreateBenutzer({ auth: { uid: 'master-123' }, data }, dependencies),
-    ).rejects.toMatchObject({ code: 'internal' });
-
-    expect(dependencies.setBenutzerDokument).not.toHaveBeenCalled();
-    expect(dependencies.deleteAuthBenutzer).toHaveBeenCalledWith('neu-123');
   });
 
   it('should delete the auth user when writing the user document fails', async () => {

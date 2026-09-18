@@ -4,11 +4,9 @@ import { HttpsError } from 'firebase-functions/v2/https';
 
 const USER_ROLES = ['filiale', 'office', 'master'] as const;
 const APP_BEREICHE = ['dashboard', 'schichtplan', 'mitarbeiter', 'verwaltung'] as const;
-const ZUGANGSARTEN = ['master-passwort', 'einrichtungslink'] as const;
 
 type TUserRole = (typeof USER_ROLES)[number];
 type TAppBereich = (typeof APP_BEREICHE)[number];
-type TZugangsart = (typeof ZUGANGSARTEN)[number];
 
 interface IBenutzerZugriff {
   firmaId: string;
@@ -21,14 +19,12 @@ export interface ICreateBenutzerData {
   userRole: TUserRole;
   erlaubteBereiche: TAppBereich[];
   zugriffe: IBenutzerZugriff[];
-  zugangsart: TZugangsart;
-  passwort?: string;
+  passwort: string;
 }
 
 export interface ICreateBenutzerResult {
   uid: string;
   email: string;
-  passwortEinrichtungslink: string | null;
 }
 
 interface ICreateBenutzerRequest {
@@ -41,10 +37,9 @@ interface ICreateBenutzerDependencies {
   createAuthBenutzer(data: {
     email: string;
     displayName: string;
-    password?: string;
+    password: string;
   }): Promise<{ uid: string }>;
-  generatePasswordResetLink(email: string): Promise<string>;
-  setBenutzerDokument(uid: string, data: ICreateBenutzerData): Promise<void>;
+  setBenutzerDokument(uid: string, data: Omit<ICreateBenutzerData, 'passwort'>): Promise<void>;
   deleteAuthBenutzer(uid: string): Promise<void>;
   logRollbackError(uid: string, error: unknown): void;
 }
@@ -93,7 +88,6 @@ function parseCreateBenutzerData(value: unknown): ICreateBenutzerData {
   const anzeigename = typeof value['anzeigename'] === 'string' ? value['anzeigename'].trim() : '';
   const userRole = value['userRole'];
   const erlaubteBereiche = value['erlaubteBereiche'];
-  const zugangsart = value['zugangsart'];
   const passwort = typeof value['passwort'] === 'string' ? value['passwort'] : undefined;
 
   if (!email || !email.includes('@')) {
@@ -116,11 +110,7 @@ function parseCreateBenutzerData(value: unknown): ICreateBenutzerData {
     throw new HttpsError('invalid-argument', 'Mindestens ein gültiger Bereich ist erforderlich.');
   }
 
-  if (typeof zugangsart !== 'string' || !ZUGANGSARTEN.includes(zugangsart as TZugangsart)) {
-    throw new HttpsError('invalid-argument', 'Die Zugangsart ist ungültig.');
-  }
-
-  if (zugangsart === 'master-passwort' && (!passwort || passwort.length < 8)) {
+  if (!passwort || passwort.length < 8) {
     throw new HttpsError(
       'invalid-argument',
       'Das Anfangspasswort muss mindestens 8 Zeichen haben.',
@@ -133,8 +123,7 @@ function parseCreateBenutzerData(value: unknown): ICreateBenutzerData {
     userRole: userRole as TUserRole,
     erlaubteBereiche: [...new Set(erlaubteBereiche)] as TAppBereich[],
     zugriffe: parseZugriffe(value['zugriffe']),
-    zugangsart: zugangsart as TZugangsart,
-    ...(zugangsart === 'master-passwort' ? { passwort } : {}),
+    passwort,
   };
 }
 
@@ -180,23 +169,19 @@ export async function handleCreateBenutzer(
     authBenutzer = await dependencies.createAuthBenutzer({
       email: data.email,
       displayName: data.anzeigename,
-      ...(data.zugangsart === 'master-passwort' ? { password: data.passwort } : {}),
+      password: data.passwort,
     });
   } catch (error: unknown) {
     throw mapAuthError(error);
   }
 
   try {
-    const passwortEinrichtungslink =
-      data.zugangsart === 'einrichtungslink'
-        ? await dependencies.generatePasswordResetLink(data.email)
-        : null;
-    await dependencies.setBenutzerDokument(authBenutzer.uid, data);
+    const { passwort, ...benutzerDokument } = data;
+    await dependencies.setBenutzerDokument(authBenutzer.uid, benutzerDokument);
 
     return {
       uid: authBenutzer.uid,
       email: data.email,
-      passwortEinrichtungslink,
     };
   } catch (error: unknown) {
     try {

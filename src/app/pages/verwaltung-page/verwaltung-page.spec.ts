@@ -17,7 +17,6 @@ describe('VerwaltungPage', () => {
             createBenutzer: vi.fn().mockResolvedValue({
               uid: 'neu-123',
               email: 'user.com',
-              passwortEinrichtungslink: 'https://example.com/reset',
             }),
           },
         },
@@ -37,7 +36,7 @@ describe('VerwaltungPage', () => {
     fixture.detectChanges();
     const compiled = fixture.nativeElement as HTMLElement;
 
-    expect(compiled.querySelector('h1')?.textContent).toContain('Verwaltung');
+    expect(compiled.querySelector('h1')?.textContent).toContain('Benutzer anlegen');
     expect(compiled.querySelector('mat-select')).toBeTruthy();
     expect(compiled.querySelectorAll('mat-checkbox')).toHaveLength(4);
   });
@@ -62,6 +61,7 @@ describe('VerwaltungPage', () => {
       email: '  user@example.com ',
       anzeigename: '  Test Benutzer ',
       userRole: 'office',
+      passwort: 'SicheresPasswort123!',
       erlaubteBereiche: {
         dashboard: true,
         schichtplan: true,
@@ -86,23 +86,65 @@ describe('VerwaltungPage', () => {
           filialIds: ['filiale-1', 'filiale-2', 'filiale-3'],
         },
       ],
-      zugangsart: 'einrichtungslink',
+      passwort: 'SicheresPasswort123!',
     });
   });
 
-  it('should require matching passwords for direct password assignment', () => {
+  it.each(['', 'short'])(
+    'should prevent submission with an invalid initial password: %s',
+    async (passwort) => {
+      const component = TestBed.createComponent(VerwaltungPage).componentInstance;
+      component.benutzerForm.patchValue({
+        email: 'user@example.com',
+        anzeigename: 'Test',
+        passwort,
+      });
+      await component.onSubmit();
+      expect(component.getBenutzerAnlage()).toBeNull();
+      expect(TestBed.inject(BenutzerVerwaltungService).createBenutzer).not.toHaveBeenCalled();
+    },
+  );
+
+  it('should block user creation during preview even with valid input', async () => {
     const fixture = TestBed.createComponent(VerwaltungPage);
     const component = fixture.componentInstance;
     component.benutzerForm.patchValue({
       email: 'user@example.com',
-      anzeigename: 'Test Benutzer',
-      zugangsart: 'master-passwort',
+      anzeigename: 'Test',
       passwort: 'SicheresPasswort123!',
-      passwortBestaetigung: 'AnderesPasswort123!',
     });
+    expect(component.benutzerForm.valid).toBe(true);
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('button[type="submit"]').disabled).toBe(true);
+    await component.onSubmit();
+    expect(TestBed.inject(BenutzerVerwaltungService).createBenutzer).not.toHaveBeenCalled();
+  });
 
-    expect(component.getBenutzerAnlage()).toBeNull();
-    expect(component.benutzerForm.hasError('passwoerterUngleich')).toBe(true);
+  it('should toggle password visibility without submitting or changing the password', () => {
+    const fixture = TestBed.createComponent(VerwaltungPage);
+    const component = fixture.componentInstance;
+    component.benutzerForm.patchValue({
+      email: 'user@example.com',
+      anzeigename: 'Test',
+      passwort: 'SicheresPasswort123!',
+    });
+    fixture.detectChanges();
+    const input = fixture.nativeElement.querySelector(
+      'input[formControlName="passwort"]',
+    ) as HTMLInputElement;
+    const button = fixture.nativeElement.querySelector('button[matSuffix]') as HTMLButtonElement;
+    expect(input.type).toBe('password');
+    expect(button.type).toBe('button');
+    expect(button.getAttribute('aria-label')).toBe('Passwort anzeigen');
+    button.click();
+    fixture.detectChanges();
+    expect(input.type).toBe('text');
+    expect(button.getAttribute('aria-label')).toBe('Passwort ausblenden');
+    button.click();
+    fixture.detectChanges();
+    expect(input.type).toBe('password');
+    expect(input.value).toBe('SicheresPasswort123!');
+    expect(TestBed.inject(BenutzerVerwaltungService).createBenutzer).not.toHaveBeenCalled();
   });
 
   it('should reject access controls without company and branch identifiers', () => {

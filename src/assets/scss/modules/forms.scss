@@ -8,23 +8,13 @@
   }
 
   &__row {
-    display: grid;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
     gap: 1rem;
 
-    &--flex {
-      display: flex;
-      flex-wrap: wrap;
-      align-items: flex-start;
-
-      > .pur-form__field {
-        flex: 1 1 260px;
-      }
-
-      @media (max-width: 600px) {
-        > .pur-form__field {
-          flex-basis: 100%;
-        }
-      }
+    > .pur-form__field {
+      flex: 1 1 260px;
     }
   }
 

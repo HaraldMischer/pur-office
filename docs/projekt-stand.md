@@ -1,5 +1,9 @@
 <!-- pur-office/docs/projekt-stand.md -->
 
+<!-- Datenzugriff-Vorschau -->
+Die Verwaltungsseite zeigt den Datenzugriff vorerst mit lokalen Beispieldaten: Unternehmer, Firmen und deren Filialen. Alle drei Selects starten mit Einfachauswahl; `unternehmerMehrfach`, `firmenMehrfach` und `filialenMehrfach` aktivieren jeweils die Mehrfachauswahl. Firmen sind nach Unternehmer gruppiert. Interne Auswahlschluessel enthalten die Unternehmerzuordnung. Abgewaehlte Unternehmer verlieren ihre abhaengige Auswahl; das Abwaehlen einer Firma entfernt ihre Filialauswahl. Die Benutzeranlage ist in dieser Vorschau auch im Submit-Handler gesperrt. Offen: Firebase-Anbindung an `purCustomers/{unternehmerId}/company/{firmaId}/branches`, Erweiterung der gespeicherten Zugriffe um den Unternehmer und serverseitige Zugehoerigkeitspruefung. Erst danach die Benutzeranlage wieder aktivieren.
+
+
 # Projekt-Stand: Pur Office
 
 Dieses Dokument beschreibt den aktuellen Umsetzungsstand im Code. Das fachliche Zielbild steht separat im [Projekt-Plan](./projekt-plan.md).
@@ -68,18 +72,18 @@ Dieses Dokument beschreibt den aktuellen Umsetzungsstand im Code. Das fachliche 
 - [x] Die geschuetzte Callable Function `createBenutzer` legt Auth-Benutzer und `benutzer/{uid}`-Dokumente an.
 - [x] Die Function prueft Anmeldung, aktives Profil und `userRole: master` serverseitig.
 - [x] Die Anlage erfolgt mit dem Admin SDK; die Sitzung des Masters bleibt erhalten.
-- [x] Die Function erzeugt einen Passwort-Einrichtungslink; er wird nur im lokalen Seitenzustand angezeigt und kann kopiert werden.
-- [x] Bei der Benutzeranlage kann alternativ ein mindestens 8 Zeichen langes Anfangspasswort durch den Master vergeben werden.
+- [x] Bei der Benutzeranlage muss ein mindestens 8 Zeichen langes Anfangspasswort durch den Master in einem Passwortfeld mit Ein-/Ausblendfunktion vergeben werden.
 - [x] Direkt vergebene Passwoerter werden nur an Firebase Authentication uebermittelt und nicht in Firestore gespeichert.
 - [x] Angemeldete Benutzer koennen ihr Passwort nach erneuter Authentifizierung ueber die Toolbar und `/passwort` aendern.
 - [x] Neues Passwort und Bestaetigung werden clientseitig validiert; es gelten mindestens 8 Zeichen.
 - [x] Bei fehlgeschlagener Profilerstellung wird der angelegte Auth-Benutzer zurueckgerollt.
 
 - [x] Functions-Codebase `pur-office` nutzt Node.js 22 und die Region `europe-west1`.
-- [ ] Die Function ist lokal vorbereitet, aber noch nicht deployed.
+- [x] Die bisherige Function wurde deployed (vom Benutzer bestaetigt).
+- [ ] Die Umstellung auf ausschliessliche Passwortvergabe durch den Master muss erneut deployed werden.
 - [x] Lokale Uebergangs-Rules schuetzen `benutzer` und erhalten den bisherigen Zugriff auf alte Collections fuer angemeldete Benutzer.
 - [x] Vier Firestore-Emulator-Tests pruefen Altzugriff, Auth-Pflicht, eigenen Profilzugriff und Schreibschutz.
-- [ ] Die Uebergangs-Rules muessen mit den realen Altanwendungen geprueft und anschliessend deployed werden.
+- [x] Die Uebergangs-Rules wurden mit den realen Altanwendungen erfolgreich geprueft und deployed (vom Benutzer bestaetigt).
 
 ## Tests und Build
 

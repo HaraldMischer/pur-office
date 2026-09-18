@@ -30,11 +30,10 @@ export const createBenutzer = onCall<ICreateBenutzerData, Promise<ICreateBenutze
           auth.createUser({
             email: data.email,
             displayName: data.displayName,
-            ...(data.password ? { password: data.password } : {}),
+            password: data.password,
             disabled: false,
             emailVerified: false,
           }),
-        generatePasswordResetLink: (email) => auth.generatePasswordResetLink(email),
         setBenutzerDokument: async (uid, data) => {
           await firestore.doc(`benutzer/${uid}`).set({
             uid,

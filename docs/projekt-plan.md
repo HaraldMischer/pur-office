@@ -51,7 +51,7 @@ Firestore Rules sichern den Zugriff serverseitig ebenfalls ab.
 
 Eine Selbstregistrierung ist nicht vorgesehen. Benutzerzugaenge werden spaeter im Bereich `verwaltung` von einem `master` vorkonfiguriert. Die Angular-App ruft dafuer eine geschuetzte Firebase Cloud Function auf. Die Function prueft die Rolle des aufrufenden Benutzers serverseitig, legt mit dem Firebase Admin SDK den Auth-Benutzer und anschliessend das Dokument `benutzer/{uid}` an. Der angemeldete `master` bleibt dabei eingeloggt.
 
-Das Konto soll ueber einen Passwort-Einrichtungslink aktiviert werden. Schlaegt das Anlegen des Benutzerdokuments fehl, muss der zuvor erzeugte Auth-Benutzer wieder entfernt werden, damit kein unvollstaendiger Zugang bestehen bleibt.
+Der Master vergibt bei der Anlage ein Anfangspasswort mit mindestens 8 Zeichen. Der Benutzer kann dieses nach der Anmeldung ueber `/passwort` freiwillig aendern. Schlaegt das Anlegen des Benutzerdokuments fehl, muss der zuvor erzeugte Auth-Benutzer wieder entfernt werden, damit kein unvollstaendiger Zugang bestehen bleibt.
 
 ## Projektstruktur
 

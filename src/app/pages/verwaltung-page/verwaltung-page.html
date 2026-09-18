@@ -3,61 +3,96 @@
 <section class="pur-page">
   <!-- Seitenkopf -->
   <header class="pur-page__header">
-    <h1 class="pur-page__title">Verwaltung</h1>
+    <h1 class="pur-page__title">Benutzer anlegen</h1>
   </header>
 
   <section class="pur-page-section">
-    <h2 class="pur-page__section-title">Benutzer anlegen</h2>
-
     <form
       class="pur-form pur-form--grid"
       [formGroup]="benutzerForm"
       aria-label="Benutzerzugang vorbereiten"
       (ngSubmit)="onSubmit()"
     >
-      <!-- Benutzerdaten -->
-      <div class="pur-form__row pur-form__row--flex">
-        <mat-form-field appearance="outline" class="pur-form__field">
-          <mat-label>E-Mail-Adresse</mat-label>
-          <input
-            formControlName="email"
-            matInput
-            type="email"
-            autocomplete="off"
-            inputmode="email"
-          />
 
-          @if (benutzerForm.controls.email.hasError('required')) {
-            <mat-error>E-Mail-Adresse ist erforderlich.</mat-error>
-          } @else if (benutzerForm.controls.email.hasError('email')) {
-            <mat-error>Bitte eine gültige E-Mail-Adresse eingeben.</mat-error>
-          }
-        </mat-form-field>
+      <mat-divider/>
 
-        <mat-form-field appearance="outline" class="pur-form__field">
-          <mat-label>Anzeigename</mat-label>
-          <input formControlName="anzeigename" matInput type="text" autocomplete="off" />
+      <!-- Zugangsdaten -->
+      <fieldset class="pur-form__group zugangsdaten">
+        <legend>Zugangsdaten</legend>
 
-          @if (benutzerForm.controls.anzeigename.hasError('required')) {
-            <mat-error>Anzeigename ist erforderlich.</mat-error>
-          }
-        </mat-form-field>
+        <div class="pur-form pur-form--grid">
+          <!-- Anzeigename -->
+          <mat-form-field appearance="outline" class="pur-form__field">
+            <mat-label>Anzeigename</mat-label>
+            <input formControlName="anzeigename" matInput type="text" autocomplete="off" />
 
-        <mat-form-field appearance="outline" class="pur-form__field">
-          <mat-label>Benutzerrolle</mat-label>
-          <mat-select formControlName="userRole">
-            @for (rolle of rollen; track rolle.value) {
-              <mat-option [value]="rolle.value">{{ rolle.label }}</mat-option>
+            @if (benutzerForm.controls.anzeigename.hasError('required')) {
+              <mat-error>Anzeigename ist erforderlich.</mat-error>
             }
-          </mat-select>
-        </mat-form-field>
-      </div>
+          </mat-form-field>
+          <!-- Benutzerrolle -->
+          <mat-form-field appearance="outline" class="pur-form__field">
+            <mat-label>Benutzerrolle</mat-label>
+            <mat-select formControlName="userRole">
+              @for (rolle of rollen; track rolle.value) {
+                <mat-option [value]="rolle.value">{{ rolle.label }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+          <!-- E-Mail-Adresse -->
+          <mat-form-field appearance="outline" class="pur-form__field">
+            <mat-label>E-Mail-Adresse</mat-label>
+            <input
+              formControlName="email"
+              matInput
+              type="email"
+              autocomplete="off"
+              inputmode="email"
+            />
+
+            @if (benutzerForm.controls.email.hasError('required')) {
+              <mat-error>E-Mail-Adresse ist erforderlich.</mat-error>
+            } @else if (benutzerForm.controls.email.hasError('email')) {
+              <mat-error>Bitte eine gültige E-Mail-Adresse eingeben.</mat-error>
+            }
+          </mat-form-field>
+          <!-- Passwort -->
+          <mat-form-field appearance="outline" class="pur-form__field">
+            <mat-label>Passwort (mind. 8 Zeichen)</mat-label>
+            <input
+              formControlName="passwort"
+              matInput
+              [type]="passwortSichtbar() ? 'text' : 'password'"
+              autocomplete="new-password"
+            />
+            <button
+              matIconButton
+              matSuffix
+              type="button"
+              [attr.aria-label]="passwortSichtbar() ? 'Passwort ausblenden' : 'Passwort anzeigen'"
+              [matTooltip]="passwortSichtbar() ? 'Passwort ausblenden' : 'Passwort anzeigen'"
+              (click)="togglePasswortSichtbarkeit()"
+            >
+              <mat-icon aria-hidden="true">{{
+                passwortSichtbar() ? 'visibility_off' : 'visibility'
+              }}</mat-icon>
+            </button>
+            @if (benutzerForm.controls.passwort.hasError('required')) {
+              <mat-error>Ein Anfangspasswort ist erforderlich.</mat-error>
+            } @else if (benutzerForm.controls.passwort.hasError('minlength')) {
+              <mat-error>Das Passwort muss mindestens 8 Zeichen haben.</mat-error>
+            }
+          </mat-form-field>
+        </div>
+      </fieldset>
+
+      <mat-divider/>
 
       <!-- Erlaubte Bereiche -->
       <fieldset class="pur-form__group" formGroupName="erlaubteBereiche">
         <legend>Erlaubte Bereiche</legend>
 
-        <div class="pur-form__row pur-form__row--flex">
+        <div class="pur-form__row">
           @for (bereich of bereiche; track bereich.value) {
             <mat-checkbox [formControlName]="bereich.value">{{ bereich.label }}</mat-checkbox>
           }
@@ -71,96 +106,17 @@
         }
       </fieldset>
 
-      <!-- Firmen- und Filialzugriffe -->
+      <mat-divider/>
+
+      <!-- Datenzugriff -->
       <fieldset class="pur-form__group">
-        <legend>Firmen- und Filialzugriffe</legend>
-
-        <div class="pur-form__row" formArrayName="zugriffe">
-          @for (zugriff of zugriffe.controls; track zugriff; let index = $index) {
-            <div class="pur-form__row" [formGroupName]="index">
-              <mat-form-field appearance="outline" class="pur-form__field">
-                <mat-label>Firma-ID</mat-label>
-                <input
-                  [formControl]="zugriff.controls.firmaId"
-                  matInput
-                  type="text"
-                  autocomplete="off"
-                />
-                @if (zugriff.controls.firmaId.hasError('required')) {
-                  <mat-error>Firma-ID ist erforderlich.</mat-error>
-                }
-              </mat-form-field>
-
-              <mat-form-field appearance="outline" class="pur-form__field">
-                <mat-label>Filial-IDs</mat-label>
-                <textarea [formControl]="zugriff.controls.filialIds" matInput rows="2"></textarea>
-                <mat-hint>Mit Komma, Semikolon oder Zeilenumbruch trennen</mat-hint>
-                @if (zugriff.controls.filialIds.hasError('required')) {
-                  <mat-error>Mindestens eine Filial-ID ist erforderlich.</mat-error>
-                }
-              </mat-form-field>
-
-              <button
-                matIconButton
-                type="button"
-                aria-label="Zugriff entfernen"
-                matTooltip="Zugriff entfernen"
-                (click)="removeZugriff(index)"
-              >
-                <mat-icon aria-hidden="true">delete</mat-icon>
-              </button>
-            </div>
-          }
-        </div>
-
-        <button matButton="outlined" type="button" (click)="addZugriff()">
-          <mat-icon aria-hidden="true">add</mat-icon>
-          Zugriff hinzufügen
-        </button>
-      </fieldset>
-
-      <!-- Passwortvergabe -->
-      <fieldset class="pur-form__group">
-        <legend>Zugang</legend>
-
-        <mat-button-toggle-group formControlName="zugangsart" aria-label="Art der Passwortvergabe">
-          <mat-button-toggle value="einrichtungslink"
-            >Benutzer legt Passwort fest</mat-button-toggle
-          >
-          <mat-button-toggle value="master-passwort">Passwort durch Master</mat-button-toggle>
-        </mat-button-toggle-group>
-
-        @if (benutzerForm.controls.zugangsart.value === 'master-passwort') {
-          <div class="pur-form__row pur-form__row--flex">
-            <mat-form-field appearance="outline" class="pur-form__field">
-              <mat-label>Anfangspasswort</mat-label>
-              <input
-                formControlName="passwort"
-                matInput
-                type="password"
-                autocomplete="new-password"
-              />
-            </mat-form-field>
-
-            <mat-form-field appearance="outline" class="pur-form__field">
-              <mat-label>Passwort bestätigen</mat-label>
-              <input
-                formControlName="passwortBestaetigung"
-                matInput
-                type="password"
-                autocomplete="new-password"
-              />
-            </mat-form-field>
-          </div>
-
-          @if (benutzerForm.hasError('passwortZuKurz')) {
-            <p class="pur-form__error" role="alert">
-              Das Passwort muss mindestens 8 Zeichen haben.
-            </p>
-          } @else if (benutzerForm.hasError('passwoerterUngleich')) {
-            <p class="pur-form__error" role="alert">Die Passwörter stimmen nicht überein.</p>
-          }
-        }
+        <legend>Datenzugriff</legend>
+        <app-datenzugriff-auswahl
+          [unternehmer]="unternehmerVorschau"
+          [unternehmerMehrfach]="false"
+          [firmenMehrfach]="true"
+          [filialenMehrfach]="true"
+        />
       </fieldset>
 
       <!-- Fehlermeldung -->
@@ -168,45 +124,20 @@
         <p class="pur-form__error" role="alert">{{ error }}</p>
       }
 
-      <!-- Ergebnis und Einrichtungslink -->
+      <!-- Ergebnis -->
       @if (verwaltungStore.createdBenutzer(); as benutzer) {
-        <div class="pur-form__row">
-          <p class="pur-form__success" role="status">
-            Benutzer {{ benutzer.email }} wurde angelegt.
-          </p>
-
-          @if (benutzer.passwortEinrichtungslink; as einrichtungslink) {
-            <div class="pur-form__row">
-              <mat-form-field appearance="outline" class="pur-form__field">
-                <mat-label>Passwort-Einrichtungslink</mat-label>
-                <input matInput readonly [value]="einrichtungslink" />
-              </mat-form-field>
-
-              <button
-                matIconButton
-                type="button"
-                aria-label="Passwort-Einrichtungslink kopieren"
-                matTooltip="Link kopieren"
-                [cdkCopyToClipboard]="einrichtungslink"
-                (cdkCopyToClipboardCopied)="onLinkKopiert($event)"
-              >
-                <mat-icon aria-hidden="true">content_copy</mat-icon>
-              </button>
-            </div>
-          }
-
-          @if (linkKopiert()) {
-            <p role="status">Link wurde kopiert.</p>
-          }
-        </div>
+        <p class="pur-form__success" role="status">Benutzer {{ benutzer.email }} wurde angelegt.</p>
       }
 
+
+      <mat-divider/>
+
       <!-- Benutzer anlegen -->
-      <div>
+      <div class="pur-form__row formular-aktionen">
         <button
           matButton="filled"
           type="submit"
-          [disabled]="benutzerForm.invalid || verwaltungStore.inProgress()"
+          [disabled]="datenzugriffVorschau || benutzerForm.invalid || verwaltungStore.inProgress()"
         >
           <mat-icon aria-hidden="true">person_add</mat-icon>
           {{ verwaltungStore.inProgress() ? 'Benutzer wird angelegt' : 'Benutzer anlegen' }}

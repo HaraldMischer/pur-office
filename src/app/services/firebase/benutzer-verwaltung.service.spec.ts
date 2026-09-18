@@ -15,7 +15,7 @@ describe('BenutzerVerwaltungService', () => {
     userRole: 'office',
     erlaubteBereiche: ['dashboard'],
     zugriffe: [],
-    zugangsart: 'einrichtungslink',
+    passwort: 'SicheresPasswort123!',
   };
   let callableMock: ReturnType<typeof vi.fn>;
   let httpsCallableMock: ReturnType<typeof vi.fn>;
@@ -25,7 +25,6 @@ describe('BenutzerVerwaltungService', () => {
       data: {
         uid: 'neu-123',
         email: anlage.email,
-        passwortEinrichtungslink: 'https://example.com/reset',
       },
     });
     httpsCallableMock = vi.fn().mockReturnValue(callableMock);
@@ -44,7 +43,6 @@ describe('BenutzerVerwaltungService', () => {
     await expect(service.createBenutzer(anlage)).resolves.toEqual({
       uid: 'neu-123',
       email: anlage.email,
-      passwortEinrichtungslink: 'https://example.com/reset',
     });
     expect(httpsCallableMock).toHaveBeenCalledWith(functionsMock, 'createBenutzer');
     expect(callableMock).toHaveBeenCalledWith(anlage);

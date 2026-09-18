@@ -5,7 +5,6 @@ import { Timestamp } from 'firebase/firestore';
 import { TAppBereich } from '../app/app-bereich';
 
 export type TUserRole = 'filiale' | 'office' | 'master';
-export type TZugangsart = 'master-passwort' | 'einrichtungslink';
 
 // ===== Anwendungs-Typen ====================
 
@@ -15,14 +14,12 @@ export interface IBenutzerAnlage {
   userRole: TUserRole;
   erlaubteBereiche: TAppBereich[];
   zugriffe: IBenutzerZugriff[];
-  zugangsart: TZugangsart;
-  passwort?: string;
+  passwort: string;
 }
 
 export interface IBenutzerAnlageErgebnis {
   uid: string;
   email: string;
-  passwortEinrichtungslink: string | null;
 }
 
 // ===== Firestore-Dokumente ==================

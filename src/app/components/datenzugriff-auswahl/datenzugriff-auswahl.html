@@ -1,0 +1,178 @@
+<!-- pur-office/src/app/components/datenzugriff-auswahl/datenzugriff-auswahl.html -->
+
+<div class="pur-form pur-form--grid">
+  <!-- Unternehmer -->
+  @if (unternehmerMehrfach()) {
+    <mat-form-field appearance="outline" class="pur-form__field" subscriptSizing="dynamic">
+      <mat-label>Unternehmer</mat-label>
+      <mat-select
+        multiple
+        [value]="unternehmerIds()"
+        [disabled]="unternehmer().length === 0"
+        (selectionChange)="selectUnternehmer($event.value)"
+      >
+        @if (ausgewaehlteUnternehmer().length > 1) {
+          <mat-select-trigger
+            >{{ ausgewaehlteUnternehmer().length }} Unternehmer ausgewählt</mat-select-trigger
+          >
+        }
+        @for (eintrag of unternehmer(); track eintrag.id) {
+          <mat-option [value]="eintrag.id">{{ eintrag.name }}</mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+  } @else {
+    <mat-form-field appearance="outline" class="pur-form__field" subscriptSizing="dynamic">
+      <mat-label>Unternehmer</mat-label>
+      <mat-select
+        [value]="unternehmerIds().length ? unternehmerIds()[0] : null"
+        [disabled]="unternehmer().length === 0"
+        (selectionChange)="selectUnternehmer($event.value)"
+      >
+        @for (eintrag of unternehmer(); track eintrag.id) {
+          <mat-option [value]="eintrag.id">{{ eintrag.name }}</mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+  }
+
+  <!-- Firmen -->
+  @if (firmenMehrfach()) {
+    <mat-form-field appearance="outline" class="pur-form__field" subscriptSizing="dynamic">
+      <mat-label>Firmen</mat-label>
+      <mat-select
+        multiple
+        [value]="firmaIds()"
+        [disabled]="firmen().length === 0"
+        (selectionChange)="selectFirmen($event.value)"
+      >
+        @if (ausgewaehlteFirmen().length > 1) {
+          <mat-select-trigger
+            >{{ ausgewaehlteFirmen().length }} Firmen ausgewählt</mat-select-trigger
+          >
+        }
+        @if (unternehmerMehrfach() && ausgewaehlteUnternehmer().length > 1) {
+          @for (gruppe of firmengruppen(); track gruppe.id) {
+            <mat-optgroup [label]="gruppe.name">
+              @for (firma of gruppe.firmen; track firma.id) {
+                <mat-option [value]="firma.id">{{ firma.name }}</mat-option>
+              } @empty {
+                <mat-option disabled>Keine Firmen vorhanden.</mat-option>
+              }
+            </mat-optgroup>
+          }
+        } @else {
+          @for (firma of firmen(); track firma.id) {
+            <mat-option [value]="firma.id">{{ firma.name }}</mat-option>
+          }
+        }
+      </mat-select>
+    </mat-form-field>
+  } @else {
+    <mat-form-field appearance="outline" class="pur-form__field" subscriptSizing="dynamic">
+      <mat-label>Firmen</mat-label>
+      <mat-select
+        [value]="firmaIds().length ? firmaIds()[0] : null"
+        [disabled]="firmen().length === 0"
+        (selectionChange)="selectFirmen($event.value)"
+      >
+        @if (unternehmerMehrfach() && ausgewaehlteUnternehmer().length > 1) {
+          @for (gruppe of firmengruppen(); track gruppe.id) {
+            <mat-optgroup [label]="gruppe.name">
+              @for (firma of gruppe.firmen; track firma.id) {
+                <mat-option [value]="firma.id">{{ firma.name }}</mat-option>
+              } @empty {
+                <mat-option disabled>Keine Firmen vorhanden.</mat-option>
+              }
+            </mat-optgroup>
+          }
+        } @else {
+          @for (firma of firmen(); track firma.id) {
+            <mat-option [value]="firma.id">{{ firma.name }}</mat-option>
+          }
+        }
+      </mat-select>
+    </mat-form-field>
+  }
+
+  <!-- Filialen -->
+  @if (filialenMehrfach()) {
+    <mat-form-field appearance="outline" class="pur-form__field" subscriptSizing="dynamic">
+      <mat-label>Filialen</mat-label>
+      <mat-select
+        multiple
+        [value]="filialSchluessel()"
+        [disabled]="!hatFilialen()"
+        (selectionChange)="selectFilialen($event.value)"
+      >
+        @if (filialAnzahl() > 1) {
+          <mat-select-trigger>{{ filialAnzahl() }} Filialen ausgewählt</mat-select-trigger>
+        }
+        @if (firmenMehrfach() && ausgewaehlteFirmen().length > 1) {
+          @for (firma of ausgewaehlteFirmen(); track firma.id) {
+            <mat-optgroup
+              [label]="
+                ausgewaehlteUnternehmer().length > 1
+                  ? firma.unternehmerName + ' / ' + firma.name
+                  : firma.name
+              "
+            >
+              @for (filiale of firma.filialen; track filiale.id) {
+                <mat-option [value]="getFilialSchluessel(firma.id, filiale.id)">{{
+                  filiale.name
+                }}</mat-option>
+              } @empty {
+                <mat-option disabled>Keine Filialen vorhanden.</mat-option>
+              }
+            </mat-optgroup>
+          }
+        } @else {
+          @for (firma of ausgewaehlteFirmen(); track firma.id) {
+            @for (filiale of firma.filialen; track filiale.id) {
+              <mat-option [value]="getFilialSchluessel(firma.id, filiale.id)">{{
+                filiale.name
+              }}</mat-option>
+            }
+          }
+        }
+      </mat-select>
+    </mat-form-field>
+  } @else {
+    <mat-form-field appearance="outline" class="pur-form__field" subscriptSizing="dynamic">
+      <mat-label>Filialen</mat-label>
+      <mat-select
+        [value]="filialSchluessel().length ? filialSchluessel()[0] : null"
+        [disabled]="!hatFilialen()"
+        (selectionChange)="selectFilialen($event.value)"
+      >
+        @if (firmenMehrfach() && ausgewaehlteFirmen().length > 1) {
+          @for (firma of ausgewaehlteFirmen(); track firma.id) {
+            <mat-optgroup
+              [label]="
+                ausgewaehlteUnternehmer().length > 1
+                  ? firma.unternehmerName + ' / ' + firma.name
+                  : firma.name
+              "
+            >
+              @for (filiale of firma.filialen; track filiale.id) {
+                <mat-option [value]="getFilialSchluessel(firma.id, filiale.id)">{{
+                  filiale.name
+                }}</mat-option>
+              } @empty {
+                <mat-option disabled>Keine Filialen vorhanden.</mat-option>
+              }
+            </mat-optgroup>
+          }
+        } @else {
+          @for (firma of ausgewaehlteFirmen(); track firma.id) {
+            @for (filiale of firma.filialen; track filiale.id) {
+              <mat-option [value]="getFilialSchluessel(firma.id, filiale.id)">{{
+                filiale.name
+              }}</mat-option>
+            }
+          }
+        }
+      </mat-select>
+    </mat-form-field>
+  }
+</div>

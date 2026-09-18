@@ -13,7 +13,7 @@ describe('BenutzerVerwaltungStore', () => {
     userRole: 'office',
     erlaubteBereiche: ['dashboard'],
     zugriffe: [],
-    zugangsart: 'einrichtungslink',
+    passwort: 'SicheresPasswort123!',
   };
   let serviceMock: { createBenutzer: ReturnType<typeof vi.fn> };
 
@@ -22,7 +22,6 @@ describe('BenutzerVerwaltungStore', () => {
       createBenutzer: vi.fn().mockResolvedValue({
         uid: 'neu-123',
         email: anlage.email,
-        passwortEinrichtungslink: 'https://example.com/reset',
       }),
     };
     TestBed.configureTestingModule({
@@ -36,13 +35,11 @@ describe('BenutzerVerwaltungStore', () => {
     await expect(store.createBenutzer(anlage)).resolves.toEqual({
       uid: 'neu-123',
       email: anlage.email,
-      passwortEinrichtungslink: 'https://example.com/reset',
     });
     expect(serviceMock.createBenutzer).toHaveBeenCalledWith(anlage);
     expect(store.createdBenutzer()).toEqual({
       uid: 'neu-123',
       email: anlage.email,
-      passwortEinrichtungslink: 'https://example.com/reset',
     });
     expect(store.inProgress()).toBe(false);
   });
