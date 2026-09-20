@@ -26,17 +26,20 @@ export const createBenutzer = onCall<ICreateBenutzerData, Promise<ICreateBenutze
           const snapshot = await firestore.doc(`benutzer/${uid}`).get();
           return snapshot.exists ? snapshot.data() : null;
         },
+        existierenDokumente: async (pfade) => {
+          const dokumente = await firestore.getAll(...pfade.map((pfad) => firestore.doc(pfad)));
+          return dokumente.every((dokument) => dokument.exists);
+        },
         createAuthBenutzer: (data) =>
           auth.createUser({
             email: data.email,
             displayName: data.displayName,
             password: data.password,
-            disabled: false,
+            disabled: data.disabled,
             emailVerified: false,
           }),
         setBenutzerDokument: async (uid, data) => {
           await firestore.doc(`benutzer/${uid}`).set({
-            uid,
             email: data.email,
             anzeigename: data.anzeigename,
             aktiv: true,
@@ -45,6 +48,22 @@ export const createBenutzer = onCall<ICreateBenutzerData, Promise<ICreateBenutze
             zugriffe: data.zugriffe,
             erstelltAm: FieldValue.serverTimestamp(),
             aktualisiertAm: FieldValue.serverTimestamp(),
+          });
+        },
+        setAuthBenutzerDisabled: async (uid, disabled) => {
+          await auth.updateUser(uid, { disabled });
+        },
+        deactivateBenutzerDokument: async (uid) => {
+          await firestore.doc(`benutzer/${uid}`).update({
+            aktiv: false,
+            aktualisiertAm: FieldValue.serverTimestamp(),
+          });
+        },
+        logAnlageError: (uid, schritt, error) => {
+          logger.error('Benutzeranlage fehlgeschlagen; Konto und Profil pruefen.', {
+            uid,
+            schritt,
+            error,
           });
         },
         deleteAuthBenutzer: (uid) => auth.deleteUser(uid),

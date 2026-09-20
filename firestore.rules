@@ -1,25 +1,92 @@
-// pur-office/firestore.rules
-
 rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
+    // =====================================================
+    // Gemeinsame Hilfsfunktionen
+    // =====================================================
+
     function isAuthenticated() {
       return request.auth != null;
     }
 
-    // Pur Office: Profile werden nur durch das Admin SDK geschrieben.
-    match /benutzer/{uid} {
-      allow get: if isAuthenticated() && request.auth.uid == uid;
-      allow list: if false;
-      allow create, update, delete: if false;
+    function hasProfil() {
+      return isAuthenticated() && exists(/databases/$(database)/documents/benutzer/$(request.auth.uid));
     }
 
-    // Übergang: Angemeldete Benutzer behalten auf allen alten Collections
-    // den bisherigen Zugriff. Neue Pur-Office-Collections müssen hier
-    // ausdrücklich ausgeschlossen und separat abgesichert werden.
+    function profil() {
+      return get(/databases/$(database)/documents/benutzer/$(request.auth.uid)).data;
+    }
+
+    function isMaster() {
+      return hasProfil() && profil().aktiv == true && profil().userRole == 'master';
+    }
+
+    function isScopedUser() {
+      return hasProfil() && profil().aktiv == true && profil().userRole in ['office', 'filiale'];
+    }
+
+    function darfUnternehmerLesen(unternehmerId) {
+      return isScopedUser()
+        && profil().zugriffe is map
+        && unternehmerId in profil().zugriffe
+        && profil().zugriffe[unternehmerId] is map
+        && profil().zugriffe[unternehmerId].size() > 0;
+    }
+
+    function darfFirmaLesen(unternehmerId, firmaId) {
+      return darfUnternehmerLesen(unternehmerId)
+        && firmaId in profil().zugriffe[unternehmerId]
+        && profil().zugriffe[unternehmerId][firmaId] is list
+        && profil().zugriffe[unternehmerId][firmaId].size() > 0;
+    }
+
+    function darfFilialeLesen(unternehmerId, firmaId, filialId) {
+      return darfFirmaLesen(unternehmerId, firmaId)
+        && filialId in profil().zugriffe[unternehmerId][firmaId];
+    }
+
+    // =====================================================
+    // 1. Master duerfen alles lesen
+    // =====================================================
+
+    match /{document=**} {
+      allow read: if isMaster();
+    }
+
+    // =====================================================
+    // 2. Office und Filiale lesen nur ihre Zuordnungen
+    // =====================================================
+
+    match /unternehmer/{unternehmerId} {
+      allow read: if darfUnternehmerLesen(unternehmerId);
+
+      match /firma/{firmaId} {
+        allow read: if darfFirmaLesen(unternehmerId, firmaId);
+
+        match /filiale/{filialId}/{document=**} {
+          allow read: if darfFilialeLesen(unternehmerId, firmaId, filialId);
+        }
+      }
+    }
+
+    // =====================================================
+    // 3. Das eigene Benutzerprofil bleibt lesbar
+    // =====================================================
+
+    match /benutzer/{uid} {
+      allow get: if isAuthenticated() && request.auth.uid == uid;
+    }
+
+    // =====================================================
+    // 4. Altkonten ohne Benutzerprofil behalten ihre Rechte
+    // =====================================================
+
     match /{collection}/{document=**} {
-      allow read, write: if isAuthenticated() && collection != 'benutzer';
+      allow read, write: if isAuthenticated()
+        && !hasProfil()
+        && collection != 'benutzer'
+        && collection != 'unternehmer';
     }
   }
 }

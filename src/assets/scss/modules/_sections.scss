@@ -1,0 +1,43 @@
+// pur-office/src/assets/scss/modules/_sections.scss
+
+.pur-page-section {
+  display: grid;
+  gap: 1rem;
+
+  &__header {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    min-width: 0;
+  }
+
+  &__title {
+    margin: 0;
+    min-width: 0;
+    color: var(--mat-sys-on-surface);
+    font: var(--mat-sys-headline-small);
+  }
+
+  &__meta {
+    margin-inline-start: auto;
+    color: var(--mat-sys-on-surface-variant);
+    font: var(--mat-sys-label-large);
+    white-space: nowrap;
+  }
+
+  &__text {
+    margin: 0;
+    color: var(--mat-sys-on-surface-variant);
+    font: var(--mat-sys-body-large);
+  }
+
+  &__message,
+  &__empty-state {
+    margin: 0;
+    padding: 1.25rem;
+    border: 1px dashed var(--mat-sys-outline);
+    border-radius: 0.75rem;
+    background: var(--mat-sys-surface-container-lowest);
+    overflow-wrap: anywhere;
+  }
+}

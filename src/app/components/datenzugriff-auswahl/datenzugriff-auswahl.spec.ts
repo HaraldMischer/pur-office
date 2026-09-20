@@ -46,11 +46,12 @@ describe('DatenzugriffAuswahl', () => {
   beforeEach(() => {
     TestBed.configureTestingModule({ imports: [DatenzugriffAuswahl, NoopAnimationsModule] });
   });
-  function setup() {
+  function setup(unternehmerMehrfach = false, firmenMehrfach = true, filialenMehrfach = true) {
     const fixture = TestBed.createComponent(DatenzugriffAuswahl);
     fixture.componentRef.setInput('unternehmer', DATENZUGRIFF_MOCK);
-    fixture.componentRef.setInput('firmenMehrfach', true);
-    fixture.componentRef.setInput('filialenMehrfach', true);
+    fixture.componentRef.setInput('unternehmerMehrfach', unternehmerMehrfach);
+    fixture.componentRef.setInput('firmenMehrfach', firmenMehrfach);
+    fixture.componentRef.setInput('filialenMehrfach', filialenMehrfach);
     fixture.detectChanges();
     return fixture;
   }
@@ -153,11 +154,7 @@ describe('DatenzugriffAuswahl', () => {
   ])(
     'should group by parent mode: entrepreneurs %s, companies %s, branches %s',
     async (unternehmerMehrfach, firmenMehrfach, filialenMehrfach) => {
-      const fixture = setup();
-      fixture.componentRef.setInput('unternehmerMehrfach', unternehmerMehrfach);
-      fixture.componentRef.setInput('firmenMehrfach', firmenMehrfach);
-      fixture.componentRef.setInput('filialenMehrfach', filialenMehrfach);
-      fixture.detectChanges();
+      const fixture = setup(unternehmerMehrfach, firmenMehrfach, filialenMehrfach);
       const component = fixture.componentInstance;
       component.selectUnternehmer('demo-unternehmer-west');
       fixture.detectChanges();
@@ -202,35 +199,8 @@ describe('DatenzugriffAuswahl', () => {
     },
   );
 
-  it('should keep only the first selection when switching to single and retain it when switching back', () => {
-    const fixture = setup();
-    const component = fixture.componentInstance;
-    component.selectUnternehmer('demo-unternehmer-west');
-    component.selectFirmen([firma('demo-firma-ruhr'), firma('demo-firma-rhein')]);
-    component.selectFilialen([
-      component.getFilialSchluessel(firma('demo-firma-ruhr'), 'demo-bochum'),
-      component.getFilialSchluessel(firma('demo-firma-ruhr'), 'demo-herne'),
-      component.getFilialSchluessel(firma('demo-firma-rhein'), 'demo-koeln'),
-    ]);
-    fixture.detectChanges();
-    fixture.componentRef.setInput('filialenMehrfach', false);
-    fixture.detectChanges();
-    expect(component.filialAnzahl()).toBe(1);
-    fixture.componentRef.setInput('firmenMehrfach', false);
-    fixture.detectChanges();
-    expect(component.firmaIds()).toEqual([firma('demo-firma-ruhr')]);
-    expect(component.filialen()).toEqual({ [firma('demo-firma-ruhr')]: ['demo-bochum'] });
-    fixture.componentRef.setInput('firmenMehrfach', true);
-    fixture.componentRef.setInput('filialenMehrfach', true);
-    fixture.detectChanges();
-    expect(component.firmaIds()).toHaveLength(1);
-    expect(component.filialAnzahl()).toBe(1);
-  });
-
   it('should allow only one branch across multiple companies in single mode', () => {
-    const fixture = setup();
-    fixture.componentRef.setInput('filialenMehrfach', false);
-    fixture.detectChanges();
+    const fixture = setup(false, true, false);
     const component = fixture.componentInstance;
     component.selectUnternehmer('demo-unternehmer-west');
     component.selectFirmen([firma('demo-firma-ruhr'), firma('demo-firma-rhein')]);
@@ -240,8 +210,7 @@ describe('DatenzugriffAuswahl', () => {
   });
 
   it('should group companies by entrepreneur and preserve remaining selections when one is removed', async () => {
-    const fixture = setup();
-    fixture.componentRef.setInput('unternehmerMehrfach', true);
+    const fixture = setup(true);
     fixture.detectChanges();
     const component = fixture.componentInstance;
     const selects = fixture.debugElement
@@ -307,8 +276,7 @@ describe('DatenzugriffAuswahl', () => {
   });
 
   it('should distinguish identical company and branch IDs under different entrepreneurs', () => {
-    const fixture = setup();
-    fixture.componentRef.setInput('unternehmerMehrfach', true);
+    const fixture = setup(true);
     fixture.componentRef.setInput(
       'unternehmer',
       ['a', 'b'].map((id) => ({
@@ -331,7 +299,7 @@ describe('DatenzugriffAuswahl', () => {
     expect(component.filialen()).toEqual({ [b]: ['same'] });
   });
 
-  it('should support multiple entrepreneurs with single company and branch selection and switching back', () => {
+  it('should support multiple entrepreneurs with single company and branch selection', () => {
     const fixture = TestBed.createComponent(DatenzugriffAuswahl);
     fixture.componentRef.setInput('unternehmer', DATENZUGRIFF_MOCK);
     fixture.componentRef.setInput('unternehmerMehrfach', true);
@@ -342,7 +310,7 @@ describe('DatenzugriffAuswahl', () => {
     expect(component.firmaIds()).toEqual([firma('demo-firma-ruhr')]);
     component.selectFiliale(firma('demo-firma-ruhr'), 'demo-bochum', true);
     fixture.detectChanges();
-    fixture.componentRef.setInput('unternehmerMehrfach', false);
+    component.selectUnternehmer(['demo-unternehmer-west']);
     fixture.detectChanges();
     expect(component.unternehmerIds()).toEqual(['demo-unternehmer-west']);
     expect(component.filialAnzahl()).toBe(1);
@@ -350,17 +318,13 @@ describe('DatenzugriffAuswahl', () => {
       fixture.debugElement
         .queryAll(By.directive(MatSelect))
         .map((el) => (el.componentInstance as MatSelect).multiple),
-    ).toEqual([false, false, false]);
+    ).toEqual([true, false, false]);
   });
 
   it.each([false, true])(
     'should show groups only for multiple selected parents, target multi %s',
     async (mehrfach) => {
-      const fixture = setup();
-      fixture.componentRef.setInput('unternehmerMehrfach', true);
-      fixture.componentRef.setInput('firmenMehrfach', mehrfach);
-      fixture.componentRef.setInput('filialenMehrfach', mehrfach);
-      fixture.detectChanges();
+      const fixture = setup(true, true, mehrfach);
       const component = fixture.componentInstance;
       const overlay = TestBed.inject(OverlayContainer).getContainerElement();
       async function expectGroups(index: number, count: number) {
@@ -381,8 +345,6 @@ describe('DatenzugriffAuswahl', () => {
       await expectGroups(1, 2);
       component.selectUnternehmer(['demo-unternehmer-west']);
       await expectGroups(1, 0);
-      fixture.componentRef.setInput('firmenMehrfach', true);
-      fixture.detectChanges();
       component.selectFirmen([firma('demo-firma-ruhr')]);
       await expectGroups(2, 0);
       component.selectFirmen([firma('demo-firma-ruhr'), firma('demo-firma-rhein')]);

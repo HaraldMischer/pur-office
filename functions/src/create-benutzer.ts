@@ -8,17 +8,14 @@ const APP_BEREICHE = ['dashboard', 'schichtplan', 'mitarbeiter', 'verwaltung'] a
 type TUserRole = (typeof USER_ROLES)[number];
 type TAppBereich = (typeof APP_BEREICHE)[number];
 
-interface IBenutzerZugriff {
-  firmaId: string;
-  filialIds: string[];
-}
+type TBenutzerZugriffe = Record<string, Record<string, string[]>>;
 
 export interface ICreateBenutzerData {
   email: string;
   anzeigename: string;
   userRole: TUserRole;
   erlaubteBereiche: TAppBereich[];
-  zugriffe: IBenutzerZugriff[];
+  zugriffe: TBenutzerZugriffe;
   passwort: string;
 }
 
@@ -34,12 +31,17 @@ interface ICreateBenutzerRequest {
 
 interface ICreateBenutzerDependencies {
   getBenutzerProfil(uid: string): Promise<unknown>;
+  existierenDokumente(pfade: readonly string[]): Promise<boolean>;
   createAuthBenutzer(data: {
     email: string;
     displayName: string;
     password: string;
+    disabled: true;
   }): Promise<{ uid: string }>;
   setBenutzerDokument(uid: string, data: Omit<ICreateBenutzerData, 'passwort'>): Promise<void>;
+  setAuthBenutzerDisabled(uid: string, disabled: boolean): Promise<void>;
+  deactivateBenutzerDokument(uid: string): Promise<void>;
+  logAnlageError(uid: string, schritt: string, error: unknown): void;
   deleteAuthBenutzer(uid: string): Promise<void>;
   logRollbackError(uid: string, error: unknown): void;
 }
@@ -52,31 +54,61 @@ function isStringArray(value: unknown): value is string[] {
   return Array.isArray(value) && value.every((item) => typeof item === 'string');
 }
 
-function parseZugriffe(value: unknown): IBenutzerZugriff[] {
-  if (!Array.isArray(value)) {
-    throw new HttpsError('invalid-argument', 'Zugriffe müssen als Liste übergeben werden.');
+function isDokumentId(value: unknown): value is string {
+  return (
+    typeof value === 'string' &&
+    value.trim().length > 0 &&
+    !value.includes('/') &&
+    !['.', '..'].includes(value.trim())
+  );
+}
+
+function parseZugriffe(value: unknown): TBenutzerZugriffe {
+  if (!isRecord(value)) {
+    throw new HttpsError('invalid-argument', 'Zugriffe müssen als Objekt übergeben werden.');
   }
 
-  return value.map((zugriff) => {
-    if (
-      !isRecord(zugriff) ||
-      typeof zugriff['firmaId'] !== 'string' ||
-      !zugriff['firmaId'].trim() ||
-      !isStringArray(zugriff['filialIds']) ||
-      zugriff['filialIds'].length === 0 ||
-      zugriff['filialIds'].some((filialId) => !filialId.trim())
-    ) {
+  const unternehmer = new Map<string, Map<string, string[]>>();
+  for (const [roheUnternehmerId, firmenValue] of Object.entries(value)) {
+    if (!isDokumentId(roheUnternehmerId) || !isRecord(firmenValue)) {
       throw new HttpsError(
         'invalid-argument',
-        'Jeder Zugriff benötigt eine Firma und mindestens eine Filiale.',
+        'Jeder Zugriff benötigt einen gültigen Unternehmer.',
       );
     }
 
-    return {
-      firmaId: zugriff['firmaId'].trim(),
-      filialIds: [...new Set(zugriff['filialIds'].map((filialId) => filialId.trim()))],
-    };
-  });
+    const unternehmerId = roheUnternehmerId.trim();
+    const firmen = unternehmer.get(unternehmerId) ?? new Map<string, string[]>();
+    for (const [roheFirmaId, filialIdsValue] of Object.entries(firmenValue)) {
+      if (
+        !isDokumentId(roheFirmaId) ||
+        !isStringArray(filialIdsValue) ||
+        filialIdsValue.length === 0 ||
+        !filialIdsValue.every(isDokumentId)
+      ) {
+        throw new HttpsError(
+          'invalid-argument',
+          'Jede Firma benötigt mindestens eine gültige Filiale.',
+        );
+      }
+
+      const firmaId = roheFirmaId.trim();
+      firmen.set(firmaId, [
+        ...new Set([
+          ...(firmen.get(firmaId) ?? []),
+          ...filialIdsValue.map((filialId) => filialId.trim()),
+        ]),
+      ]);
+    }
+    if (firmen.size === 0) {
+      throw new HttpsError('invalid-argument', 'Jeder Unternehmer benötigt mindestens eine Firma.');
+    }
+    unternehmer.set(unternehmerId, firmen);
+  }
+
+  return Object.fromEntries(
+    [...unternehmer].map(([unternehmerId, firmen]) => [unternehmerId, Object.fromEntries(firmen)]),
+  );
 }
 
 function parseCreateBenutzerData(value: unknown): ICreateBenutzerData {
@@ -163,6 +195,56 @@ export async function handleCreateBenutzer(
   }
 
   const data = parseCreateBenutzerData(request.data);
+  const zugriffsEintraege = Object.entries(data.zugriffe).flatMap(([unternehmerId, firmen]) =>
+    Object.entries(firmen).map(([firmaId, filialIds]) => ({
+      unternehmerId,
+      firmaId,
+      filialIds,
+    })),
+  );
+  if (data.userRole !== 'master' && zugriffsEintraege.length === 0) {
+    throw new HttpsError(
+      'invalid-argument',
+      'Office- und Filialkonten benötigen mindestens eine vollständige Datenzuordnung.',
+    );
+  }
+  if (
+    data.userRole === 'filiale' &&
+    (Object.keys(data.zugriffe).length !== 1 ||
+      zugriffsEintraege.length !== 1 ||
+      zugriffsEintraege[0].filialIds.length !== 1)
+  ) {
+    throw new HttpsError(
+      'invalid-argument',
+      'Filialkonten benötigen genau eine Firma mit genau einer Filiale.',
+    );
+  }
+  const pfade = [
+    ...new Set(
+      zugriffsEintraege.flatMap((zugriff) => {
+        const unternehmer = `unternehmer/${zugriff.unternehmerId}`;
+        const firma = `${unternehmer}/firma/${zugriff.firmaId}`;
+        return [unternehmer, firma, ...zugriff.filialIds.map((id) => `${firma}/filiale/${id}`)];
+      }),
+    ),
+  ];
+  if (pfade.length > 0) {
+    let vorhanden: boolean;
+    try {
+      vorhanden = await dependencies.existierenDokumente(pfade);
+    } catch {
+      throw new HttpsError(
+        'unavailable',
+        'Die Datenzugriffe konnten nicht geprüft werden. Bitte erneut versuchen.',
+      );
+    }
+    if (!vorhanden) {
+      throw new HttpsError(
+        'invalid-argument',
+        'Die gewählten Unternehmer, Firmen oder Filialen existieren nicht in dieser Zuordnung.',
+      );
+    }
+  }
   let authBenutzer: { uid: string };
 
   try {
@@ -170,29 +252,58 @@ export async function handleCreateBenutzer(
       email: data.email,
       displayName: data.anzeigename,
       password: data.passwort,
+      disabled: true,
     });
   } catch (error: unknown) {
     throw mapAuthError(error);
   }
 
+  let aktivierungVersucht = false;
   try {
     const { passwort, ...benutzerDokument } = data;
     await dependencies.setBenutzerDokument(authBenutzer.uid, benutzerDokument);
+
+    aktivierungVersucht = true;
+    await dependencies.setAuthBenutzerDisabled(authBenutzer.uid, false);
 
     return {
       uid: authBenutzer.uid,
       email: data.email,
     };
   } catch (error: unknown) {
+    dependencies.logAnlageError(
+      authBenutzer.uid,
+      aktivierungVersucht ? 'aktivierung' : 'profil',
+      error,
+    );
+    let bereinigungFehlgeschlagen = false;
+    if (aktivierungVersucht) {
+      // Ein Fehler kann auch nach erfolgreicher Aktivierung auftreten (z. B. Timeout).
+      // Das Profil bleibt erhalten, damit vorhandene Tokens nie Legacy-Rechte erhalten.
+      for (const [schritt, bereinigen] of [
+        ['auth-deaktivieren', () => dependencies.setAuthBenutzerDisabled(authBenutzer.uid, true)],
+        ['profil-deaktivieren', () => dependencies.deactivateBenutzerDokument(authBenutzer.uid)],
+      ] as const) {
+        try {
+          await bereinigen();
+        } catch (cleanupError: unknown) {
+          bereinigungFehlgeschlagen = true;
+          dependencies.logAnlageError(authBenutzer.uid, schritt, cleanupError);
+        }
+      }
+    }
     try {
       await dependencies.deleteAuthBenutzer(authBenutzer.uid);
     } catch (rollbackError: unknown) {
+      bereinigungFehlgeschlagen = true;
       dependencies.logRollbackError(authBenutzer.uid, rollbackError);
     }
 
     throw new HttpsError(
       'internal',
-      'Der Benutzerzugang konnte nicht vollständig angelegt werden. Die Anlage wurde zurückgesetzt.',
+      bereinigungFehlgeschlagen
+        ? 'Die Benutzeranlage ist fehlgeschlagen. Die Bereinigung ist unvollständig; bitte den Administrator zur Prüfung verständigen.'
+        : 'Die Benutzeranlage ist fehlgeschlagen. Das Auth-Konto wurde entfernt; ein eventuell gespeichertes Profil bleibt zur Absicherung erhalten.',
     );
   }
 }

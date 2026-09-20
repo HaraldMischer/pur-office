@@ -26,8 +26,8 @@
     padding: 0;
     border: 0;
 
-    legend {
-      margin-bottom: 0.75rem;
+    &-titel {
+      margin: 0 0 0.75rem;
       font: var(--mat-sys-title-medium);
     }
   }
@@ -36,13 +36,23 @@
     width: 100%;
   }
 
+  &__success,
   &__error {
     margin: 0;
     padding: 0.75rem 1rem;
-    border: 1px solid var(--mat-sys-error);
+    border: 1px solid currentColor;
     border-radius: 0.5rem;
-    color: var(--mat-sys-error);
     font: var(--mat-sys-body-medium);
+    font-weight: 500;
+    overflow-wrap: anywhere;
+  }
+
+  &__success {
+    color: var(--pur-sys-success);
+  }
+
+  &__error {
+    color: var(--mat-sys-error);
   }
 
   &--flex {
@@ -54,7 +64,8 @@
       flex: 1 1 260px;
     }
 
-    .pur-form__error {
+    .pur-form__error,
+    .pur-form__success {
       flex: 1 0 100%;
     }
 

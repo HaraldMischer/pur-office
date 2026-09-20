@@ -1,0 +1,7 @@
+// pur-office/src/assets/scss/variables/_cssVars.scss
+
+@use 'colorVars' as colors;
+
+:root {
+  --pur-sys-success: light-dark(#{colors.$success-light}, #{colors.$success-dark});
+}

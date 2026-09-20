@@ -11,12 +11,7 @@ describe('handleCreateBenutzer', () => {
     anzeigename: 'Test Benutzer',
     userRole: 'office',
     erlaubteBereiche: ['dashboard', 'schichtplan'],
-    zugriffe: [
-      {
-        firmaId: 'firma-1',
-        filialIds: ['filiale-1'],
-      },
-    ],
+    zugriffe: { 'u-1': { 'firma-1': ['filiale-1'] } },
     passwort: 'SicheresPasswort123!',
   };
 
@@ -26,8 +21,12 @@ describe('handleCreateBenutzer', () => {
         aktiv: true,
         userRole: 'master',
       }),
+      existierenDokumente: vi.fn().mockResolvedValue(true),
       createAuthBenutzer: vi.fn().mockResolvedValue({ uid: 'neu-123' }),
       setBenutzerDokument: vi.fn().mockResolvedValue(undefined),
+      setAuthBenutzerDisabled: vi.fn().mockResolvedValue(undefined),
+      deactivateBenutzerDokument: vi.fn().mockResolvedValue(undefined),
+      logAnlageError: vi.fn(),
       deleteAuthBenutzer: vi.fn().mockResolvedValue(undefined),
       logRollbackError: vi.fn(),
     };
@@ -45,10 +44,16 @@ describe('handleCreateBenutzer', () => {
     );
 
     expect(dependencies.getBenutzerProfil).toHaveBeenCalledWith('master-123');
+    expect(dependencies.existierenDokumente).toHaveBeenCalledWith([
+      'unternehmer/u-1',
+      'unternehmer/u-1/firma/firma-1',
+      'unternehmer/u-1/firma/firma-1/filiale/filiale-1',
+    ]);
     expect(dependencies.createAuthBenutzer).toHaveBeenCalledWith({
       email: data.email,
       displayName: data.anzeigename,
       password: data.passwort,
+      disabled: true,
     });
     const { passwort, ...profil } = data;
     expect(dependencies.setBenutzerDokument).toHaveBeenCalledWith('neu-123', profil);
@@ -134,6 +139,7 @@ describe('handleCreateBenutzer', () => {
       email: data.email,
       displayName: data.anzeigename,
       password: passwordData.passwort,
+      disabled: true,
     });
     expect(result).toEqual({ uid: 'neu-123', email: data.email });
   });
@@ -214,5 +220,193 @@ describe('handleCreateBenutzer', () => {
     });
 
     expect(dependencies.logRollbackError).toHaveBeenCalledWith('neu-123', rollbackError);
+  });
+  it.each([
+    [],
+    { '': { f: ['b'] } },
+    { 'u/other': { f: ['b'] } },
+    { u: { '../f': ['b'] } },
+    { u: { f: ['b/child'] } },
+    { u: { f: [] } },
+    { u: {} },
+  ])('should reject incomplete or path-like access IDs: %j', async (zugriffe) => {
+    const dependencies = createDependencies();
+    await expect(
+      handleCreateBenutzer({ auth: { uid: 'master' }, data: { ...data, zugriffe } }, dependencies),
+    ).rejects.toMatchObject({ code: 'invalid-argument' });
+    expect(dependencies.existierenDokumente).not.toHaveBeenCalled();
+    expect(dependencies.createAuthBenutzer).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    'unternehmer/u-1',
+    'unternehmer/u-1/firma/firma-1',
+    'unternehmer/u-1/firma/firma-1/filiale/filiale-1',
+  ])('should reject a missing hierarchy document before creating auth: %s', async (fehlend) => {
+    const dependencies = createDependencies();
+    dependencies.existierenDokumente.mockImplementation(
+      async (pfade: readonly string[]) => !pfade.includes(fehlend),
+    );
+    await expect(
+      handleCreateBenutzer({ auth: { uid: 'master' }, data }, dependencies),
+    ).rejects.toMatchObject({ code: 'invalid-argument' });
+    expect(dependencies.createAuthBenutzer).not.toHaveBeenCalled();
+    expect(dependencies.setBenutzerDokument).not.toHaveBeenCalled();
+  });
+
+  it('should merge duplicates only within the same entrepreneur and preserve other tenants', async () => {
+    const dependencies = createDependencies();
+    await handleCreateBenutzer(
+      {
+        auth: { uid: 'master' },
+        data: {
+          ...data,
+          zugriffe: {
+            ' a ': { ' f ': [' b ', 'b'] },
+            a: { f: ['c'] },
+            z: { f: ['b'] },
+          },
+        },
+      },
+      dependencies,
+    );
+    expect(dependencies.setBenutzerDokument.mock.calls[0][1].zugriffe).toEqual({
+      a: { f: ['b', 'c'] },
+      z: { f: ['b'] },
+    });
+    expect(dependencies.existierenDokumente).toHaveBeenCalledWith([
+      'unternehmer/a',
+      'unternehmer/a/firma/f',
+      'unternehmer/a/firma/f/filiale/b',
+      'unternehmer/a/firma/f/filiale/c',
+      'unternehmer/z',
+      'unternehmer/z/firma/f',
+      'unternehmer/z/firma/f/filiale/b',
+    ]);
+  });
+
+  it('should abort on hierarchy read errors without creating auth', async () => {
+    const dependencies = createDependencies();
+    dependencies.existierenDokumente.mockRejectedValue(new Error('offline'));
+    await expect(
+      handleCreateBenutzer({ auth: { uid: 'master' }, data }, dependencies),
+    ).rejects.toMatchObject({ code: 'unavailable' });
+    expect(dependencies.createAuthBenutzer).not.toHaveBeenCalled();
+  });
+
+  it('should allow a master with no scopes without querying empty paths', async () => {
+    const dependencies = createDependencies();
+    await handleCreateBenutzer(
+      { auth: { uid: 'master' }, data: { ...data, userRole: 'master', zugriffe: {} } },
+      dependencies,
+    );
+    expect(dependencies.existierenDokumente).not.toHaveBeenCalled();
+    expect(dependencies.setBenutzerDokument.mock.calls[0][1].zugriffe).toEqual({});
+  });
+  it('waits for the profile write before enabling the new account', async () => {
+    const dependencies = createDependencies();
+    let finishWrite!: () => void;
+    const write = new Promise<void>((resolve) => {
+      finishWrite = resolve;
+    });
+    dependencies.setBenutzerDokument.mockImplementation(() => write);
+    const pending = handleCreateBenutzer({ auth: { uid: 'master' }, data }, dependencies);
+    await vi.waitFor(() => expect(dependencies.setBenutzerDokument).toHaveBeenCalled());
+    expect(dependencies.createAuthBenutzer).toHaveBeenCalledWith(
+      expect.objectContaining({ disabled: true }),
+    );
+    expect(dependencies.setAuthBenutzerDisabled).not.toHaveBeenCalled();
+    finishWrite();
+    await pending;
+    expect(dependencies.setAuthBenutzerDisabled).toHaveBeenCalledExactlyOnceWith('neu-123', false);
+    expect(dependencies.deleteAuthBenutzer).not.toHaveBeenCalled();
+  });
+
+  it('never enables an account after a failed profile write even if deletion fails', async () => {
+    const dependencies = createDependencies();
+    dependencies.setBenutzerDokument.mockRejectedValue(new Error('write failed'));
+    dependencies.deleteAuthBenutzer.mockRejectedValue(new Error('delete failed'));
+    await expect(
+      handleCreateBenutzer({ auth: { uid: 'master' }, data }, dependencies),
+    ).rejects.toMatchObject({
+      code: 'internal',
+      message: expect.stringContaining('Bereinigung ist unvollständig'),
+    });
+    expect(dependencies.setAuthBenutzerDisabled).not.toHaveBeenCalled();
+  });
+
+  it('disables auth and the retained profile after an uncertain activation result', async () => {
+    const dependencies = createDependencies();
+    dependencies.setAuthBenutzerDisabled.mockRejectedValueOnce(new Error('activation timeout'));
+    await expect(
+      handleCreateBenutzer({ auth: { uid: 'master' }, data }, dependencies),
+    ).rejects.toMatchObject({ code: 'internal' });
+    expect(dependencies.setAuthBenutzerDisabled.mock.calls).toEqual([
+      ['neu-123', false],
+      ['neu-123', true],
+    ]);
+    expect(dependencies.deactivateBenutzerDokument).toHaveBeenCalledWith('neu-123');
+    expect(dependencies.deleteAuthBenutzer).toHaveBeenCalledWith('neu-123');
+    expect(dependencies.logAnlageError).toHaveBeenCalledWith(
+      'neu-123',
+      'aktivierung',
+      expect.any(Error),
+    );
+  });
+
+  it.each(['setAuthBenutzerDisabled', 'deactivateBenutzerDokument', 'deleteAuthBenutzer'] as const)(
+    'continues cleanup and reports incomplete cleanup when %s fails',
+    async (step) => {
+      const dependencies = createDependencies();
+      dependencies.setAuthBenutzerDisabled.mockRejectedValueOnce(new Error('activation timeout'));
+      dependencies[step].mockRejectedValue(new Error('cleanup failed'));
+      await expect(
+        handleCreateBenutzer({ auth: { uid: 'master' }, data }, dependencies),
+      ).rejects.toMatchObject({
+        code: 'internal',
+        message: expect.stringContaining('Bereinigung ist unvollständig'),
+      });
+      expect(dependencies.deactivateBenutzerDokument).toHaveBeenCalledWith('neu-123');
+      expect(dependencies.deleteAuthBenutzer).toHaveBeenCalledWith('neu-123');
+    },
+  );
+  it.each(['office', 'filiale'])(
+    'rejects %s without scopes before creating an auth account',
+    async (userRole) => {
+      const dependencies = createDependencies();
+      await expect(
+        handleCreateBenutzer(
+          { auth: { uid: 'master' }, data: { ...data, userRole, zugriffe: {} } },
+          dependencies,
+        ),
+      ).rejects.toMatchObject({ code: 'invalid-argument' });
+      expect(dependencies.createAuthBenutzer).not.toHaveBeenCalled();
+      expect(dependencies.setBenutzerDokument).not.toHaveBeenCalled();
+    },
+  );
+  it.each([
+    { u: { f: ['b1', 'b2'] } },
+    { u: { f1: ['b'], f2: ['b'] } },
+    { u1: { f: ['b'] }, u2: { f: ['b'] } },
+  ])('rejects multiple branch assignments for a branch account: %j', async (zugriffe) => {
+    const dependencies = createDependencies();
+    await expect(
+      handleCreateBenutzer(
+        { auth: { uid: 'master' }, data: { ...data, userRole: 'filiale', zugriffe } },
+        dependencies,
+      ),
+    ).rejects.toMatchObject({ code: 'invalid-argument' });
+    expect(dependencies.createAuthBenutzer).not.toHaveBeenCalled();
+    expect(dependencies.existierenDokumente).not.toHaveBeenCalled();
+  });
+
+  it('accepts exactly one branch for a branch account', async () => {
+    const dependencies = createDependencies();
+    await expect(
+      handleCreateBenutzer(
+        { auth: { uid: 'master' }, data: { ...data, userRole: 'filiale' } },
+        dependencies,
+      ),
+    ).resolves.toMatchObject({ uid: 'neu-123' });
   });
 });

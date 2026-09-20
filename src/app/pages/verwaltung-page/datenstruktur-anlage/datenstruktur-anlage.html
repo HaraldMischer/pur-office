@@ -1,0 +1,133 @@
+<!-- pur-office/src/app/pages/verwaltung-page/datenstruktur-anlage/datenstruktur-anlage.html -->
+
+<section class="pur-page-section">
+  <header class="pur-page-section__header">
+    <h2 class="pur-page-section__title">Datenstruktur anlegen</h2>
+  </header>
+
+  <mat-stepper class="datenstruktur-stepper" [linear]="true" [orientation]="stepperOrientation()">
+    <!-- Unternehmer -->
+    <mat-step [stepControl]="unternehmerForm" label="Unternehmer">
+      <form class="pur-form pur-form--grid" [formGroup]="unternehmerForm">
+        <h3 class="pur-form__group-titel">Unternehmer wählen oder neu anlegen</h3>
+
+        <mat-button-toggle-group formControlName="modus" aria-label="Unternehmer festlegen">
+          <mat-button-toggle value="vorhanden">Vorhanden</mat-button-toggle>
+          <mat-button-toggle value="neu">Neu anlegen</mat-button-toggle>
+        </mat-button-toggle-group>
+
+        @if (unternehmerForm.controls.modus.value === 'vorhanden') {
+          <mat-form-field appearance="outline" class="pur-form__field">
+            <mat-label>Unternehmer</mat-label>
+            <mat-select formControlName="id">
+              <mat-option disabled>Keine Unternehmer vorhanden</mat-option>
+            </mat-select>
+            @if (unternehmerForm.controls.id.hasError('required')) {
+              <mat-error>Ein Unternehmer ist erforderlich.</mat-error>
+            }
+          </mat-form-field>
+        } @else {
+          <mat-form-field appearance="outline" class="pur-form__field">
+            <mat-label>Name des Unternehmers</mat-label>
+            <input matInput formControlName="name" type="text" autocomplete="off" />
+            @if (unternehmerForm.controls.name.hasError('required')) {
+              <mat-error>Der Unternehmername ist erforderlich.</mat-error>
+            }
+          </mat-form-field>
+        }
+
+        <div class="pur-form__row datenstruktur-aktionen">
+          <button
+            matButton="filled"
+            matStepperNext
+            type="button"
+            [disabled]="unternehmerForm.invalid"
+          >
+            Weiter
+          </button>
+        </div>
+      </form>
+    </mat-step>
+
+    <!-- Firma -->
+    <mat-step [stepControl]="firmaForm" label="Firma">
+      <form class="pur-form pur-form--grid" [formGroup]="firmaForm">
+        <h3 class="pur-form__group-titel">
+          Firma für {{ getUnternehmerBezeichnung() }} wählen oder neu anlegen
+        </h3>
+
+        <mat-button-toggle-group formControlName="modus" aria-label="Firma festlegen">
+          <mat-button-toggle value="vorhanden">Vorhanden</mat-button-toggle>
+          <mat-button-toggle value="neu">Neu anlegen</mat-button-toggle>
+        </mat-button-toggle-group>
+
+        @if (firmaForm.controls.modus.value === 'vorhanden') {
+          <mat-form-field appearance="outline" class="pur-form__field">
+            <mat-label>Firma</mat-label>
+            <mat-select formControlName="id">
+              <mat-option disabled>Keine Firmen vorhanden</mat-option>
+            </mat-select>
+            @if (firmaForm.controls.id.hasError('required')) {
+              <mat-error>Eine Firma ist erforderlich.</mat-error>
+            }
+          </mat-form-field>
+        } @else {
+          <mat-form-field appearance="outline" class="pur-form__field">
+            <mat-label>Name der Firma</mat-label>
+            <input matInput formControlName="name" type="text" autocomplete="off" />
+            @if (firmaForm.controls.name.hasError('required')) {
+              <mat-error>Der Firmenname ist erforderlich.</mat-error>
+            }
+          </mat-form-field>
+        }
+
+        <div class="pur-form__row datenstruktur-aktionen">
+          <button matButton type="button" matStepperPrevious>Zurück</button>
+          <button matButton="filled" matStepperNext type="button" [disabled]="firmaForm.invalid">
+            Weiter
+          </button>
+        </div>
+      </form>
+    </mat-step>
+
+    <!-- Filiale -->
+    <mat-step [stepControl]="filialeForm" label="Filiale">
+      <form class="pur-form pur-form--grid" [formGroup]="filialeForm">
+        <h3 class="pur-form__group-titel">Filiale anlegen</h3>
+
+        <mat-form-field appearance="outline" class="pur-form__field">
+          <mat-label>Name der Filiale</mat-label>
+          <input matInput formControlName="name" type="text" autocomplete="off" />
+          @if (filialeForm.controls.name.hasError('required')) {
+            <mat-error>Der Filialname ist erforderlich.</mat-error>
+          }
+        </mat-form-field>
+
+        <!-- Zusammenfassung -->
+        <dl class="datenstruktur-zusammenfassung">
+          <div>
+            <dt>Unternehmer</dt>
+            <dd>{{ getUnternehmerBezeichnung() }}</dd>
+          </div>
+          <div>
+            <dt>Firma</dt>
+            <dd>{{ getFirmaBezeichnung() }}</dd>
+          </div>
+          <div>
+            <dt>Filiale</dt>
+            <dd>{{ filialeForm.controls.name.value || 'Keine Filiale eingetragen' }}</dd>
+          </div>
+        </dl>
+
+        <p class="pur-page-section__message pur-page-section__text">
+          Das Speichern in Firestore wird in einem späteren Schritt angebunden.
+        </p>
+
+        <div class="pur-form__row datenstruktur-aktionen">
+          <button matButton type="button" matStepperPrevious>Zurück</button>
+          <button matButton="filled" type="button" disabled>Datenstruktur anlegen</button>
+        </div>
+      </form>
+    </mat-step>
+  </mat-stepper>
+</section>

@@ -29,13 +29,12 @@ describe('BenutzerService', () => {
 
   it('should load an existing user profile', async () => {
     const profil: IBenutzerDokument = {
-      uid: 'benutzer-123',
       anzeigename: 'Test',
       email: 'test@example.com',
       aktiv: true,
       userRole: 'office',
       erlaubteBereiche: ['dashboard'],
-      zugriffe: [],
+      zugriffe: { 'u-1': { 'f-1': ['b-1'] } },
     };
     firestoreGetDocMock.mockResolvedValue({
       exists: () => true,
@@ -47,7 +46,43 @@ describe('BenutzerService', () => {
 
     expect(firestoreDocMock).toHaveBeenCalledWith(firestoreMock, 'benutzer', 'benutzer-123');
     expect(firestoreGetDocMock).toHaveBeenCalledWith('benutzer-doc-ref');
-    expect(result).toBe(profil);
+    expect(result).toEqual(profil);
+  });
+
+  it('should normalize legacy array access without granting data access', async () => {
+    firestoreGetDocMock.mockResolvedValue({
+      exists: () => true,
+      data: () => ({
+        email: 'alt@example.com',
+        anzeigename: 'Altprofil',
+        aktiv: true,
+        userRole: 'master',
+        erlaubteBereiche: ['dashboard'],
+        zugriffe: [],
+      }),
+    });
+    const service = TestBed.inject(BenutzerService);
+
+    await expect(service.getBenutzerProfil('alt')).resolves.toMatchObject({ zugriffe: {} });
+  });
+
+  it('should discard malformed and empty access entries', async () => {
+    firestoreGetDocMock.mockResolvedValue({
+      exists: () => true,
+      data: () => ({
+        email: 'test@example.com',
+        anzeigename: 'Test',
+        aktiv: true,
+        userRole: 'office',
+        erlaubteBereiche: ['dashboard'],
+        zugriffe: { u: { leer: [], falsch: 'b', gueltig: ['b'] } },
+      }),
+    });
+    const service = TestBed.inject(BenutzerService);
+
+    await expect(service.getBenutzerProfil('test')).resolves.toMatchObject({
+      zugriffe: { u: { gueltig: ['b'] } },
+    });
   });
 
   it('should return null when the user profile does not exist', async () => {

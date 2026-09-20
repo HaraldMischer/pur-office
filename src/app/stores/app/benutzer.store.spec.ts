@@ -21,18 +21,12 @@ describe('BenutzerStore', () => {
 
   beforeEach(() => {
     profil = {
-      uid: 'benutzer-123',
       anzeigename: 'Test',
       email: 'test@example.com',
       aktiv: true,
       userRole: 'office',
       erlaubteBereiche: ['dashboard', 'schichtplan'],
-      zugriffe: [
-        {
-          firmaId: 'firma-1',
-          filialIds: ['filiale-1', 'filiale-2'],
-        },
-      ],
+      zugriffe: { 'u-1': { 'firma-1': ['filiale-1', 'filiale-2'] } },
     };
     authServiceMock = {
       login: vi.fn().mockResolvedValue({ user: { uid: 'benutzer-123' } } as UserCredential),
@@ -82,10 +76,10 @@ describe('BenutzerStore', () => {
 
     expect(store.darfBereichNutzen('dashboard')).toBe(true);
     expect(store.darfBereichNutzen('mitarbeiter')).toBe(false);
-    expect(store.darfFirmaLesen('firma-1')).toBe(true);
-    expect(store.darfFirmaLesen('firma-2')).toBe(false);
-    expect(store.darfFilialeLesen('firma-1', 'filiale-1')).toBe(true);
-    expect(store.darfFilialeLesen('firma-1', 'filiale-9')).toBe(false);
+    expect(store.darfFirmaLesen('u-1', 'firma-1')).toBe(true);
+    expect(store.darfFirmaLesen('u-1', 'firma-2')).toBe(false);
+    expect(store.darfFilialeLesen('u-1', 'firma-1', 'filiale-1')).toBe(true);
+    expect(store.darfFilialeLesen('u-1', 'firma-1', 'filiale-9')).toBe(false);
 
     store.setBenutzerProfil({ ...profil, userRole: 'master' });
 
@@ -112,5 +106,48 @@ describe('BenutzerStore', () => {
 
     expect(store.error()).toBe('E-Mail-Adresse oder Passwort ist nicht korrekt.');
     expect(store.inProgress()).toBe(false);
+  });
+  it('should separate identical company IDs by entrepreneur and deny inactive profiles', () => {
+    const store = TestBed.inject(BenutzerStore);
+    store.setBenutzerProfil(profil);
+    expect(store.darfFirmaLesen('u-2', 'firma-1')).toBe(false);
+    expect(store.darfFilialeLesen('u-2', 'firma-1', 'filiale-1')).toBe(false);
+    store.setBenutzerProfil({ ...profil, aktiv: false });
+    expect(store.darfFirmaLesen('u-1', 'firma-1')).toBe(false);
+    expect(store.darfFilialeLesen('u-1', 'firma-1', 'filiale-1')).toBe(false);
+  });
+
+  it('should deny incomplete access maps', () => {
+    const store = TestBed.inject(BenutzerStore);
+    store.setBenutzerProfil({
+      ...profil,
+      zugriffe: {},
+    });
+    expect(store.isLoggedIn()).toBe(true);
+    expect(store.darfBereichNutzen('dashboard')).toBe(true);
+    expect(store.darfFirmaLesen('u-1', 'firma-1')).toBe(false);
+    expect(store.darfFilialeLesen('u-1', 'firma-1', 'filiale-1')).toBe(false);
+  });
+
+  it('should deny company access for an empty branch list', () => {
+    const store = TestBed.inject(BenutzerStore);
+    store.setBenutzerProfil({ ...profil, zugriffe: { 'u-1': { 'firma-1': [] } } });
+    expect(store.darfFirmaLesen('u-1', 'firma-1')).toBe(false);
+  });
+  it('allows an active master to read every company and branch with empty scopes', () => {
+    const store = TestBed.inject(BenutzerStore);
+    store.setBenutzerProfil({ ...profil, userRole: 'master', zugriffe: {} });
+    expect(store.darfFirmaLesen('beliebig', 'beliebig')).toBe(true);
+    expect(store.darfFilialeLesen('beliebig', 'beliebig', 'beliebig')).toBe(true);
+    store.setBenutzerProfil({ ...profil, userRole: 'master', aktiv: false, zugriffe: {} });
+    expect(store.darfFirmaLesen('beliebig', 'beliebig')).toBe(false);
+    expect(store.darfFilialeLesen('beliebig', 'beliebig', 'beliebig')).toBe(false);
+  });
+
+  it.each(['office', 'filiale'] as const)('denies empty scopes for %s', (userRole) => {
+    const store = TestBed.inject(BenutzerStore);
+    store.setBenutzerProfil({ ...profil, userRole, zugriffe: {} });
+    expect(store.darfFirmaLesen('u-1', 'firma-1')).toBe(false);
+    expect(store.darfFilialeLesen('u-1', 'firma-1', 'filiale-1')).toBe(false);
   });
 });

@@ -5,10 +5,8 @@ import {
   Component,
   booleanAttribute,
   computed,
-  effect,
   input,
-  signal,
-  untracked,
+  model,
 } from '@angular/core';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatSelectModule } from '@angular/material/select';
@@ -26,9 +24,11 @@ export class DatenzugriffAuswahl {
   readonly unternehmerMehrfach = input(false, { transform: booleanAttribute });
   readonly firmenMehrfach = input(false, { transform: booleanAttribute });
   readonly filialenMehrfach = input(false, { transform: booleanAttribute });
-  readonly unternehmerIds = signal<readonly string[]>([]);
-  readonly firmaIds = signal<readonly string[]>([]);
-  readonly filialen = signal<Readonly<Partial<Record<string, readonly string[]>>>>({});
+  readonly firmenLaden = input(false);
+  readonly filialenLaden = input(false);
+  readonly unternehmerIds = model<readonly string[]>([]);
+  readonly firmaIds = model<readonly string[]>([]);
+  readonly filialen = model<Readonly<Partial<Record<string, readonly string[]>>>>({});
   readonly ausgewaehlteUnternehmer = computed(() =>
     this.unternehmer().filter((eintrag) => this.unternehmerIds().includes(eintrag.id)),
   );
@@ -72,29 +72,6 @@ export class DatenzugriffAuswahl {
 
   getFilialSchluessel(firmaId: string, filialId: string): string {
     return JSON.stringify([firmaId, filialId]);
-  }
-
-  constructor() {
-    effect(() => {
-      const mehrfach = this.unternehmerMehrfach();
-      untracked(() => {
-        if (!mehrfach && this.unternehmerIds().length > 1)
-          this.selectUnternehmer(this.unternehmerIds()[0]);
-      });
-    });
-    effect(() => {
-      const mehrfach = this.firmenMehrfach();
-      untracked(() => {
-        if (!mehrfach && this.firmaIds().length > 1) this.selectFirmen(this.firmaIds()[0]);
-      });
-    });
-    effect(() => {
-      const mehrfach = this.filialenMehrfach();
-      untracked(() => {
-        if (!mehrfach && this.filialSchluessel().length > 1)
-          this.selectFilialen(this.filialSchluessel()[0]);
-      });
-    });
   }
 
   selectFirmen(auswahl: string | readonly string[] | null): void {

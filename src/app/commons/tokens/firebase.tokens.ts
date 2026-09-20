@@ -10,7 +10,15 @@ import {
   signOut,
   updatePassword,
 } from '@angular/fire/auth';
-import { collection, collectionData, doc, getDoc, query, where } from '@angular/fire/firestore';
+import {
+  collection,
+  collectionData,
+  doc,
+  getDoc,
+  getDocs,
+  query,
+  where,
+} from '@angular/fire/firestore';
 import { httpsCallable } from '@angular/fire/functions';
 
 export const AUTH_STATE = new InjectionToken<typeof authState>('AUTH_STATE', {
@@ -94,4 +102,9 @@ export const FIRESTORE_WHERE = new InjectionToken<typeof where>('FIRESTORE_WHERE
 export const HTTPS_CALLABLE = new InjectionToken<typeof httpsCallable>('HTTPS_CALLABLE', {
   providedIn: 'root',
   factory: () => httpsCallable,
+});
+
+export const FIRESTORE_GET_DOCS = new InjectionToken<typeof getDocs>('FIRESTORE_GET_DOCS', {
+  providedIn: 'root',
+  factory: () => getDocs,
 });

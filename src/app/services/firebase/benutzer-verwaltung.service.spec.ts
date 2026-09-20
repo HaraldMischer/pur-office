@@ -14,7 +14,7 @@ describe('BenutzerVerwaltungService', () => {
     anzeigename: 'Test Benutzer',
     userRole: 'office',
     erlaubteBereiche: ['dashboard'],
-    zugriffe: [],
+    zugriffe: {},
     passwort: 'SicheresPasswort123!',
   };
   let callableMock: ReturnType<typeof vi.fn>;

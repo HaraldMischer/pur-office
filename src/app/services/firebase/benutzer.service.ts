@@ -3,7 +3,7 @@
 import { Injectable, Injector, inject, runInInjectionContext } from '@angular/core';
 import { Firestore } from '@angular/fire/firestore';
 
-import { IBenutzerDokument } from '../../commons/models/domain/benutzer';
+import { IBenutzerDokument, TBenutzerZugriffe } from '../../commons/models/domain/benutzer';
 import { FIRESTORE_DOC, FIRESTORE_GET_DOC } from '../../commons/tokens/firebase.tokens';
 
 @Injectable({
@@ -24,6 +24,44 @@ export class BenutzerService {
       return null;
     }
 
-    return dokument.data() as IBenutzerDokument;
+    const profil = dokument.data() as Omit<IBenutzerDokument, 'zugriffe'> & { zugriffe?: unknown };
+
+    return {
+      email: profil.email,
+      anzeigename: profil.anzeigename,
+      aktiv: profil.aktiv,
+      userRole: profil.userRole,
+      erlaubteBereiche: profil.erlaubteBereiche,
+      zugriffe: this.parseZugriffe(profil.zugriffe),
+      erstelltAm: profil.erstelltAm,
+      aktualisiertAm: profil.aktualisiertAm,
+    };
+  }
+
+  private parseZugriffe(value: unknown): TBenutzerZugriffe {
+    if (typeof value !== 'object' || value === null || Array.isArray(value)) {
+      return {};
+    }
+
+    const zugriffe: Array<[string, Record<string, string[]>]> = [];
+    for (const [unternehmerId, firmenValue] of Object.entries(value)) {
+      if (typeof firmenValue !== 'object' || firmenValue === null || Array.isArray(firmenValue)) {
+        continue;
+      }
+
+      const firmen: Array<[string, string[]]> = [];
+      for (const [firmaId, filialenValue] of Object.entries(firmenValue)) {
+        if (
+          Array.isArray(filialenValue) &&
+          filialenValue.length > 0 &&
+          filialenValue.every((id) => typeof id === 'string')
+        ) {
+          firmen.push([firmaId, filialenValue]);
+        }
+      }
+      zugriffe.push([unternehmerId, Object.fromEntries(firmen)]);
+    }
+
+    return Object.fromEntries(zugriffe);
   }
 }

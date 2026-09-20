@@ -1,10 +1,10 @@
 // pur-office/src/app/commons/models/domain/benutzer.ts
 
 import { Timestamp } from 'firebase/firestore';
-
 import { TAppBereich } from '../app/app-bereich';
 
 export type TUserRole = 'filiale' | 'office' | 'master';
+export type TBenutzerZugriffe = Record<string, Record<string, string[]>>;
 
 // ===== Anwendungs-Typen ====================
 
@@ -13,7 +13,7 @@ export interface IBenutzerAnlage {
   anzeigename: string;
   userRole: TUserRole;
   erlaubteBereiche: TAppBereich[];
-  zugriffe: IBenutzerZugriff[];
+  zugriffe: TBenutzerZugriffe;
   passwort: string;
 }
 
@@ -25,20 +25,12 @@ export interface IBenutzerAnlageErgebnis {
 // ===== Firestore-Dokumente ==================
 
 export interface IBenutzerDokument {
-  uid: string;
   email: string;
-  anzeigename: string | null;
+  anzeigename: string;
   aktiv: boolean;
   userRole: TUserRole;
   erlaubteBereiche: TAppBereich[];
-  zugriffe: IBenutzerZugriff[];
+  zugriffe: TBenutzerZugriffe;
   erstelltAm?: Timestamp;
   aktualisiertAm?: Timestamp;
-}
-
-// ===== Firestore-Typen ======================
-
-export interface IBenutzerZugriff {
-  firmaId: string;
-  filialIds: string[];
 }

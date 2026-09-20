@@ -43,13 +43,12 @@ describe('bereichGuard', () => {
   it('should allow access to an area listed in the user profile', async () => {
     authServiceMock.getAuthState.mockReturnValue(of({ uid: 'benutzer-123' } as User));
     benutzerServiceMock.getBenutzerProfil.mockResolvedValue({
-      uid: 'benutzer-123',
       email: 'test@example.com',
       anzeigename: 'Test',
       aktiv: true,
       userRole: 'office',
       erlaubteBereiche: ['dashboard'],
-      zugriffe: [],
+      zugriffe: {},
     });
 
     const result = await TestBed.runInInjectionContext(() =>
@@ -66,13 +65,12 @@ describe('bereichGuard', () => {
     const dashboardUrlTree = {} as UrlTree;
     authServiceMock.getAuthState.mockReturnValue(of({ uid: 'benutzer-123' } as User));
     benutzerServiceMock.getBenutzerProfil.mockResolvedValue({
-      uid: 'benutzer-123',
       email: 'test@example.com',
       anzeigename: 'Test',
       aktiv: true,
       userRole: 'filiale',
       erlaubteBereiche: ['dashboard'],
-      zugriffe: [],
+      zugriffe: {},
     });
     routerMock.createUrlTree.mockReturnValue(dashboardUrlTree);
 
@@ -107,13 +105,12 @@ describe('bereichGuard', () => {
     const loginUrlTree = {} as UrlTree;
     authServiceMock.getAuthState.mockReturnValue(of({ uid: 'benutzer-123' } as User));
     benutzerServiceMock.getBenutzerProfil.mockResolvedValue({
-      uid: 'benutzer-123',
       email: 'test@example.com',
       anzeigename: 'Test',
       aktiv: false,
       userRole: 'office',
       erlaubteBereiche: [],
-      zugriffe: [],
+      zugriffe: {},
     });
     routerMock.createUrlTree.mockReturnValue(loginUrlTree);
 

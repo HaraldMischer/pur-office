@@ -1,95 +1,97 @@
 <!-- pur-office/docs/next_todo.md -->
 
-<!-- Datenzugriff-Vorschau -->
-Die Verwaltungsseite zeigt den Datenzugriff vorerst mit lokalen Beispieldaten: Unternehmer, Firmen und deren Filialen. Alle drei Selects starten mit Einfachauswahl; `unternehmerMehrfach`, `firmenMehrfach` und `filialenMehrfach` aktivieren jeweils die Mehrfachauswahl. Firmen sind nach Unternehmer gruppiert. Interne Auswahlschluessel enthalten die Unternehmerzuordnung. Abgewaehlte Unternehmer verlieren ihre abhaengige Auswahl; das Abwaehlen einer Firma entfernt ihre Filialauswahl. Die Benutzeranlage ist in dieser Vorschau auch im Submit-Handler gesperrt. Offen: Firebase-Anbindung an `purCustomers/{unternehmerId}/company/{firmaId}/branches`, Erweiterung der gespeicherten Zugriffe um den Unternehmer und serverseitige Zugehoerigkeitspruefung. Erst danach die Benutzeranlage wieder aktivieren.
-
-
 # Offene Todos
+
+## 5. Todo: Datenstruktur-Anlage
+
+> **Status am 20.09.2026: UI-Dummy umgesetzt; manuelle Sichtpruefung ausstehend.**
+
+Ziel: Ein Master kann die hierarchische Datenstruktur fuer Pur Office schrittweise vorbereiten. Die Benutzeroberflaeche fuehrt in der Reihenfolge Unternehmer, Firma und Filiale durch die Anlage. Zunaechst wird nur ein funktionsfaehiger UI-Dummy ohne Firestore-Schreibzugriff umgesetzt.
+
+### Geplante Umsetzung
+1. [x] Einen linearen Angular-Material-Stepper in `src/app/pages/verwaltung-page/datenstruktur-anlage` umsetzen.
+2. [x] Schritt 1: vorhandenen Unternehmer waehlen oder einen neuen Unternehmer ueber ein Pflichtfeld vorbereiten.
+3. [x] Schritt 2: fuer den in Schritt 1 bestimmten Unternehmer eine vorhandene Firma waehlen oder eine neue Firma ueber ein Pflichtfeld vorbereiten.
+4. [x] Schritt 3: Namen der neu anzulegenden Filiale erfassen und die vollstaendige Hierarchie zusammenfassend anzeigen.
+5. [x] Auswahl und Neuanlage je Schritt klar voneinander unterscheiden; abhaengige Eingaben erst freigeben, wenn die vorherige Auswahl gueltig ist.
+6. [x] Zurueck-/Weiter-Navigation und Formularvalidierung funktionsfaehig umsetzen. Auf kleinen Bildschirmen den Stepper vertikal darstellen.
+7. [x] Die bisherigen drei Empty-State-Platzhalter durch den Stepper ersetzen.
+8. [x] Noch keine Firestore-Dokumente schreiben. Den abschliessenden Anlage-Button als nicht angebunden kennzeichnen und deaktiviert lassen.
+9. [x] Component- und Seitentests fuer Schritte, Validierung, Navigation und responsive Ausrichtung ergaenzen.
+10. [x] `npm test` und `npm run build` erfolgreich ausfuehren.
+
+### Erledigt, wenn
+- [ ] Der Stepper bildet die drei Schritte Unternehmer, Firma und Filiale verstaendlich ab; manuelle Sichtpruefung durch den Benutzer steht aus.
+- [x] Auswahl, Neuanlage, Validierung und Navigation funktionieren als UI-Dummy.
+- [x] Die Darstellung wechselt auf kleinen Bildschirmen in eine vertikale Ausrichtung.
+- [x] Der Dummy fuehrt noch keine Firestore-Schreibzugriffe aus.
+- [x] Tests und Produktionsbuild sind erfolgreich.
 
 ## 4. Todo: Verwaltungsbereich und Benutzeranlage umsetzen
 
-> **Status: Noch nicht abgeschlossen.**  
-> Altanwendungspruefung und Deployment sind laut Benutzer abgeschlossen. Die neue Umstellung auf ausschliessliche Passwortvergabe durch den Master muss noch deployed und im Gesamtablauf geprueft werden.
+> **Status am 19.09.2026: Noch nicht abgeschlossen.**
+> Formular, lesende Firebase-Anbindung und Auswahluebergabe an den Verwaltungsstore sind umgesetzt. Formularvalidierung, Anlage-Payload und Backend-Hierarchiepruefung verwenden lokal die vereinfachte Zugriffs-Map ohne separaten Index. Der Profilbestand wurde geprueft; das vorhandene Master-Altprofil bleibt kompatibel. Die vereinfachten Rules und die vereinfachte Function sind deployed. Der Gesamtablauf muss noch mit der neuen Datenhierarchie getestet werden.
 
-Ziel:
-Ein Benutzer mit `userRole: master` kann im geschuetzten Bereich `/verwaltung` vorkonfigurierte Benutzerzugaenge anlegen. Eine Selbstregistrierung bleibt ausgeschlossen. Die Angular-App uebergibt die Benutzerdaten an eine geschuetzte Firebase Cloud Function. Die Function prueft die Master-Rolle serverseitig und legt mit dem Firebase Admin SDK sowohl den Firebase-Auth-Benutzer als auch das Firestore-Dokument `benutzer/{uid}` an. Die bestehende Sitzung des Masters bleibt dabei erhalten.
+Ziel: Ein serverseitig bestaetigter Master kann einen Benutzer mit Anzeigename, Rolle, E-Mail, Anfangspasswort, erlaubten Bereichen und Datenzugriffen anlegen. Die Datenzugriffe fuer Pur Office folgen der Hierarchie `unternehmer/{unternehmerId}/firma/{firmaId}/filiale/{filialId}`. Die Altanwendung bleibt auf `purCustomers/{unternehmerId}/company/{firmaId}/branches/{filialId}`. Eine Selbstregistrierung bleibt ausgeschlossen; die Sitzung des Masters bleibt erhalten.
 
-Geplante betroffene Bereiche und Dateien:
+### Bereits umgesetzt
+- [x] Filial-Lesezugriff am 19.09.2026 mit dem angemeldeten Testkonto direkt gegen Firestore geprueft: eigene zugeordnete Filiale lesbar, andere vorhandene Filiale derselben Firma mit `permission-denied` gesperrt. Beide Ergebnisse vom Benutzer per Screenshot bestaetigt.
+- [x] Nach erfolgreicher Anlage Formularwerte und Absendezustand zuruecksetzen, sodass leere Pflichtfelder ohne Fehlermarkierung angezeigt werden; Erfolgsmeldung bleibt erhalten.
+- [x] Rollenabhaengige Auswahl: Filiale genau ein Unternehmer/eine Firma/eine Filiale; Office Unternehmer einfach und Firmen/Filialen mehrfach; Master ohne Auswahl. Separate Komponenteninstanzen mit festen Modi; Rollenwechsel setzt Zuordnungen zurueck. Seiten- und Backendvalidierung begrenzen Filialkonten auf genau eine Filiale. Rollenvalidierung laut Benutzer erfolgreich als Function deployed.
+- [x] Verwaltungsroute, Navigation und Client-Guards fuer berechtigte Master-Benutzer.
+- [x] Formular mit Zugangsdaten, Bereichs-Checkboxen und Datenzugriff-Auswahl.
+- [x] Anfangspasswort ausschliesslich durch den Master, mindestens 8 Zeichen, ein Feld mit Ein-/Ausblendfunktion. Kein Passwort in Firestore.
+- [x] Spaetere Passwortaenderung unter `/passwort` mit erneuter Authentifizierung und Passwortbestaetigung.
+- [x] Wiederverwendbare Material-Selects mit abhaengiger Auswahl; inzwischen an lesende Firebase-Abfragen angebunden.
+- [x] Drei unabhaengige Mehrfachauswahl-Inputs mit Standard `false`; in der Verwaltungsseite je Rolle fest eingestellt: Filiale nur einfach, Office Firmen/Filialen mehrfach, Master ohne Auswahl.
+- [x] Gruppierung nur bei aktivierter Mehrfachauswahl der uebergeordneten Ebene und mehr als einem dort ausgewaehlten Eintrag.
+- [x] Anzahl direkt im Select bei mehreren ausgewaehlten Eintraegen; keine Hints oder separate Auswahlstatus-Zeile.
+- [x] Bereinigung abhaengiger Auswahl beim Abwaehlen von Unternehmern oder Firmen.
+- [x] Store, Service und Callable Function fuer die Benutzeranlage mit der Struktur `Unternehmer-ID -> Firma-ID -> Filial-IDs`.
+- [x] Serverseitige Pruefung von Anmeldung, aktivem Profil und Master-Rolle; Anlage mit Admin SDK.
+- [x] Vorschau-Sperre im Formular und Submit-Handler entfernt; Validierung und Schutz vor doppeltem Absenden bleiben aktiv.
+- [x] `DatenzugriffService` anlegen und den bestehenden `BenutzerVerwaltungStore` um Daten, Auswahl sowie eigene Lade- und Fehlerzustaende erweitern. Unternehmer beim Oeffnen laden, Firmen nach Unternehmerauswahl und Filialen nach Firmenauswahl. Bei Mehrfachauswahl alle ausgewaehlten Eltern beruecksichtigen; bereits geladene Listen anhand der vollstaendigen Unternehmer-/Firmenzuordnung zwischenspeichern. Dokument-IDs fuer die Zuordnung und `customerName`, `companyName`, `branchName` fuer die Anzeige verwenden.
+- [x] Store-Auswahl in Formularvalidierung und Anlage-Payload uebernehmen. Das alte `zugriffe`-FormArray wurde entfernt. Ausgewaehlte Unternehmer und Firmen benoetigen vollstaendige untergeordnete Auswahlen; Office-/Filialkonten benoetigen bei der Anlage mindestens eine vollstaendige Unternehmer-/Firmen-/Filialzuordnung. Leere Zuordnungen werden im Formular und Backend abgelehnt. Aktive Master lesen mit leerer Zugriffs-Map alle Collections und Untercollections.
+- [x] Bestehende Profile pruefen: Am 19.09.2026 wurde die Collection `benutzer` im Projekt `pur-system` (Datenbank `(default)`) vollstaendig lesend geprueft. Es existiert genau ein Master-Profil mit `zugriffe: []`. Keine alten Firmen-/Filialzugriffe und keine fehlenden Unternehmerzuordnungen vorhanden; eine Migration ist nicht erforderlich. Es wurden keine Firestore-Dokumente veraendert.
+- [x] Im Backend pruefen, ob ausgewaehlte Firmen zum Unternehmer und Filialen zur jeweiligen Firma gehoeren. Ungueltige oder manipulierte Zuordnungen ablehnen.
+- [x] Unternehmer-/Firmen-/Filialauswahl mit echten Firebase-Daten angebunden und vom Benutzer als funktionierend bestaetigt. Produktive Mock-Daten und Vorschau-Sperre sind entfernt. Der vollstaendige Anlageablauf bleibt als Gesamtablaufpruefung offen.
+- [x] Collection-spezifische Rules lokal umgesetzt und im Emulator geprueft: Aktive Master lesen alle Collections inklusive `benutzer`; aktive Office-/Filialprofile lesen nur zugeordnete Unternehmer-/Firmendokumente und freigegebene Filialen samt Untercollections. Eigenes Profil bleibt lesbar. Konten ohne `benutzer`-Dokument behalten bisherigen Altzugriff; diese Kontentrennung wurde vom Benutzer bestaetigt. Deployment und produktives Lesen/Schreiben der Altanwendung sind vom Benutzer bestaetigt; der neue Anlageablauf bleibt als Gesamtablaufpruefung offen.
+- [x] Sichere Kontoanlage implementiert und getestet: Ohne erfolgreich gespeichertes Profil wird das neue Auth-Konto nie aktiviert. Bei Aktivierungsfehlern werden Auth-Konto und Profil nach Moeglichkeit deaktiviert und das Auth-Konto entfernt. Das Profil bleibt wegen eventuell ausgestellter Tokens erhalten. Unvollstaendige Bereinigung wird ehrlich gemeldet; manuelle Nachbearbeitung siehe Projekt-Stand.
+- [x] Tests fuer den erweiterten Anlage-Payload, serverseitig ungueltige Hierarchien und bestehende Profile ergaenzen; Tests und Builds erfolgreich ausfuehren. Service-Abfragen, abhaengiges Laden, Cache, Lade-/Fehlerzustaende und Auswahluebergabe an den Store sind bereits getestet.
+- [x] Vorherige Function und Rules deployed; Altzugriff ist bestaetigt.
+- [x] Vereinfachte Rules ohne `zugriffsIndex` deployen; Deployment vom Benutzer bestaetigt.
+- [x] Vereinfachte Function ohne `zugriffsIndex` deployen; Deployment vom Benutzer bestaetigt.
 
-- Firebase-Functions-Projekt beziehungsweise Backend-Struktur
-- Firebase-Konfiguration und Deployment-Konfiguration
-- src/app/app.routes.ts
-- src/app/commons/models/app/app-bereich.ts
-- src/app/commons/models/domain/benutzer.ts
-- src/app/guards/
-- src/app/services/firebase/
-- src/app/stores/
-- src/app/components/app-shell/app-sidenav/
-- src/app/pages/verwaltung-page/
-- Firestore Rules
-- docs/projekt-plan.md
-- docs/projekt-stand.md
+### Aufteilung fuer den Datenzugriff
+- Der bestehende `BenutzerVerwaltungStore` in `src/app/stores/domain/benutzer-verwaltung.store.ts` verwaltet zusaetzlich Unternehmer, Firmen, Filialen und deren Auswahl. Er orchestriert das Laden und bereitet die ausgewaehlten Zugriffe fuer die Benutzeranlage vor.
+- Der neue `DatenzugriffService` in `src/app/services/firebase/datenzugriff.service.ts` kapselt die lesenden Firestore-Abfragen und die Uebertragung in die Auswahlmodelle. Der bestehende `BenutzerVerwaltungService` bleibt fuer den Aufruf der Benutzeranlage zustaendig.
+- Lade- und Fehlerzustaende der Auswahllisten werden getrennt von `inProgress` und dem Feedback der Benutzeranlage gehalten. Leere Listen werden von Ladefehlern unterschieden.
+- Die Component `DatenzugriffAuswahl` bleibt unabhaengig von Firebase und dem Verwaltungsstore. Die Verwaltungsseite uebergibt Daten und Auswahl ueber Inputs und reicht Auswahlereignisse der Component an den Store weiter.
+- Fuer diesen Umfang ist kein eigener `DatenzugriffStore` vorgesehen. Eine Auslagerung wird erst bei gemeinsam benoetigter Lade- und Auswahllogik auf weiteren Seiten geprueft. Der `PasswortStore` bleibt separat.
 
-Schritte 1: Verwaltungsbereich vorbereiten
-1. [x] `verwaltung` als weiteren `TAppBereich` aufnehmen.
-2. [x] Route `/verwaltung` und `verwaltung-page` anlegen.
-3. [x] Navigationseintrag Verwaltung mit geeignetem Material-Icon ergaenzen.
-4. [x] Zugriff im Angular-Routing zusaetzlich auf `userRole: master` begrenzen.
-5. [x] Verwaltungsseite fuer Benutzerliste und Benutzeranlage vorbereiten.
+### Naechste Umsetzungsschritte
+1. [ ] Office-Firmenfreigabe klaeren: Zugriff auf alle aktuellen und zukuenftigen Filialen der Firma oder stets explizite Filialauswahl? Office darf ausschliesslich freigegebene Firmen/Filialen sehen; kein globaler Lesezugriff. Bis zur Entscheidung die explizite Filialzuordnung beibehalten.
+2. [ ] Schreibrechte festlegen: Welche Daten erzeugt/bearbeitet ein Filialkonto in seiner eigenen Filiale? Welche Office-Aktionen (z. B. Mitarbeiter anlegen/bearbeiten) sind innerhalb der freigegebenen Datenbereiche erlaubt? Danach gezielte Backend-/Rules-Pruefungen mit Tests umsetzen; Zugriff der Altanwendung erhalten.
+3. [ ] Aktuelles Frontend bereitstellen und mit echten Testkonten pruefen: Anlage, Auth-Konto und Profil samt Zuordnungen, Login, erlaubte und verweigerte Lese-/Schreibzugriffe sowie Passwortwechsel. Die vereinfachte Function und die vereinfachten Rules sind bereits deployed. Erfolgreiche Anlage ueber das Formular wurde vom Benutzer bestaetigt. Anmeldung, Bereichsfreigabe, Verwaltungssperre, Passwortwechsel und erneute Anmeldung wurden vom Benutzer bestaetigt. Der direkte Filial-Lesetest ist ebenfalls erfolgreich: eigene Filiale erlaubt, andere vorhandene Filiale gesperrt. Office-Zugriffe, Unterdokumente und kuenftige Schreibrechte sind noch separat zu pruefen.
 
-Schritte 2: Formular und Datenmodell
-1. [x] Formular fuer E-Mail-Adresse, Anzeigename und Benutzerrolle anlegen.
-2. [x] Auswahl der `erlaubteBereiche` vorsehen.
-3. [x] Firmen- und Filialzugriffe ueber `zugriffe` erfassen.
-4. [x] Eingaben clientseitig validieren und eindeutige Fehlermeldungen anzeigen.
-5. [x] Kein Formular zur oeffentlichen Selbstregistrierung anbieten.
+Die Rules lesen Unternehmer, Firmen und Filialen direkt aus der verschachtelten Zugriffs-Map. Alte Array-Zugriffe gewaehren Office-/Filialprofilen keine Datenrechte; aktive Master bleiben kompatibel. Fuer Office-/Filialseiten sind gezielte Dokumentabfragen oder auf erlaubte Dokument-IDs beschraenkte Queries erforderlich. Die aktuellen unbeschraenkten Auswahllisten gehoeren zur Master-Verwaltung.
 
-Schritte 3: Serverseitige Benutzeranlage
-1. [x] Firebase-Functions-Projekt mit Firebase Admin SDK einrichten.
-2. [x] Geschuetzte Callable Cloud Function fuer die Benutzeranlage erstellen.
-3. [x] Authentifizierung des aufrufenden Benutzers serverseitig pruefen.
-4. [x] Benutzerprofil des Aufrufers aus `benutzer/{uid}` laden und `userRole: master` erzwingen.
-5. [x] Firebase-Auth-Benutzer mit dem Admin SDK anlegen.
-6. [x] Zugehoeriges Firestore-Dokument `benutzer/{uid}` mit Rolle, Bereichen und Zugriffen anlegen.
-7. [x] Bei einem Fehler nach der Auth-Anlage den erzeugten Auth-Benutzer wieder entfernen.
-8. [x] Verstaendliche Fehlercodes an die Angular-App zurueckgeben.
+Die sichere Weitergabe des Anfangspassworts liegt beim Master; eine automatische Zustellung ist nicht umgesetzt.
 
-Schritte 4: Zugang und Sicherheit
-1. [x] Anfangspasswort ausschliesslich durch den Master in einem Passwortfeld mit Ein-/Ausblendfunktion vergeben lassen.
-2. [x] Anfangspasswort durch den Master sicher an den Benutzer uebergeben lassen.
-3. [x] Sicherstellen, dass der neu angelegte Benutzer nicht im Browser des Masters angemeldet wird.
-4. [x] Uebergangs-Rules lokal umsetzen und im Emulator testen: alte Collections bleiben fuer angemeldete Benutzer freigegeben, `benutzer` wird geschuetzt.
-5. [x] Die serverseitige Master-Pruefung unabhaengig von Navigation und Angular Guards testen.
-6. [x] Eigene Benutzeroberflaeche fuer einen spaeteren Passwortwechsel durch den angemeldeten Benutzer umsetzen.
-7. [x] Uebergangs-Rules mit den realen Altanwendungen pruefen und erst danach deployen (vom Benutzer bestaetigt).
+### Erledigt, wenn
 
-Umgesetzte Passwortvergabe:
-- `Passwort durch Master`: Der Master vergibt ein Anfangspasswort mit mindestens 8 Zeichen. Es wird nur an Firebase Authentication uebergeben und nicht in Firestore gespeichert.
-- Angemeldete Benutzer koennen ihr Passwort ueber die geschuetzte Seite `/passwort` nach erneuter Authentifizierung aendern.
-
-Rules-Status:
-Die lokale Uebergangsregel erhaelt fuer alle Top-Level-Collections ausser `benutzer` den bisherigen Lese- und Schreibzugriff angemeldeter Benutzer. Fuer `benutzer/{uid}` ist nur das Lesen des eigenen Profils erlaubt; alle Client-Schreibzugriffe und Listenabfragen sind gesperrt. Vier Emulator-Tests bestaetigen Altzugriff, Auth-Pflicht, Profilzugriff und Schreibschutz. Pruefung mit den realen Altanwendungen und Deployment sind laut Benutzer erfolgreich abgeschlossen.
-
-Schritte 5: Tests und Abschluss
-1. [x] Tests fuer Route, Guard, Navigation und Verwaltungsformular ergaenzen.
-2. [x] Function-Tests fuer fehlende Anmeldung und fehlende Master-Rolle ergaenzen.
-3. [x] Erfolgreiche Anlage von Auth-Benutzer und Benutzerdokument testen.
-4. [x] Rueckabwicklung bei fehlgeschlagener Firestore-Anlage testen.
-5. [x] `projekt-stand.md` nach der Umsetzung aktualisieren.
-6. [x] `npm test` und Build-Pruefung erfolgreich ausfuehren.
-
-Erledigt wenn:
-- [x] Nur ein serverseitig bestaetigter `master` kann Benutzer anlegen.
-- [x] Firebase-Auth-Benutzer und `benutzer/{uid}` werden konsistent angelegt.
-- [x] Rolle, erlaubte Bereiche sowie Firmen- und Filialzugriffe werden vorkonfiguriert.
-- [x] Der Master bleibt waehrend der Benutzeranlage angemeldet.
-- [x] Der Master vergibt ein Anfangspasswort; der Benutzer kann es nach Anmeldung aendern.
-- [x] Eine oeffentliche Selbstregistrierung ist weiterhin nicht vorhanden.
-- [x] Fehler hinterlassen weder ein unvollstaendiges Auth-Konto noch ein unvollstaendiges Benutzerprofil.
-- [ ] Die globale Firestore-Schreibfreigabe wurde durch collection-spezifische Rules ersetzt, ohne die Altanwendungen zu beeintraechtigen.
-- [ ] Benutzer koennen `userRole`, `erlaubteBereiche` und `zugriffe` nicht selbst ueber den Client veraendern.
+- [ ] Rollenmodell umgesetzt: Filiale genau eine Filiale; Office nur freigegebene Firmen/Filialen; Master ohne Datenzuordnung. Vereinbarte Schreibrechte sind gezielt abgesichert und getestet.
+- [ ] Der Master kann ueber die freigegebene Verwaltungsseite einen Benutzer mit echten Unternehmer-, Firmen- und Filialzuordnungen anlegen.
+- [ ] Die Zuordnungen werden vollstaendig gespeichert und serverseitig geprueft.
+- [x] Datenzugriffe durch deployed Rules abgesichert und im Emulator geprueft; Lesen und Schreiben der Altanwendung nach Deployment bestaetigt. Direkter Server-Lesetest mit dem Filialkonto erfolgreich; Office-Zugriffe bleiben separat zu pruefen.
+- [x] Fehlerfaelle einschliesslich fehlgeschlagener Rueckabwicklung sind durch Backend-Tests geprueft; manuelle Nachbearbeitung ist dokumentiert.
+- [x] Benutzer koennen `userRole`, `erlaubteBereiche` und `zugriffe` nicht selbst ueber den Client veraendern.
+- [x] Es gibt keine oeffentliche Selbstregistrierung.
+- [ ] Der aktuelle Gesamtablauf ist deployed und mit realen Daten erfolgreich geprueft.
 
 # Erledigte Todos
+
+Die folgenden Abschnitte dokumentieren den Abschluss des jeweiligen damaligen Arbeitsschritts. Fuer den aktuellen Stand gelten Todo 4 und der [Projekt-Stand](./projekt-stand.md).
 
 ## 3. Done Todo: Login und Benutzerberechtigungen vorbereiten
 

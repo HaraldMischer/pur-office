@@ -119,23 +119,25 @@ export const BenutzerStore = signalStore(
           );
         },
 
-        darfFirmaLesen(firmaId: string): boolean {
+        darfFirmaLesen(unternehmerId: string, firmaId: string): boolean {
           const benutzerProfil = store.benutzerProfil();
 
           return (
             benutzerProfil?.aktiv === true &&
-            benutzerProfil.zugriffe.some((zugriff) => zugriff.firmaId === firmaId)
+            (benutzerProfil.userRole === 'master' ||
+              (['office', 'filiale'].includes(benutzerProfil.userRole) &&
+                (benutzerProfil.zugriffe[unternehmerId]?.[firmaId]?.length ?? 0) > 0))
           );
         },
 
-        darfFilialeLesen(firmaId: string, filialId: string): boolean {
+        darfFilialeLesen(unternehmerId: string, firmaId: string, filialId: string): boolean {
           const benutzerProfil = store.benutzerProfil();
 
           return (
             benutzerProfil?.aktiv === true &&
-            benutzerProfil.zugriffe.some(
-              (zugriff) => zugriff.firmaId === firmaId && zugriff.filialIds.includes(filialId),
-            )
+            (benutzerProfil.userRole === 'master' ||
+              (['office', 'filiale'].includes(benutzerProfil.userRole) &&
+                (benutzerProfil.zugriffe[unternehmerId]?.[firmaId] ?? []).includes(filialId)))
           );
         },
 

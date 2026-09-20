@@ -24,16 +24,15 @@ describe('masterGuard', () => {
 
   beforeEach(() => {
     profil = {
-      uid: 'benutzer-123',
       email: 'test@example.com',
       anzeigename: 'Test',
       aktiv: true,
       userRole: 'master',
       erlaubteBereiche: ['verwaltung'],
-      zugriffe: [],
+      zugriffe: {},
     };
     authServiceMock = {
-      getAuthState: vi.fn().mockReturnValue(of({ uid: profil.uid } as User)),
+      getAuthState: vi.fn().mockReturnValue(of({ uid: 'benutzer-123' } as User)),
     };
     benutzerServiceMock = {
       getBenutzerProfil: vi.fn().mockResolvedValue(profil),

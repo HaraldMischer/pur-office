@@ -3,9 +3,13 @@
 // Theming
 @use 'theming/material-themes' as *;
 
+// Variables
+@use 'variables/cssVars';
+
 // Base
 @use 'base/layout' as *;
 
 // Modules
 @use 'modules/cards' as *;
 @use 'modules/forms' as *;
+@use 'modules/sections' as *;
