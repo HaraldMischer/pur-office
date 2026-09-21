@@ -1,22 +1,26 @@
 <!-- pur-office/src/app/app.html -->
 
 <mat-sidenav-container class="app-shell">
-  <mat-sidenav
-    class="app-sidenav"
-    [mode]="isHandset() ? 'over' : 'side'"
-    [opened]="!isHandset()"
-    aria-label="Hauptnavigation"
-  >
-    <!-- app-sidenav -->
-    <app-sidenav [isHandset]="isHandset()" (navigationSelected)="closeSidenav()" />
-  </mat-sidenav>
+  @if (!routenKontext().authLayout) {
+    <mat-sidenav
+      class="app-sidenav"
+      [mode]="isHandset() ? 'over' : 'side'"
+      [opened]="!isHandset()"
+      aria-label="Hauptnavigation"
+    >
+      <!-- app-sidenav -->
+      <app-sidenav [isHandset]="isHandset()" (navigationSelected)="closeSidenav()" />
+    </mat-sidenav>
+  }
 
   <mat-sidenav-content class="app-content">
     <!-- app-toolbar -->
     <app-toolbar
+      [title]="routenKontext().toolbarTitel"
+      [brandVisible]="routenKontext().authLayout"
+      [navigationVisible]="!routenKontext().authLayout"
       [sidenavOpened]="isSidenavOpened"
-      [isAuthenticated]="benutzerStore.isAuthenticated()"
-      [isLoggedIn]="benutzerStore.isLoggedIn()"
+      [isAuthenticated]="benutzerStore.isAuthenticated() && !routenKontext().authLayout"
       [inProgress]="benutzerStore.inProgress()"
       (navigationToggle)="toggleSidenav()"
     />

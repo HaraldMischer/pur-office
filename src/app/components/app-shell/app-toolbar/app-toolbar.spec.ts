@@ -2,7 +2,7 @@
 
 import { TestBed } from '@angular/core/testing';
 import { Router, provideRouter } from '@angular/router';
-
+import { ThemeService } from '../../../services/core/theme.service';
 import { BenutzerStore } from '../../../stores/app/benutzer.store';
 import { AppToolbar } from './app-toolbar';
 
@@ -10,24 +10,52 @@ describe('AppToolbar', () => {
   let benutzerStoreMock: {
     logout: ReturnType<typeof vi.fn>;
   };
+  let themeServiceMock: {
+    themeIcon: ReturnType<typeof vi.fn>;
+    toggleThemeMode: ReturnType<typeof vi.fn>;
+  };
 
   beforeEach(async () => {
     benutzerStoreMock = {
       logout: vi.fn().mockResolvedValue(undefined),
     };
+    themeServiceMock = {
+      themeIcon: vi.fn().mockReturnValue('dark_mode'),
+      toggleThemeMode: vi.fn(),
+    };
 
     await TestBed.configureTestingModule({
       imports: [AppToolbar],
-      providers: [provideRouter([]), { provide: BenutzerStore, useValue: benutzerStoreMock }],
+      providers: [
+        provideRouter([]),
+        { provide: BenutzerStore, useValue: benutzerStoreMock },
+        { provide: ThemeService, useValue: themeServiceMock },
+      ],
     }).compileComponents();
   });
 
-  it('should render the app title', () => {
+  it('should render the current route title', () => {
     const fixture = TestBed.createComponent(AppToolbar);
+    fixture.componentRef.setInput('title', 'Verwaltung');
     fixture.detectChanges();
     const compiled = fixture.nativeElement as HTMLElement;
 
-    expect(compiled.querySelector('.app-toolbar__title')?.textContent).toContain('Pur Office');
+    expect(compiled.querySelector('.app-toolbar__title')?.textContent).toContain('Verwaltung');
+  });
+
+  it('should render and toggle the theme mode', () => {
+    const fixture = TestBed.createComponent(AppToolbar);
+    fixture.detectChanges();
+    const compiled = fixture.nativeElement as HTMLElement;
+    const themeButton = compiled.querySelector<HTMLButtonElement>(
+      '[aria-label="Theme umschalten"]',
+    );
+
+    expect(themeButton?.textContent).toContain('dark_mode');
+
+    themeButton?.click();
+
+    expect(themeServiceMock.toggleThemeMode).toHaveBeenCalledOnce();
   });
 
   it('should render the menu icon when the sidenav is closed', () => {
@@ -38,6 +66,27 @@ describe('AppToolbar', () => {
     expect(
       compiled.querySelector('[aria-label="Hauptnavigation umschalten"]')?.textContent,
     ).toContain('menu');
+  });
+
+  it('should hide the navigation toggle when navigation is not available', () => {
+    const fixture = TestBed.createComponent(AppToolbar);
+    fixture.componentRef.setInput('navigationVisible', false);
+    fixture.detectChanges();
+    const compiled = fixture.nativeElement as HTMLElement;
+
+    expect(compiled.querySelector('[aria-label="Hauptnavigation umschalten"]')).toBeNull();
+  });
+
+  it('should render the product brand with its icon', () => {
+    const fixture = TestBed.createComponent(AppToolbar);
+    fixture.componentRef.setInput('title', 'Pur Office');
+    fixture.componentRef.setInput('brandVisible', true);
+    fixture.componentRef.setInput('navigationVisible', false);
+    fixture.detectChanges();
+    const compiled = fixture.nativeElement as HTMLElement;
+
+    expect(compiled.querySelector('.app-toolbar__brand-icon')?.textContent).toContain('business');
+    expect(compiled.querySelector('.app-toolbar__title--brand')?.textContent).toContain('Pur Office');
   });
 
   it('should render the back icon when the sidenav is open', () => {
@@ -62,23 +111,6 @@ describe('AppToolbar', () => {
     compiled.querySelector<HTMLButtonElement>('[aria-label="Hauptnavigation umschalten"]')?.click();
 
     expect(navigationToggleSpy).toHaveBeenCalledOnce();
-  });
-
-  it('should render the auth and profile status', () => {
-    const fixture = TestBed.createComponent(AppToolbar);
-    fixture.detectChanges();
-    let compiled = fixture.nativeElement as HTMLElement;
-
-    expect(compiled.textContent).toContain('Auth: offen');
-    expect(compiled.textContent).toContain('Profil: fehlt');
-
-    fixture.componentRef.setInput('isAuthenticated', true);
-    fixture.componentRef.setInput('isLoggedIn', true);
-    fixture.detectChanges();
-    compiled = fixture.nativeElement as HTMLElement;
-
-    expect(compiled.textContent).toContain('Auth: eingeloggt');
-    expect(compiled.textContent).toContain('Profil: geladen');
   });
 
   it('should logout through the store and navigate to login when authenticated', async () => {

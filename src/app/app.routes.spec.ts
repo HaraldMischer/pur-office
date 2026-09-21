@@ -6,6 +6,27 @@ import { masterGuard } from './guards/master.guard';
 import { routes } from './app.routes';
 
 describe('app routes', () => {
+  it('should define titles for all routed pages', () => {
+    const expectedTitles = new Map([
+      ['login', 'Anmelden'],
+      ['dashboard', 'Dashboard'],
+      ['schichtplan', 'Schichtplan'],
+      ['mitarbeiter', 'Mitarbeiter'],
+      ['passwort', 'Passwort ändern'],
+      ['verwaltung', 'Verwaltung'],
+    ]);
+
+    expectedTitles.forEach((title, path) => {
+      expect(routes.find((route) => route.path === path)?.title).toBe(title);
+    });
+  });
+
+  it('should use the auth layout for the login route', () => {
+    const loginRoute = routes.find((route) => route.path === 'login');
+
+    expect(loginRoute?.data?.['layout']).toBe('auth');
+  });
+
   it('should protect the password route by authentication', () => {
     const passwordRoute = routes.find((route) => route.path === 'passwort');
 

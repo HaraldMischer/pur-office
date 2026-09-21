@@ -12,7 +12,6 @@ describe('App', () => {
     benutzerProfil: ReturnType<typeof vi.fn>;
     initAuthState: ReturnType<typeof vi.fn>;
     isAuthenticated: ReturnType<typeof vi.fn>;
-    isLoggedIn: ReturnType<typeof vi.fn>;
     inProgress: ReturnType<typeof vi.fn>;
     logout: ReturnType<typeof vi.fn>;
     darfBereichNutzen: ReturnType<typeof vi.fn>;
@@ -24,7 +23,6 @@ describe('App', () => {
       benutzerProfil: vi.fn().mockReturnValue(null),
       initAuthState: vi.fn(),
       isAuthenticated: vi.fn().mockReturnValue(false),
-      isLoggedIn: vi.fn().mockReturnValue(false),
       inProgress: vi.fn().mockReturnValue(false),
       logout: vi.fn().mockResolvedValue(undefined),
       darfBereichNutzen: vi.fn().mockReturnValue(true),

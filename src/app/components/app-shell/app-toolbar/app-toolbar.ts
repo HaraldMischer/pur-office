@@ -5,7 +5,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { Router, RouterLink } from '@angular/router';
-
+import { ThemeService } from '../../../services/core/theme.service';
 import { BenutzerStore } from '../../../stores/app/benutzer.store';
 
 @Component({
@@ -18,13 +18,23 @@ import { BenutzerStore } from '../../../stores/app/benutzer.store';
 export class AppToolbar {
   private readonly _benutzerStore = inject(BenutzerStore);
   private readonly _router = inject(Router);
+  private readonly _themeService = inject(ThemeService);
 
   readonly sidenavOpened = input(false);
+  readonly brandVisible = input(false);
+  readonly navigationVisible = input(true);
   readonly isAuthenticated = input(false);
-  readonly isLoggedIn = input(false);
   readonly inProgress = input(false);
   readonly navigationToggle = output<void>();
-  readonly title = 'Pur Office';
+  readonly themeIcon = this._themeService.themeIcon;
+  readonly title = input('Pur Office');
+
+  /**
+   * Schaltet zwischen hellem und dunklem Theme um.
+   */
+  toggleThemeMode(): void {
+    this._themeService.toggleThemeMode();
+  }
 
   async logout(): Promise<void> {
     await this._benutzerStore.logout();

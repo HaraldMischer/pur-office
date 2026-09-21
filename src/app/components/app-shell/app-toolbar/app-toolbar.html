@@ -2,28 +2,30 @@
 
 <mat-toolbar class="app-toolbar">
   <!-- Navigation und Titel -->
-  <button
-    matIconButton
-    type="button"
-    aria-label="Hauptnavigation umschalten"
-    (click)="navigationToggle.emit()"
-  >
-    <mat-icon aria-hidden="true">{{ sidenavOpened() ? 'arrow_back_ios' : 'menu' }}</mat-icon>
-  </button>
+  @if (navigationVisible()) {
+    <button
+      matIconButton
+      type="button"
+      aria-label="Hauptnavigation umschalten"
+      (click)="navigationToggle.emit()"
+    >
+      <mat-icon aria-hidden="true">{{ sidenavOpened() ? 'arrow_back_ios' : 'menu' }}</mat-icon>
+    </button>
+  }
 
-  <span class="app-toolbar__title">{{ title }}</span>
+  @if (brandVisible()) {
+    <mat-icon class="app-toolbar__brand-icon" aria-hidden="true">business</mat-icon>
+  }
+
+  <span class="app-toolbar__title" [class.app-toolbar__title--brand]="brandVisible()">
+    {{ title() }}
+  </span>
   <span class="app-toolbar__spacer" aria-hidden="true"></span>
 
-  <!-- Anmeldestatus -->
-  <span
-    class="app-toolbar__login-status"
-    [class.app-toolbar__login-status--active]="isAuthenticated()"
-  >
-    Auth: {{ isAuthenticated() ? 'eingeloggt' : 'offen' }}
-  </span>
-  <span class="app-toolbar__login-status" [class.app-toolbar__login-status--active]="isLoggedIn()">
-    Profil: {{ isLoggedIn() ? 'geladen' : 'fehlt' }}
-  </span>
+  <!-- Theme -->
+  <button matIconButton type="button" aria-label="Theme umschalten" (click)="toggleThemeMode()">
+    <mat-icon aria-hidden="true">{{ themeIcon() }}</mat-icon>
+  </button>
 
   <!-- Kontoaktionen -->
   @if (isAuthenticated()) {

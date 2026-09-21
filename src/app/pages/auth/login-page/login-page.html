@@ -4,7 +4,12 @@
   <mat-card class="pur-card">
     <!-- Kartenkopf -->
     <mat-card-header>
-      <mat-card-title>Anmelden <button (click)="patchLoginForm()">pur-master</button></mat-card-title>
+      <mat-card-title>
+        Anmelden
+        @if (isDevelopmentMode) {
+          <button type="button" (click)="patchLoginForm()">pur-master</button>
+        }
+      </mat-card-title>
       <mat-card-subtitle>Melde dich mit deiner E-Mail-Adresse an.</mat-card-subtitle>
     </mat-card-header>
 

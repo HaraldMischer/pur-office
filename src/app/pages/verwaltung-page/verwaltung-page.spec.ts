@@ -64,7 +64,7 @@ describe('VerwaltungPage', () => {
     fixture.detectChanges();
     const compiled = fixture.nativeElement as HTMLElement;
 
-    expect(compiled.querySelector('h1')?.textContent).toContain('Verwaltung');
+    expect(compiled.querySelector('h1')).toBeNull();
     expect(
       Array.from(compiled.querySelectorAll('.pur-page-section__title')).map((titel) =>
         titel.textContent?.trim(),

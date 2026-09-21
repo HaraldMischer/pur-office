@@ -38,6 +38,20 @@ describe('LoginPage', () => {
     expect(page.loginForm.controls.password.hasError('required')).toBe(true);
   });
 
+  it('should provide the master email through the development helper', () => {
+    const fixture = TestBed.createComponent(LoginPage);
+    fixture.detectChanges();
+    const compiled = fixture.nativeElement as HTMLElement;
+
+    compiled.querySelector<HTMLButtonElement>('mat-card-title button')?.click();
+
+    expect(compiled.querySelector('mat-card-title button')?.textContent).toContain('pur-master');
+    expect(fixture.componentInstance.loginForm.getRawValue()).toEqual({
+      email: 'pur-system-master@pur-software.de',
+      password: '',
+    });
+  });
+
   it('should login and navigate to the dashboard when the form is valid', async () => {
     const router = TestBed.inject(Router);
     const navigateSpy = vi.spyOn(router, 'navigate').mockResolvedValue(true);

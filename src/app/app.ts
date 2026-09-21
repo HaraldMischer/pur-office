@@ -4,12 +4,17 @@ import { BreakpointObserver } from '@angular/cdk/layout';
 import { ChangeDetectionStrategy, Component, Signal, ViewChild, inject } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { MatSidenav, MatSidenavModule } from '@angular/material/sidenav';
-import { RouterOutlet } from '@angular/router';
-import { map } from 'rxjs';
+import { NavigationEnd, Router, RouterOutlet } from '@angular/router';
+import { filter, map } from 'rxjs';
 
 import { AppSidenav } from './components/app-shell/app-sidenav/app-sidenav';
 import { AppToolbar } from './components/app-shell/app-toolbar/app-toolbar';
 import { BenutzerStore } from './stores/app/benutzer.store';
+
+type TRoutenKontext = {
+  authLayout: boolean;
+  toolbarTitel: string;
+};
 
 @Component({
   selector: 'app-root',
@@ -20,6 +25,7 @@ import { BenutzerStore } from './stores/app/benutzer.store';
 })
 export class App {
   private readonly _breakpointObserver = inject(BreakpointObserver);
+  private readonly _router = inject(Router);
 
   readonly benutzerStore = inject(BenutzerStore);
 
@@ -29,6 +35,16 @@ export class App {
     this._breakpointObserver.observe('(max-width: 720px)').pipe(map((result) => result.matches)),
     {
       initialValue: false,
+    },
+  );
+
+  readonly routenKontext: Signal<TRoutenKontext> = toSignal(
+    this._router.events.pipe(
+      filter((event): event is NavigationEnd => event instanceof NavigationEnd),
+      map(() => this.getAktivenRoutenkontext()),
+    ),
+    {
+      initialValue: this.getAktivenRoutenkontext(),
     },
   );
 
@@ -46,5 +62,20 @@ export class App {
 
   closeSidenav(): void {
     void this._sidenav?.close();
+  }
+
+  private getAktivenRoutenkontext(): TRoutenKontext {
+    let route = this._router.routerState.snapshot.root;
+
+    while (route.firstChild) {
+      route = route.firstChild;
+    }
+
+    const authLayout = route.data['layout'] === 'auth';
+
+    return {
+      authLayout,
+      toolbarTitel: authLayout ? 'Pur Office' : (route.title ?? 'Pur Office'),
+    };
   }
 }

@@ -7,6 +7,8 @@ import { masterGuard } from './guards/master.guard';
 export const routes: Routes = [
   {
     path: 'login',
+    title: 'Anmelden',
+    data: { layout: 'auth' },
     loadComponent: () => import('./pages/auth/login-page/login-page').then((m) => m.LoginPage),
   },
   {
@@ -16,6 +18,7 @@ export const routes: Routes = [
   },
   {
     path: 'dashboard',
+    title: 'Dashboard',
     canActivate: [authGuard, bereichGuard],
     data: { bereich: 'dashboard' },
     loadComponent: () =>
@@ -23,6 +26,7 @@ export const routes: Routes = [
   },
   {
     path: 'schichtplan',
+    title: 'Schichtplan',
     canActivate: [authGuard, bereichGuard],
     data: { bereich: 'schichtplan' },
     loadComponent: () =>
@@ -30,6 +34,7 @@ export const routes: Routes = [
   },
   {
     path: 'mitarbeiter',
+    title: 'Mitarbeiter',
     canActivate: [authGuard, bereichGuard],
     data: { bereich: 'mitarbeiter' },
     loadComponent: () =>
@@ -37,12 +42,14 @@ export const routes: Routes = [
   },
   {
     path: 'passwort',
+    title: 'Passwort ändern',
     canActivate: [authGuard],
     loadComponent: () =>
       import('./pages/auth/passwort-page/passwort-page').then((m) => m.PasswortPage),
   },
   {
     path: 'verwaltung',
+    title: 'Verwaltung',
     canActivate: [authGuard, bereichGuard, masterGuard],
     data: { bereich: 'verwaltung' },
     loadComponent: () =>

@@ -1,6 +1,6 @@
 // pur-office/src/app/pages/auth/login-page/login-page.ts
 
-import { ChangeDetectionStrategy, Component, effect, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, effect, inject, isDevMode } from '@angular/core';
 import {
   FormControl,
   FormGroup,
@@ -41,6 +41,7 @@ export class LoginPage {
 
   readonly inProgress = this._benutzerStore.inProgress;
   readonly error = this._benutzerStore.error;
+  readonly isDevelopmentMode = isDevMode();
   readonly loginForm = new FormGroup<LoginForm>({
     email: new FormControl('', {
       nonNullable: true,
@@ -83,7 +84,3 @@ export class LoginPage {
     });
   }
 }
-
-
-// pur-system-master@pur-software.de
-// 9ml1b39ZT6SxQDHYn8SpvBsgPpu1

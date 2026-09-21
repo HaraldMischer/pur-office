@@ -17,11 +17,12 @@ describe('SchichtplanPage', () => {
     expect(fixture.componentInstance).toBeTruthy();
   });
 
-  it('should render the page title', () => {
+  it('should render the page content without a duplicate route title', () => {
     const fixture = TestBed.createComponent(SchichtplanPage);
     fixture.detectChanges();
     const compiled = fixture.nativeElement as HTMLElement;
 
-    expect(compiled.querySelector('h1')?.textContent).toContain('Schichtplan');
+    expect(compiled.querySelector('h1')).toBeNull();
+    expect(compiled.textContent).toContain('Schichtpläne der Filialen.');
   });
 });

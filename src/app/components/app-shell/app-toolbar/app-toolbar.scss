@@ -12,26 +12,19 @@
 
 .app-toolbar__title {
   overflow: hidden;
+  font: var(--mat-sys-headline-small);
   text-overflow: ellipsis;
   white-space: nowrap;
+
+  &--brand {
+    color: var(--mat-sys-primary);
+  }
+}
+
+.app-toolbar__brand-icon {
+  color: var(--mat-sys-primary);
 }
 
 .app-toolbar__spacer {
   flex: 1 1 auto;
-}
-
-
-.app-toolbar__login-status {
-  border: 1px solid var(--mat-sys-outline-variant);
-  border-radius: 999px;
-  padding: 0.25rem 0.65rem;
-  color: var(--mat-sys-on-surface-variant);
-  font-size: 0.78rem;
-  line-height: 1.2;
-  white-space: nowrap;
-}
-
-.app-toolbar__login-status--active {
-  border-color: var(--mat-sys-primary);
-  color: var(--mat-sys-primary);
 }
