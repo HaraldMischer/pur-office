@@ -1,6 +1,6 @@
 // pur-office/src/app/stores/domain/unternehmer.store.ts
 
-import { inject } from '@angular/core';
+import { DestroyRef, inject, untracked } from '@angular/core';
 import { patchState, signalStore, withMethods, withState } from '@ngrx/signals';
 import {
   IUnternehmerAnlage,
@@ -8,18 +8,21 @@ import {
   IUnternehmerEintrag,
 } from '../../commons/models/domain/unternehmer';
 import { getFirebaseErrorMessage } from '../../commons/utils/errors/firebase-error-message';
+import { StoreDebugService } from '../../services/core/store-debug.service';
 import { DatenzugriffService } from '../../services/firebase/datenzugriff.service';
 import { UnternehmerService } from '../../services/firebase/unternehmer.service';
 
 // ===== Top-Level Helper =====================
 
-type TUnternehmerState = {
-  unternehmer: readonly IUnternehmerEintrag[];
-  download: boolean;
-  isLoaded: boolean;
-  inProgress: boolean;
-  error: string | null;
+export type TUnternehmerSnapshot = {
+  readonly unternehmer: readonly IUnternehmerEintrag[];
+  readonly download: boolean;
+  readonly isLoaded: boolean;
+  readonly inProgress: boolean;
+  readonly error: string | null;
 };
+
+type TUnternehmerState = TUnternehmerSnapshot;
 
 const initialState: TUnternehmerState = {
   unternehmer: [],
@@ -45,6 +48,8 @@ export const UnternehmerStore = signalStore(
       store,
       datenService = inject(DatenzugriffService),
       unternehmerService = inject(UnternehmerService),
+      destroyRef = inject(DestroyRef),
+      storeDebugService = inject(StoreDebugService),
     ) => {
       // ===== Methoden: Laden ======================
 
@@ -55,7 +60,7 @@ export const UnternehmerStore = signalStore(
        * @throws Gibt Fehler des Firestore-Zugriffs an die aufrufende Stelle weiter.
        */
       async function loadUnternehmer(): Promise<void> {
-        if (store.download()) return;
+        if (store.download() || store.isLoaded()) return;
 
         patchState(store, { download: true, isLoaded: false, error: null });
         try {
@@ -105,15 +110,37 @@ export const UnternehmerStore = signalStore(
       // ===== Methoden: Sonstige Aktionen ==========
 
       /**
+       * Liefert eine Momentaufnahme des aktuellen Unternehmer-Store-Zustands.
+       *
+       * @returns Vollstaendiger, nicht reaktiv verfolgter Store-Zustand.
+       */
+      function snapshot(): TUnternehmerSnapshot {
+        return untracked(() => ({
+          unternehmer: store.unternehmer(),
+          download: store.download(),
+          isLoaded: store.isLoaded(),
+          inProgress: store.inProgress(),
+          error: store.error(),
+        }));
+      }
+
+      /**
        * Entfernt die aktuelle Fehlermeldung des Unternehmer-Stores.
        */
       function clearError(): void {
         patchState(store, { error: null });
       }
 
+      const unregisterSnapshot = storeDebugService.registerStoreSnapshot(
+        'UnternehmerStore',
+        snapshot,
+      );
+      destroyRef.onDestroy(unregisterSnapshot);
+
       return {
         loadUnternehmer,
         createUnternehmer,
+        snapshot,
         clearError,
       };
     },

@@ -27,6 +27,18 @@
     <mat-icon aria-hidden="true">{{ themeIcon() }}</mat-icon>
   </button>
 
+  <!-- Entwicklungshilfen -->
+  @if (isDevelopmentMode && isAuthenticated()) {
+    <button
+      matIconButton
+      type="button"
+      aria-label="Store-Snapshots protokollieren"
+      (click)="logStoreSnapshots()"
+    >
+      <mat-icon aria-hidden="true">bug_report</mat-icon>
+    </button>
+  }
+
   <!-- Kontoaktionen -->
   @if (isAuthenticated()) {
     <a matIconButton aria-label="Passwort ändern" routerLink="/passwort">

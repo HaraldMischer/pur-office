@@ -1,6 +1,6 @@
 // pur-office/src/app/stores/domain/benutzer-verwaltung.store.ts
 
-import { computed, inject } from '@angular/core';
+import { DestroyRef, computed, inject, untracked } from '@angular/core';
 import { patchState, signalStore, withComputed, withMethods, withState } from '@ngrx/signals';
 import {
   IBenutzerAnlage,
@@ -12,6 +12,7 @@ import {
   IUnternehmerAuswahl,
 } from '../../commons/models/domain/datenzugriff';
 import { getFirebaseErrorMessage } from '../../commons/utils/errors/firebase-error-message';
+import { StoreDebugService } from '../../services/core/store-debug.service';
 import { BenutzerVerwaltungService } from '../../services/firebase/benutzer-verwaltung.service';
 import { DatenzugriffService } from '../../services/firebase/datenzugriff.service';
 
@@ -35,15 +36,17 @@ const firmaKey = (uid: string, fid: string) => {
   return JSON.stringify([uid, fid]);
 };
 
-type TBenutzerVerwaltungState = {
-  listen: Record<string, TDatenzugriffListe>;
-  unternehmerIds: readonly string[];
-  firmaIds: readonly string[];
-  filialen: Readonly<Partial<Record<string, readonly string[]>>>;
-  inProgress: boolean;
-  error: string | null;
-  createdBenutzer: IBenutzerAnlageErgebnis | null;
+export type TBenutzerVerwaltungSnapshot = {
+  readonly listen: Record<string, TDatenzugriffListe>;
+  readonly unternehmerIds: readonly string[];
+  readonly firmaIds: readonly string[];
+  readonly filialen: Readonly<Partial<Record<string, readonly string[]>>>;
+  readonly inProgress: boolean;
+  readonly error: string | null;
+  readonly createdBenutzer: IBenutzerAnlageErgebnis | null;
 };
+
+type TBenutzerVerwaltungState = TBenutzerVerwaltungSnapshot;
 
 const initialState: TBenutzerVerwaltungState = {
   listen: {},
@@ -137,6 +140,8 @@ export const BenutzerVerwaltungStore = signalStore(
       store,
       datenService = inject(DatenzugriffService),
       service = inject(BenutzerVerwaltungService),
+      destroyRef = inject(DestroyRef),
+      storeDebugService = inject(StoreDebugService),
     ) => {
       let generation = 0;
       const laufend = new Map<string, Promise<void>>();
@@ -204,13 +209,11 @@ export const BenutzerVerwaltungStore = signalStore(
         );
         if (aktuell !== generation) return;
         await Promise.all(
-          store
-            .ausgewaehlteFirmen()
-            .map((f) =>
-              loadListe(filialenKey(f.unternehmerId, f.id), () => {
-                return datenService.loadFilialen(f.unternehmerId, f.id);
-              }),
-            ),
+          store.ausgewaehlteFirmen().map((f) =>
+            loadListe(filialenKey(f.unternehmerId, f.id), () => {
+              return datenService.loadFilialen(f.unternehmerId, f.id);
+            }),
+          ),
         );
       }
 
@@ -309,6 +312,29 @@ export const BenutzerVerwaltungStore = signalStore(
         patchState(store, initialState);
       }
 
+      /**
+       * Liefert eine Momentaufnahme des aktuellen Benutzer-Verwaltungs-Store-Zustands.
+       *
+       * @returns Vollstaendiger, nicht reaktiv verfolgter Store-Zustand.
+       */
+      function snapshot(): TBenutzerVerwaltungSnapshot {
+        return untracked(() => ({
+          listen: store.listen(),
+          unternehmerIds: store.unternehmerIds(),
+          firmaIds: store.firmaIds(),
+          filialen: store.filialen(),
+          inProgress: store.inProgress(),
+          error: store.error(),
+          createdBenutzer: store.createdBenutzer(),
+        }));
+      }
+
+      const unregisterSnapshot = storeDebugService.registerStoreSnapshot(
+        'BenutzerVerwaltungStore',
+        snapshot,
+      );
+      destroyRef.onDestroy(unregisterSnapshot);
+
       return {
         loadAuswahl,
         createBenutzer,
@@ -318,6 +344,7 @@ export const BenutzerVerwaltungStore = signalStore(
         resetDatenzugriff,
         clearFeedback,
         reset,
+        snapshot,
       };
     },
   ),

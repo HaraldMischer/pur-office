@@ -63,6 +63,31 @@ describe('UnternehmerStore', () => {
     expect(store.error()).toBeNull();
   });
 
+  it('should provide complete snapshots before and after loading', async () => {
+    const store = TestBed.inject(UnternehmerStore);
+
+    expect(store.snapshot()).toEqual({
+      unternehmer: [],
+      download: false,
+      isLoaded: false,
+      inProgress: false,
+      error: null,
+    });
+
+    await store.loadUnternehmer();
+
+    expect(store.snapshot()).toEqual({
+      unternehmer: [
+        { id: 'a', name: 'Alpha', nummer: 2 },
+        { id: 'z', name: 'Zulu', nummer: 4 },
+      ],
+      download: false,
+      isLoaded: true,
+      inProgress: false,
+      error: null,
+    });
+  });
+
   it('should create an entrepreneur and add it to the sorted list', async () => {
     const store = TestBed.inject(UnternehmerStore);
     await store.loadUnternehmer();

@@ -58,6 +58,26 @@ describe('BenutzerStore', () => {
     expect(store.zugriffe()).toEqual({});
   });
 
+  it('should provide a complete snapshot', () => {
+    const store = TestBed.inject(BenutzerStore);
+
+    expect(store.snapshot()).toEqual({
+      benutzerProfil: null,
+      isAuthenticated: false,
+      inProgress: false,
+      error: null,
+    });
+
+    store.setBenutzerProfil(profil);
+
+    expect(store.snapshot()).toEqual({
+      benutzerProfil: profil,
+      isAuthenticated: false,
+      inProgress: false,
+      error: null,
+    });
+  });
+
   it('should login and load the user profile', async () => {
     const store = TestBed.inject(BenutzerStore);
 

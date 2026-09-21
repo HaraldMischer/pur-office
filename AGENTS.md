@@ -39,6 +39,9 @@
 - Einfache Seiten-Sections werden ohne `aria-labelledby` geschrieben.
 - Dafuer werden auch keine nur zu diesem Zweck angelegten `id`-Attribute auf Titeln verwendet.
 - `pur-form` wird immer mit genau einem Layout-Modifier verwendet, z. B. `pur-form pur-form--grid` oder `pur-form pur-form--flex`.
+- Formular-Dialoge bestehen aus den direkten Dialogbereichen `mat-dialog-title`, `mat-dialog-content` und `mat-dialog-actions`. Das Formular liegt innerhalb von `mat-dialog-content`; die Aktionen liegen ausserhalb des Formulars in `mat-dialog-actions`.
+- Reactive Forms verwenden in Dialogen `(ngSubmit)` statt eines manuell behandelten nativen `(submit)`-Ereignisses mit `$event.preventDefault()`.
+- Liegt der Submit-Button ausserhalb des Formulars, wird er mit `type="submit"` und `form="<formular-id>"` eindeutig dem Formular zugeordnet.
 
 ## Naming
 
@@ -127,6 +130,7 @@
 - Formulargruppen verwenden `pur-form__group`; ihre Ueberschriften verwenden `pur-form__group-titel` (in SCSS unter `&__group` als `&-titel`). `titel` ist ein eigenes Element, kein Modifier.
 - Formulargruppen werden ohne `fieldset` und `legend` aufgebaut: `div`-Gruppen mit sichtbaren `h2`-Ueberschriften mit `pur-form__group-titel`. Diese Gruppen-Divs erhalten weder `role="group"` noch `aria-label` oder `aria-labelledby`. Beschriftungen fuer Bedienelemente wie reine Icon-Buttons bleiben davon unberuehrt.
 - Komponentenbezogene Styles liegen in der jeweiligen Component-SCSS-Datei; bewusst wiederverwendbare Styles liegen unter `src/assets/scss`.
+- Lokale Component-SCSS-Dateien bleiben als eingebundene Platzhalter bestehen und werden auch dann nicht entfernt, wenn aktuell alle Styles durch globale Klassen abgedeckt sind.
 - Beachte die vorhandenen Prettier-Einstellungen aus `package.json`.
 
 ## Arbeitsweise und Pruefungen

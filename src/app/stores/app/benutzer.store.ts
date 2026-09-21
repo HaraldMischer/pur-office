@@ -1,22 +1,25 @@
 // pur-office/src/app/stores/app/benutzer.store.ts
 
-import { DestroyRef, computed, inject } from '@angular/core';
+import { DestroyRef, computed, inject, untracked } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { patchState, signalStore, withComputed, withMethods, withState } from '@ngrx/signals';
 import { TAppBereich } from '../../commons/models/app/app-bereich';
 import { IBenutzerProfilDokument } from '../../commons/models/domain/benutzer';
 import { getFirebaseErrorMessage } from '../../commons/utils/errors/firebase-error-message';
+import { StoreDebugService } from '../../services/core/store-debug.service';
 import { AuthService } from '../../services/firebase/auth.service';
 import { BenutzerService } from '../../services/firebase/benutzer.service';
 
 // ===== Top-Level Helper =====================
 
-type TBenutzerState = {
-  benutzerProfil: IBenutzerProfilDokument | null;
-  isAuthenticated: boolean;
-  inProgress: boolean;
-  error: string | null;
+export type TBenutzerSnapshot = {
+  readonly benutzerProfil: IBenutzerProfilDokument | null;
+  readonly isAuthenticated: boolean;
+  readonly inProgress: boolean;
+  readonly error: string | null;
 };
+
+type TBenutzerState = TBenutzerSnapshot;
 
 const initialState: TBenutzerState = {
   benutzerProfil: null,
@@ -59,6 +62,7 @@ export const BenutzerStore = signalStore(
       authService = inject(AuthService),
       benutzerService = inject(BenutzerService),
       destroyRef = inject(DestroyRef),
+      storeDebugService = inject(StoreDebugService),
     ) => {
       let authStateInitialisiert = false;
 
@@ -186,11 +190,7 @@ export const BenutzerStore = signalStore(
        * @param filialId - Die ID der zu pruefenden Filiale.
        * @returns `true`, wenn das Profil aktiv ist und die Filiale lesen darf.
        */
-      function darfFilialeLesen(
-        unternehmerId: string,
-        firmaId: string,
-        filialId: string,
-      ): boolean {
+      function darfFilialeLesen(unternehmerId: string, firmaId: string, filialId: string): boolean {
         const benutzerProfil = store.benutzerProfil();
 
         return (
@@ -242,6 +242,23 @@ export const BenutzerStore = signalStore(
         patchState(store, initialState);
       }
 
+      /**
+       * Liefert eine Momentaufnahme des aktuellen Benutzer-Store-Zustands.
+       *
+       * @returns Vollstaendiger, nicht reaktiv verfolgter Store-Zustand.
+       */
+      function snapshot(): TBenutzerSnapshot {
+        return untracked(() => ({
+          benutzerProfil: store.benutzerProfil(),
+          isAuthenticated: store.isAuthenticated(),
+          inProgress: store.inProgress(),
+          error: store.error(),
+        }));
+      }
+
+      const unregisterSnapshot = storeDebugService.registerStoreSnapshot('BenutzerStore', snapshot);
+      destroyRef.onDestroy(unregisterSnapshot);
+
       return {
         initAuthState,
         login,
@@ -254,6 +271,7 @@ export const BenutzerStore = signalStore(
         setError,
         clearError,
         reset,
+        snapshot,
       };
     },
   ),

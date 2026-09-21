@@ -40,6 +40,20 @@ describe('BenutzerVerwaltungStore', () => {
     });
   });
 
+  it('should provide a complete initial snapshot', () => {
+    const store = TestBed.inject(BenutzerVerwaltungStore);
+
+    expect(store.snapshot()).toEqual({
+      listen: {},
+      unternehmerIds: [],
+      firmaIds: [],
+      filialen: {},
+      inProgress: false,
+      error: null,
+      createdBenutzer: null,
+    });
+  });
+
   it('should create a user and expose the result', async () => {
     const store = TestBed.inject(BenutzerVerwaltungStore);
 

@@ -2,6 +2,7 @@
 
 import { TestBed } from '@angular/core/testing';
 import { Router, provideRouter } from '@angular/router';
+import { StoreDebugService } from '../../../services/core/store-debug.service';
 import { ThemeService } from '../../../services/core/theme.service';
 import { BenutzerStore } from '../../../stores/app/benutzer.store';
 import { AppToolbar } from './app-toolbar';
@@ -14,6 +15,9 @@ describe('AppToolbar', () => {
     themeIcon: ReturnType<typeof vi.fn>;
     toggleThemeMode: ReturnType<typeof vi.fn>;
   };
+  let storeDebugServiceMock: {
+    logStoreSnapshots: ReturnType<typeof vi.fn>;
+  };
 
   beforeEach(async () => {
     benutzerStoreMock = {
@@ -23,12 +27,16 @@ describe('AppToolbar', () => {
       themeIcon: vi.fn().mockReturnValue('dark_mode'),
       toggleThemeMode: vi.fn(),
     };
+    storeDebugServiceMock = {
+      logStoreSnapshots: vi.fn(),
+    };
 
     await TestBed.configureTestingModule({
       imports: [AppToolbar],
       providers: [
         provideRouter([]),
         { provide: BenutzerStore, useValue: benutzerStoreMock },
+        { provide: StoreDebugService, useValue: storeDebugServiceMock },
         { provide: ThemeService, useValue: themeServiceMock },
       ],
     }).compileComponents();
@@ -86,7 +94,9 @@ describe('AppToolbar', () => {
     const compiled = fixture.nativeElement as HTMLElement;
 
     expect(compiled.querySelector('.app-toolbar__brand-icon')?.textContent).toContain('business');
-    expect(compiled.querySelector('.app-toolbar__title--brand')?.textContent).toContain('Pur Office');
+    expect(compiled.querySelector('.app-toolbar__title--brand')?.textContent).toContain(
+      'Pur Office',
+    );
   });
 
   it('should render the back icon when the sidenav is open', () => {
@@ -136,5 +146,26 @@ describe('AppToolbar', () => {
     const link = compiled.querySelector<HTMLAnchorElement>('[aria-label="Passwort ändern"]');
 
     expect(link?.getAttribute('href')).toBe('/passwort');
+  });
+
+  it('should hide the store snapshot action for unauthenticated users', () => {
+    const fixture = TestBed.createComponent(AppToolbar);
+    fixture.detectChanges();
+    const compiled = fixture.nativeElement as HTMLElement;
+
+    expect(compiled.querySelector('[aria-label="Store-Snapshots protokollieren"]')).toBeNull();
+  });
+
+  it('should log store snapshots for authenticated users in development mode', () => {
+    const fixture = TestBed.createComponent(AppToolbar);
+    fixture.componentRef.setInput('isAuthenticated', true);
+    fixture.detectChanges();
+    const compiled = fixture.nativeElement as HTMLElement;
+
+    compiled
+      .querySelector<HTMLButtonElement>('[aria-label="Store-Snapshots protokollieren"]')
+      ?.click();
+
+    expect(storeDebugServiceMock.logStoreSnapshots).toHaveBeenCalledOnce();
   });
 });
