@@ -22,6 +22,18 @@ export interface IBenutzerAnlageErgebnis {
   email: string;
 }
 
+export interface IBenutzerProfilEintrag extends IBenutzerProfilDokument {
+  uid: string;
+}
+
+export interface IBenutzerProfilAktualisierung {
+  anzeigename: string;
+  aktiv: boolean;
+  userRole: TUserRole;
+  erlaubteBereiche: TAppBereich[];
+  zugriffe: TBenutzerZugriffe;
+}
+
 // ===== Firestore-Dokumente ==================
 
 export interface IBenutzerProfilDokument {

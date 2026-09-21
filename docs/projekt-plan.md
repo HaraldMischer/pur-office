@@ -9,14 +9,15 @@ Pur Office ist eine Angular-Anwendung zur Darstellung von Office- und Organisati
 ## Zielrichtung
 
 - Die fachlichen App-Bereiche lesen Daten aus Firestore.
-- Ausschliesslich der Verwaltungsbereich darf kontrollierte Schreibvorgaenge ueber ein geschuetztes Backend ausloesen.
+- Ausschliesslich der Verwaltungsbereich darf administrative Schreibvorgaenge ausloesen. Sicherheitskritische Auth-Vorgaenge laufen ueber ein geschuetztes Backend; fachliche Stammdaten darf ein aktiver Master innerhalb der Firestore Rules direkt schreiben.
 - Fachliche Bereiche werden klar getrennt.
 - UI und Datenzugriff werden ueber Components, Stores und Services getrennt.
 
 ## Architektur
 
 - Firestore dient fuer die fachlichen App-Bereiche als lesende Datenquelle.
-- Administrative Schreibvorgaenge werden nicht direkt vom Angular-Client ausgefuehrt, sondern ueber geschuetzte Firebase Cloud Functions mit Firebase Admin SDK.
+- Sicherheitskritische administrative Vorgaenge an Firebase Auth werden ueber geschuetzte Firebase Cloud Functions mit Firebase Admin SDK ausgefuehrt.
+- Fachliche Verwaltungsdaten koennen durch einen aktiven Master direkt aus dem Angular-Client in Firestore geschrieben werden, wenn die Firestore Rules dies erlauben.
 - Firestore Rules bleiben bewusst einfach und sichern nur Zugriff und Besitz.
 - Fachliche Regeln, Feldvalidierung und UI-Logik werden in der Anwendung umgesetzt.
 - Feature-Bereiche werden lazy geladen.
@@ -38,7 +39,7 @@ Firebase Auth klaert die Identitaet: Wer ist eingeloggt?
 Die Berechtigungen liegen im Firestore-Dokument:
 
 ```text
-benutzer/{uid}
+benutzerprofil/{uid}
 ```
 
 Das Benutzerprofil enthaelt mit `userRole` zusaetzlich die Rolle `filiale`, `office` oder `master`. Die allgemeinen Bereichsfreigaben richten sich nach `erlaubteBereiche`. Der administrative Bereich `verwaltung` erfordert zusaetzlich die Rolle `master`.
@@ -47,9 +48,9 @@ Welche App-Bereiche und welche Datenraeume der Benutzer lesen darf, wird ueber `
 
 Die App speichert keine direkten Firestore-Pfade als Berechtigung, sondern fachliche Berechtigungen. Daraus werden Navigation, Route Guards und Firestore-Abfragen abgeleitet.
 
-Die Firestore Rules erlauben aktiven Mastern das Lesen aller Collections samt Untercollections, einschliesslich aller Benutzerprofile. Office und Filiale lesen Geschaeftsdaten direkt anhand der verschachtelten `zugriffe`-Map und weiterhin ihr eigenes Profil. Ein separater Zugriffsindex wird nicht gespeichert. Client-Schreibzugriffe profilierter Konten bleiben gesperrt. Bestaetigte Altanwendungskonten ohne `benutzer`-Dokument behalten ihren bisherigen Zugriff ausserhalb von `benutzer`. Clientseitige Guards ersetzen die Rules nicht.
+Die Firestore Rules erlauben aktiven Mastern das Lesen und Schreiben aller Collections samt Untercollections, einschliesslich aller Benutzerprofile. Office und Filiale lesen Geschaeftsdaten direkt anhand der verschachtelten `zugriffe`-Map und weiterhin ihr eigenes Profil. Ein separater Zugriffsindex wird nicht gespeichert. Weitere Client-Schreibzugriffe profilierter Office- und Filialkonten bleiben gesperrt. Bestaetigte Altanwendungskonten ohne `benutzerprofil`-Dokument behalten ihren bisherigen Zugriff ausserhalb von `benutzerprofil` und `unternehmer`. Clientseitige Guards ersetzen die Rules nicht.
 
-Eine Selbstregistrierung ist nicht vorgesehen. Benutzerzugaenge werden im Zielablauf im Bereich `verwaltung` von einem `master` vorkonfiguriert. Die Angular-App ruft dafuer eine geschuetzte Firebase Cloud Function auf. Die Function prueft die Rolle des aufrufenden Benutzers serverseitig, legt mit dem Firebase Admin SDK den Auth-Benutzer und anschliessend das Dokument `benutzer/{uid}` an. Der angemeldete `master` bleibt dabei eingeloggt.
+Eine Selbstregistrierung ist nicht vorgesehen. Benutzerzugaenge werden im Zielablauf im Bereich `verwaltung` von einem `master` vorkonfiguriert. Die Angular-App ruft dafuer eine geschuetzte Firebase Cloud Function auf. Die Function prueft die Rolle des aufrufenden Benutzers serverseitig, legt mit dem Firebase Admin SDK den Auth-Benutzer und anschliessend das Dokument `benutzerprofil/{uid}` an. Der angemeldete `master` bleibt dabei eingeloggt.
 
 Der Master vergibt bei der Anlage ein Anfangspasswort mit mindestens 8 Zeichen. Der Benutzer kann dieses nach der Anmeldung ueber `/passwort` freiwillig aendern. Schlaegt das Anlegen des Benutzerdokuments fehl, muss der zuvor erzeugte Auth-Benutzer wieder entfernt werden, damit kein unvollstaendiger Zugang bestehen bleibt.
 
@@ -57,7 +58,7 @@ Der Master vergibt bei der Anlage ein Anfangspasswort mit mindestens 8 Zeichen. 
 
 - **Filiale:** Das Konto repraesentiert genau eine Filiale, in der Daten erzeugt werden. Bei der Anlage ist genau eine vollstaendige Zuordnung aus Unternehmer, Firma und Filiale erforderlich; alle drei Selects verwenden Einfachauswahl.
 - **Office:** Das Konto erhaelt Zugriff ausschliesslich auf ausgewaehlte Firmen und deren freigegebene Filialen. Mehrere Firmen und Filialen koennen zugeordnet werden; auch eine Beschraenkung auf einzelne Filialen ist moeglich. Office hat keinen pauschalen Lesezugriff auf alle Daten. Bestimmte Schreibaktionen, beispielsweise Mitarbeiter anlegen, sind vorgesehen, muessen aber pro Datenart und Aktion innerhalb des freigegebenen Datenbereichs festgelegt werden.
-- **Master:** Keine Datenzuordnung erforderlich; aktive Master lesen alle Collections und Untercollections auch mit `zugriffe: {}`. Bestehende Masterprofile mit der frueheren leeren Liste bleiben ebenfalls funktionsfaehig. Benutzerverwaltung bleibt dem Master vorbehalten. Daraus folgen keine pauschalen Client-Schreibrechte.
+- **Master:** Keine Datenzuordnung erforderlich; aktive Master lesen und schreiben alle Collections und Untercollections auch mit `zugriffe: {}`. Bestehende Masterprofile mit der frueheren leeren Liste bleiben ebenfalls funktionsfaehig. Datenstruktur- und Benutzerverwaltung bleiben dem Master vorbehalten.
 
 Noch zu klaeren: Gewaehrt eine Firmenfreigabe automatisch Zugriff auf alle zugehoerigen Filialen einschliesslich zukuenftiger Filialen, oder werden Filialen stets ausdruecklich ausgewaehlt? Bis zur Entscheidung bleibt die vorhandene explizite Filialzuordnung massgeblich. Konkrete Schreibrechte fuer Filial- und Office-Konten sind separat festzulegen und durch Rules abzusichern; die Altanwendung darf nicht beeintraechtigt werden.
 
@@ -69,17 +70,17 @@ Pur Office verwendet fuer neue Benutzer die fachlich benannte Firebase-Struktur:
 unternehmer/{unternehmerId}/firma/{firmaId}/filiale/{filialId}
 ```
 
-Die Altanwendung verwendet weiterhin unveraendert `purCustomers/{unternehmerId}/company/{firmaId}/branches/{filialId}`. Ihre Konten ohne `benutzer`-Profil behalten dort den bisherigen Zugriff, erhalten aber keinen Legacy-Zugriff auf die neue Top-Level-Collection `unternehmer`.
+Die Altanwendung verwendet weiterhin unveraendert `purCustomers/{unternehmerId}/company/{firmaId}/branches/{filialId}`. Ihre Konten ohne `benutzerprofil`-Dokument behalten dort den bisherigen Zugriff, erhalten aber keinen Legacy-Zugriff auf die neue Top-Level-Collection `unternehmer`.
 
 Die Verwaltungsseite erzeugt fuer Filiale und Office getrennte Auswahlkomponenten mit festen Mehrfachauswahl-Einstellungen; bei Master entfaellt die Auswahl. Ein Rollenwechsel setzt die bisherige Zuordnung zurueck. Die Auswahlkomponente selbst schaltet ihre Modi nicht dynamisch um.
 
-Die Auswahl erfolgt abhaengig voneinander: zuerst Unternehmer, danach dessen Firmen, danach deren Filialen. Die Anzeige verwendet `customerName`, `companyName` und `branchName`; die Zuordnung verwendet die jeweiligen Dokument-IDs.
+Die Auswahl erfolgt abhaengig voneinander: zuerst Unternehmer, danach dessen Firmen, danach deren Filialen. Unternehmer verwenden `name`; fuer die noch nicht migrierten Firmen- und Filialdokumente werden derzeit `companyName` und `branchName` gelesen. Die Zuordnung verwendet die jeweiligen Dokument-IDs.
 
 Die wiederverwendbare Component `datenzugriff-auswahl` stellt drei Material-Selects bereit. Die Mehrfachauswahl ist je Ebene konfigurierbar und standardmaessig deaktiviert; damit verwenden alle drei Selects standardmaessig Einfachauswahl. Firmen werden nur bei aktivierter Unternehmer-Mehrfachauswahl und mehr als einem ausgewaehlten Unternehmer gruppiert; Filialen entsprechend bei Firmen-Mehrfachauswahl und mehr als einer ausgewaehlten Firma. Beim Abwaehlen eines uebergeordneten Eintrags entfaellt dessen abhaengige Auswahl.
 
 Das Laden erfolgt ueber den bestehenden `BenutzerVerwaltungStore` und den `DatenzugriffService`. Die Benutzeranlage muss Unternehmer-, Firmen- und Filialzuordnung serverseitig pruefen. Bestehende Benutzerprofile muessen bei der Erweiterung des Berechtigungsmodells beruecksichtigt werden.
 
-Die Auswahl ist an lesende Firebase-Abfragen und den Anlage-Payload angebunden. Office-/Filialkonten benoetigen bei der Anlage mindestens eine vollstaendige Datenzuordnung; Master duerfen mit einer leeren Zugriffs-Map angelegt werden. Die Function prueft die Existenz der vollstaendigen Unternehmer-/Firmen-/Filialpfade vor der Auth-Anlage. Die Formularsperre ist entfernt. Der Gesamtablauf mit einem Testkonto ist nach dem naechsten Deployment erneut zu pruefen. Der genaue Implementierungsstand steht im [Projekt-Stand](./projekt-stand.md), die offenen Integrationsschritte in [Offene Todos](./next_todo.md).
+Die Auswahl ist an lesende Firebase-Abfragen und den Anlage-Payload angebunden. Office-/Filialkonten benoetigen bei der Anlage mindestens eine vollstaendige Datenzuordnung; Master duerfen mit einer leeren Zugriffs-Map angelegt werden. Die Function prueft die Existenz der vollstaendigen Unternehmer-/Firmen-/Filialpfade vor der Auth-Anlage. Die Formularsperre ist entfernt. Benutzeranlage, Anmeldung, Bereichsfreigabe und Passwortwechsel wurden grundsaetzlich bestaetigt; der vollstaendige Office-/Filialablauf mit realer neuer Datenhierarchie bleibt zu pruefen. Der genaue Implementierungsstand steht im [Projekt-Stand](./projekt-stand.md), die offenen Integrationsschritte in [Offene Todos](./next_todo.md).
 
 ## Projektstruktur
 
@@ -127,6 +128,6 @@ Die Sidebar enthaelt die Hauptnavigation der Anwendung. Aktuell sind vier Bereic
    Stammdaten der Mitarbeiter.
 
 4. **Verwaltung**
-   Administrativer Bereich fuer `master`. Hier werden vorkonfigurierte Benutzerzugaenge mit Rolle, erlaubten Bereichen sowie Unternehmer-, Firmen- und Filialzugriffen angelegt. Die eigentliche Benutzeranlage erfolgt serverseitig ueber eine geschuetzte Firebase Cloud Function mit Firebase Admin SDK.
+   Administrativer Bereich fuer `master`. Er umfasst die hierarchische Datenstruktur-Anlage, die Anlage vorkonfigurierter Benutzerzugaenge und die geplante Bearbeitung vorhandener Benutzerprofile. Die Auth-Benutzeranlage erfolgt serverseitig ueber eine geschuetzte Firebase Cloud Function mit Firebase Admin SDK; fachliche Stammdaten darf der Master direkt in Firestore schreiben.
 
 Die Benutzeranlage erstellt Auth-Konten zunaechst deaktiviert und aktiviert sie erst nach erfolgreicher Profilspeicherung. Bei unklaren Aktivierungsfehlern bleibt das Profil zur Absicherung vorhandener Tokens erhalten; fehlgeschlagene Bereinigungen werden fuer manuelle Administratorpruefung protokolliert.

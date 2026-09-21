@@ -84,14 +84,27 @@ Nach erfolgreicher Anlage wird der neue Unternehmer automatisch ausgewaehlt.
 - [x] `npm test`, `npm run test:rules` und `npm run build` erfolgreich ausfuehren.
 - [ ] Unternehmeranlage manuell gegen Firestore pruefen.
 
-## 4. Todo: Verwaltungsbereich und Benutzeranlage umsetzen
+## 4. Todo: Benutzerverwaltung
 
 > **Status am 19.09.2026: Noch nicht abgeschlossen.**
-> Formular, lesende Firebase-Anbindung und Auswahluebergabe an den Verwaltungsstore sind umgesetzt. Formularvalidierung, Anlage-Payload und Backend-Hierarchiepruefung verwenden lokal die vereinfachte Zugriffs-Map ohne separaten Index. Der Profilbestand wurde geprueft; das vorhandene Master-Altprofil bleibt kompatibel. Die vereinfachten Rules und die vereinfachte Function sind deployed. Der Gesamtablauf muss noch mit der neuen Datenhierarchie getestet werden.
+> Formular, lesende Firebase-Anbindung und Auswahluebergabe an den Verwaltungsstore sind umgesetzt. Formularvalidierung, Anlage-Payload und Backend-Hierarchiepruefung
+> verwenden lokal die vereinfachte Zugriffs-Map ohne separaten Index. Der Profilbestand wurde geprueft; das vorhandene Master-Altprofil bleibt kompatibel. Die vereinfachten
+> Rules und die vereinfachte Function sind deployed. Der Gesamtablauf muss noch mit der neuen Datenhierarchie getestet werden.
 
-Ziel: Ein serverseitig bestaetigter Master kann einen Benutzer mit Anzeigename, Rolle, E-Mail, Anfangspasswort, erlaubten Bereichen und Datenzugriffen anlegen. Die Datenzugriffe fuer Pur Office folgen der Hierarchie `unternehmer/{unternehmerId}/firma/{firmaId}/filiale/{filialId}`. Die Altanwendung bleibt auf `purCustomers/{unternehmerId}/company/{firmaId}/branches/{filialId}`. Eine Selbstregistrierung bleibt ausgeschlossen; die Sitzung des Masters bleibt erhalten.
+### 4.1 Benutzer anlegen
 
-### Bereits umgesetzt
+#### Ziel
+
+Ein serverseitig bestaetigter Master kann einen Benutzer mit Anzeigename, Rolle,
+E-Mail, Anfangspasswort, erlaubten Bereichen und Datenzugriffen anlegen. Die
+Datenzugriffe fuer Pur Office folgen der Hierarchie
+`unternehmer/{unternehmerId}/firma/{firmaId}/filiale/{filialId}`. Die
+Altanwendung bleibt auf
+`purCustomers/{unternehmerId}/company/{firmaId}/branches/{filialId}`. Eine
+Selbstregistrierung bleibt ausgeschlossen; die Sitzung des Masters bleibt
+erhalten.
+
+#### Bereits umgesetzt
 
 - [x] Filial-Lesezugriff am 19.09.2026 mit dem angemeldeten Testkonto direkt gegen Firestore geprueft: eigene zugeordnete Filiale lesbar, andere vorhandene Filiale derselben Firma mit `permission-denied` gesperrt. Beide Ergebnisse vom Benutzer per Screenshot bestaetigt.
 - [x] Nach erfolgreicher Anlage Formularwerte und Absendezustand zuruecksetzen, sodass leere Pflichtfelder ohne Fehlermarkierung angezeigt werden; Erfolgsmeldung bleibt erhalten.
@@ -120,7 +133,7 @@ Ziel: Ein serverseitig bestaetigter Master kann einen Benutzer mit Anzeigename, 
 - [x] Vereinfachte Rules ohne `zugriffsIndex` deployen; Deployment vom Benutzer bestaetigt.
 - [x] Vereinfachte Function ohne `zugriffsIndex` deployen; Deployment vom Benutzer bestaetigt.
 
-### Aufteilung fuer den Datenzugriff
+#### Aufteilung fuer den Datenzugriff
 
 - Der bestehende `BenutzerVerwaltungStore` in `src/app/stores/domain/benutzer-verwaltung.store.ts` verwaltet zusaetzlich Unternehmer, Firmen, Filialen und deren Auswahl. Er orchestriert das Laden und bereitet die ausgewaehlten Zugriffe fuer die Benutzeranlage vor.
 - Der neue `DatenzugriffService` in `src/app/services/firebase/datenzugriff.service.ts` kapselt die lesenden Firestore-Abfragen und die Uebertragung in die Auswahlmodelle. Der bestehende `BenutzerVerwaltungService` bleibt fuer den Aufruf der Benutzeranlage zustaendig.
@@ -128,7 +141,7 @@ Ziel: Ein serverseitig bestaetigter Master kann einen Benutzer mit Anzeigename, 
 - Die Component `DatenzugriffAuswahl` bleibt unabhaengig von Firebase und dem Verwaltungsstore. Die Verwaltungsseite uebergibt Daten und Auswahl ueber Inputs und reicht Auswahlereignisse der Component an den Store weiter.
 - Fuer diesen Umfang ist kein eigener `DatenzugriffStore` vorgesehen. Eine Auslagerung wird erst bei gemeinsam benoetigter Lade- und Auswahllogik auf weiteren Seiten geprueft. Der `PasswortStore` bleibt separat.
 
-### Naechste Umsetzungsschritte
+#### Naechste Umsetzungsschritte
 
 1. [ ] Office-Firmenfreigabe klaeren: Zugriff auf alle aktuellen und zukuenftigen Filialen der Firma oder stets explizite Filialauswahl? Office darf ausschliesslich freigegebene Firmen/Filialen sehen; kein globaler Lesezugriff. Bis zur Entscheidung die explizite Filialzuordnung beibehalten.
 2. [ ] Schreibrechte festlegen: Welche Daten erzeugt/bearbeitet ein Filialkonto in seiner eigenen Filiale? Welche Office-Aktionen (z. B. Mitarbeiter anlegen/bearbeiten) sind innerhalb der freigegebenen Datenbereiche erlaubt? Danach gezielte Backend-/Rules-Pruefungen mit Tests umsetzen; Zugriff der Altanwendung erhalten.
@@ -138,7 +151,7 @@ Die Rules lesen Unternehmer, Firmen und Filialen direkt aus der verschachtelten 
 
 Die sichere Weitergabe des Anfangspassworts liegt beim Master; eine automatische Zustellung ist nicht umgesetzt.
 
-### Erledigt, wenn
+#### Erledigt, wenn
 
 - [ ] Rollenmodell umgesetzt: Filiale genau eine Filiale; Office nur freigegebene Firmen/Filialen; Master ohne Datenzuordnung. Vereinbarte Schreibrechte sind gezielt abgesichert und getestet.
 - [ ] Der Master kann ueber die freigegebene Verwaltungsseite einen Benutzer mit echten Unternehmer-, Firmen- und Filialzuordnungen anlegen.
@@ -148,6 +161,70 @@ Die sichere Weitergabe des Anfangspassworts liegt beim Master; eine automatische
 - [x] Benutzer koennen `userRole`, `erlaubteBereiche` und `zugriffe` nicht selbst ueber den Client veraendern.
 - [x] Es gibt keine oeffentliche Selbstregistrierung.
 - [ ] Der aktuelle Gesamtablauf ist deployed und mit realen Daten erfolgreich geprueft.
+
+### 4.2 Bestehende Benutzerprofile verwalten
+
+#### Ziel
+
+Ein Master kann vorhandene Profile aus `benutzerprofil` auswaehlen und deren
+Anzeigename, Aktivstatus, Benutzerrolle, erlaubte Bereiche und Datenzugriffe
+bearbeiten. Die E-Mail-Adresse und der Firebase-Auth-Status werden in dieser
+ersten Ausbaustufe nicht veraendert.
+
+#### Betroffene Dateien
+
+- src/app/commons/models/domain/benutzer.ts
+- src/app/services/firebase/benutzer-verwaltung.service.ts
+- src/app/stores/domain/benutzer-verwaltung.store.ts
+- src/app/pages/verwaltung-page/verwaltung-page.ts
+- src/app/pages/verwaltung-page/verwaltung-page.html
+- src/app/pages/verwaltung-page/verwaltung-page.spec.ts
+- src/app/pages/verwaltung-page/benutzer-verwaltung/
+- src/app/pages/verwaltung-page/benutzer-verwaltung/benutzer-bearbeiten-dialog/
+- firestore.rules
+- rules-tests/
+- docs/projekt-stand.md
+
+#### Datenmodell
+
+- [x] `IBenutzerProfilEintrag` fuer ein Benutzerprofil mit der Dokument-ID als `uid` ergaenzen.
+- [x] `IBenutzerProfilAktualisierung` fuer die direkt bearbeitbaren Profilfelder ergaenzen.
+- [x] E-Mail-Adresse und Passwort bewusst aus dem Aktualisierungsmodell ausschliessen.
+
+#### Laden und Speichern
+
+- [ ] Alle Benutzerprofile fuer den Master aus `benutzerprofil` laden und die Dokument-ID als `uid` abbilden.
+- [ ] Firebase-Service um das Aktualisieren eines Profils unter `benutzerprofil/{uid}` erweitern.
+- [ ] Beim Speichern `aktualisiertAm` mit einem Server-Timestamp setzen.
+- [ ] Benutzer-Verwaltungs-Store um Profilbestand, Auswahl, Ladezustand und Aktualisierungsstatus erweitern.
+- [ ] Den aktualisierten Eintrag nach erfolgreichem Speichern ohne erneutes Laden in die Store-Liste uebernehmen.
+
+#### Verwaltungsoberflaeche
+
+- [ ] Unter `verwaltung-page` einen Bereich zum Verwalten vorhandener Benutzerprofile anlegen.
+- [ ] Benutzer ueber ein `mat-select` auswaehlen und die `uid` als Select-Wert verwenden.
+- [ ] Anzeigename und E-Mail-Adresse als verstaendliche Bezeichnung im Benutzer-Select anzeigen.
+- [ ] Den Button `Benutzer bearbeiten` erst nach einer gueltigen Benutzerauswahl aktivieren.
+- [ ] Das ausgewaehlte `IBenutzerProfilEintrag` an den Bearbeitungsdialog uebergeben.
+- [ ] Den Bearbeitungsdialog unter `benutzer-verwaltung/benutzer-bearbeiten-dialog/` fuer Anzeigename, Aktivstatus, Rolle, erlaubte Bereiche und Datenzugriffe anlegen.
+- [ ] Die vorhandene `DatenzugriffAuswahl` fuer Unternehmer-, Firmen- und Filialzuordnungen wiederverwenden.
+- [ ] Rollenabhaengige Validierung entsprechend der Benutzeranlage uebernehmen.
+- [ ] Erfolgs-, Fehler- und Ladezustand in der Oberflaeche anzeigen.
+
+#### Sicherheit und spaetere Auth-Erweiterung
+
+- [ ] Verhindern, dass ein Master sich selbst deaktiviert oder seine eigene Masterrolle entfernt.
+- [ ] Firestore Rules beziehungsweise Backend-Schutz fuer die erlaubten Profilaktualisierungen gezielt testen.
+- [ ] E-Mail-Aenderungen spaeter ueber eine Cloud Function gleichzeitig in Firebase Auth und Firestore umsetzen.
+- [ ] Eine vollstaendige Kontosperre spaeter ueber eine Cloud Function mit Firebase Auth `disabled` und Profilfeld `aktiv` synchronisieren.
+- [ ] Festlegen, wie bereits angemeldete Benutzer geaenderte Bereiche und Zugriffe ohne erneute Anmeldung erhalten.
+
+#### Tests und Abschluss
+
+- [ ] Service- und Store-Tests fuer Laden, Aktualisieren und Fehlerfaelle ergaenzen.
+- [ ] Dialog- und Seitentests fuer Auswahl, Validierung, Speichern und Selbstschutz ergaenzen.
+- [ ] Profilbearbeitung mit einem realen Testkonto pruefen.
+- [ ] `npm test`, `npm run test:rules` und `npm run build` erfolgreich ausfuehren.
 
 # Erledigte Todos
 

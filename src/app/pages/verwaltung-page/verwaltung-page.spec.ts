@@ -69,12 +69,12 @@ describe('VerwaltungPage', () => {
       Array.from(compiled.querySelectorAll('.pur-page-section__title')).map((titel) =>
         titel.textContent?.trim(),
       ),
-    ).toEqual(['Datenstruktur anlegen', 'Benutzer anlegen']);
+    ).toEqual(['Datenstruktur anlegen', 'Benutzer anlegen', 'Benutzer verwalten']);
     expect(compiled.querySelectorAll('mat-step-header')).toHaveLength(3);
     expect(compiled.querySelector('mat-stepper')?.textContent).toContain('Unternehmer');
     expect(compiled.querySelector('mat-stepper')?.textContent).toContain('Firma');
     expect(compiled.querySelector('mat-stepper')?.textContent).toContain('Filiale');
-    expect(compiled.querySelectorAll('mat-divider')).toHaveLength(1);
+    expect(compiled.querySelectorAll('mat-divider')).toHaveLength(2);
     expect(compiled.querySelector('mat-select')).toBeTruthy();
     expect(compiled.querySelectorAll('mat-checkbox')).toHaveLength(4);
   });

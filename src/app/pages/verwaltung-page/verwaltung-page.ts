@@ -5,11 +5,12 @@ import { MatDivider } from '@angular/material/list';
 
 import { BenutzerVerwaltungStore } from '../../stores/domain/benutzer-verwaltung.store';
 import { BenutzerAnlage } from './benutzer-anlage/benutzer-anlage';
+import { BenutzerVerwaltung } from './benutzer-verwaltung/benutzer-verwaltung';
 import { DatenstrukturAnlage } from './datenstruktur-anlage/datenstruktur-anlage';
 
 @Component({
   selector: 'app-verwaltung-page',
-  imports: [BenutzerAnlage, DatenstrukturAnlage, MatDivider],
+  imports: [BenutzerAnlage, BenutzerVerwaltung, DatenstrukturAnlage, MatDivider],
   providers: [BenutzerVerwaltungStore],
   templateUrl: './verwaltung-page.html',
   styleUrl: './verwaltung-page.scss',
