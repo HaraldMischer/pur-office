@@ -3,7 +3,7 @@
 import { Injectable, Injector, inject, runInInjectionContext } from '@angular/core';
 import { Firestore } from '@angular/fire/firestore';
 
-import { IBenutzerDokument, TBenutzerZugriffe } from '../../commons/models/domain/benutzer';
+import { IBenutzerProfilDokument, TBenutzerZugriffe } from '../../commons/models/domain/benutzer';
 import { FIRESTORE_DOC, FIRESTORE_GET_DOC } from '../../commons/tokens/firebase.tokens';
 
 @Injectable({
@@ -15,16 +15,16 @@ export class BenutzerService {
   private readonly _firestoreDoc = inject(FIRESTORE_DOC);
   private readonly _firestoreGetDoc = inject(FIRESTORE_GET_DOC);
 
-  async getBenutzerProfil(uid: string): Promise<IBenutzerDokument | null> {
+  async getBenutzerProfil(uid: string): Promise<IBenutzerProfilDokument | null> {
     const dokument = await runInInjectionContext(this._injector, () =>
-      this._firestoreGetDoc(this._firestoreDoc(this._firestore, 'benutzer', uid)),
+      this._firestoreGetDoc(this._firestoreDoc(this._firestore, 'benutzerprofil', uid)),
     );
 
     if (!dokument.exists()) {
       return null;
     }
 
-    const profil = dokument.data() as Omit<IBenutzerDokument, 'zugriffe'> & { zugriffe?: unknown };
+    const profil = dokument.data() as Omit<IBenutzerProfilDokument, 'zugriffe'> & { zugriffe?: unknown };
 
     return {
       email: profil.email,

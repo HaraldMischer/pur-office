@@ -60,21 +60,21 @@ test('continues to reject unauthenticated access to legacy collections', async (
 
 test('allows a user to read only the own Pur Office profile', async () => {
   await testEnvironment.withSecurityRulesDisabled(async (context) => {
-    await setDoc(doc(context.firestore(), 'benutzer/user-1'), { uid: 'user-1' });
-    await setDoc(doc(context.firestore(), 'benutzer/user-2'), { uid: 'user-2' });
+    await setDoc(doc(context.firestore(), 'benutzerprofil/user-1'), { uid: 'user-1' });
+    await setDoc(doc(context.firestore(), 'benutzerprofil/user-2'), { uid: 'user-2' });
   });
 
   const firestore = testEnvironment.authenticatedContext('user-1').firestore();
-  const ownProfile = await assertSucceeds(getDoc(doc(firestore, 'benutzer/user-1')));
+  const ownProfile = await assertSucceeds(getDoc(doc(firestore, 'benutzerprofil/user-1')));
 
   assert.equal(ownProfile.data()?.['uid'], 'user-1');
-  await assertFails(getDoc(doc(firestore, 'benutzer/user-2')));
-  await assertFails(getDocs(collection(firestore, 'benutzer')));
+  await assertFails(getDoc(doc(firestore, 'benutzerprofil/user-2')));
+  await assertFails(getDocs(collection(firestore, 'benutzerprofil')));
 });
 
 test('rejects all client writes to Pur Office profiles', async () => {
   await testEnvironment.withSecurityRulesDisabled(async (context) => {
-    await setDoc(doc(context.firestore(), 'benutzer/user-1'), {
+    await setDoc(doc(context.firestore(), 'benutzerprofil/user-1'), {
       uid: 'user-1',
       userRole: 'filiale',
     });
@@ -83,10 +83,10 @@ test('rejects all client writes to Pur Office profiles', async () => {
   const firestore = testEnvironment.authenticatedContext('user-1').firestore();
 
   await assertFails(
-    setDoc(doc(firestore, 'benutzer/user-1'), { userRole: 'master' }, { merge: true }),
+    setDoc(doc(firestore, 'benutzerprofil/user-1'), { userRole: 'master' }, { merge: true }),
   );
-  await assertFails(setDoc(doc(firestore, 'benutzer/new-user'), { uid: 'new-user' }));
-  await assertFails(deleteDoc(doc(firestore, 'benutzer/user-1')));
+  await assertFails(setDoc(doc(firestore, 'benutzerprofil/new-user'), { uid: 'new-user' }));
+  await assertFails(deleteDoc(doc(firestore, 'benutzerprofil/user-1')));
 });
 
 const zugriffe = { 'u-1': { 'f-1': ['b-1'] } };
@@ -98,7 +98,7 @@ const legacyBranchPath = 'purCustomers/u-1/company/f-1/branches/b-1';
 async function seedProfile(userRole, overrides = {}) {
   await testEnvironment.withSecurityRulesDisabled(async (context) => {
     const db = context.firestore();
-    await setDoc(doc(db, 'benutzer/scoped'), {
+    await setDoc(doc(db, 'benutzerprofil/scoped'), {
       aktiv: true,
       userRole,
       zugriffe,
@@ -114,8 +114,8 @@ async function seedProfile(userRole, overrides = {}) {
       legacyBranchPath,
       'purUser/old',
       'other/doc',
-      'benutzer/other',
-      'benutzer/other/private/doc',
+      'benutzerprofil/other',
+      'benutzerprofil/other/private/doc',
     ]) {
       await setDoc(doc(db, path), { name: path });
     }
@@ -131,13 +131,13 @@ test('active master reads all collections, nested data and all profiles with leg
     legacyBranchPath,
     'purUser/old',
     'other/doc',
-    'benutzer/other',
-    'benutzer/other/private/doc',
+    'benutzerprofil/other',
+    'benutzerprofil/other/private/doc',
   ]) {
     await assertSucceeds(getDoc(doc(db, path)));
   }
   for (const path of [
-    'benutzer',
+    'benutzerprofil',
     'unternehmer',
     'purCustomers',
     'purUser',
@@ -159,7 +159,7 @@ for (const role of ['office', 'filiale']) {
       await assertSucceeds(getDoc(doc(db, path)));
     }
     await assertSucceeds(getDocs(collection(db, `${filialePath}/mitarbeiter`)));
-    await assertSucceeds(getDoc(doc(db, 'benutzer/scoped')));
+    await assertSucceeds(getDoc(doc(db, 'benutzerprofil/scoped')));
     for (const path of [
       `${firmaPath}/filiale/b-2`,
       'unternehmer/u-2',
@@ -170,12 +170,12 @@ for (const role of ['office', 'filiale']) {
       legacyBranchPath,
       'purUser/old',
       'other/doc',
-      'benutzer/other',
-      'benutzer/other/private/doc',
+      'benutzerprofil/other',
+      'benutzerprofil/other/private/doc',
     ]) {
       await assertFails(getDoc(doc(db, path)));
     }
-    await assertFails(getDocs(collection(db, 'benutzer')));
+    await assertFails(getDocs(collection(db, 'benutzerprofil')));
     await assertFails(getDocs(collection(db, 'unternehmer')));
     await assertFails(getDocs(collection(db, `${firmaPath}/filiale`)));
   });
@@ -189,22 +189,38 @@ for (const role of ['office', 'filiale']) {
 }
 
 for (const role of ['master', 'office', 'filiale']) {
-  test(`inactive ${role} reads own profile only`, async () => {
+  test(`inactive ${role} reads own profile only and cannot write`, async () => {
     const db = await seedProfile(role, { aktiv: false });
-    await assertSucceeds(getDoc(doc(db, 'benutzer/scoped')));
-    for (const path of [filialePath, 'purUser/old', 'benutzer/other']) {
+    await assertSucceeds(getDoc(doc(db, 'benutzerprofil/scoped')));
+    for (const path of [filialePath, 'purUser/old', 'benutzerprofil/other']) {
       await assertFails(getDoc(doc(db, path)));
     }
+    await assertFails(setDoc(doc(db, filialePath), { name: 'updated' }, { merge: true }));
   });
+}
 
+test('active master can write business data, profiles and nested data', async () => {
+  const db = await seedProfile('master');
+
+  await assertSucceeds(setDoc(doc(db, 'unternehmer/new'), { name: 'new' }));
+  await assertSucceeds(setDoc(doc(db, filialePath), { name: 'updated' }, { merge: true }));
+  await assertSucceeds(setDoc(doc(db, `${filialePath}/mitarbeiter/new`), { name: 'new' }));
+  await assertSucceeds(
+    setDoc(doc(db, 'benutzerprofil/other'), { anzeigename: 'updated' }, { merge: true }),
+  );
+  await assertSucceeds(deleteDoc(doc(db, 'other/doc')));
+  await assertSucceeds(deleteDoc(doc(db, 'benutzerprofil/scoped')));
+});
+
+for (const role of ['office', 'filiale']) {
   test(`${role} cannot write business data, own profile or other profiles`, async () => {
     const db = await seedProfile(role);
     for (const path of [
       filialePath,
       'purUser/old',
       'other/doc',
-      'benutzer/scoped',
-      'benutzer/other',
+      'benutzerprofil/scoped',
+      'benutzerprofil/other',
     ]) {
       await assertFails(setDoc(doc(db, path), { aktiv: true }, { merge: true }));
       await assertFails(deleteDoc(doc(db, path)));
@@ -255,6 +271,8 @@ test('legacy users retain old access but cannot access the new hierarchy', async
   await assertFails(getDoc(doc(db, unternehmerPath)));
   await assertFails(setDoc(doc(db, filialePath), { value: 1 }));
   await assertFails(getDocs(collection(db, 'unternehmer')));
+  await assertFails(setDoc(doc(db, 'benutzerprofil/legacy'), { userRole: 'master' }));
+  await assertFails(getDoc(doc(db, 'benutzerprofil/other')));
   await assertFails(setDoc(doc(db, 'benutzer/legacy'), { userRole: 'master' }));
   await assertFails(getDoc(doc(db, 'benutzer/other')));
 });

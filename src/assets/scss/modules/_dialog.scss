@@ -1,0 +1,17 @@
+// pur-office/src/assets/scss/modules/_dialog.scss
+
+.pur-dialog {
+  &__panel {
+    box-sizing: border-box;
+    width: calc(100vw - 2rem);
+    max-width: min(28rem, calc(100vw - 2rem)) !important;
+
+    &--large {
+      max-width: min(48rem, calc(100vw - 2rem)) !important;
+    }
+  }
+
+  &__content.mat-mdc-dialog-content {
+    overflow-x: hidden;
+  }
+}

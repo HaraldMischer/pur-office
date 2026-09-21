@@ -18,7 +18,7 @@ describe('PasswortStore', () => {
   it('should change the password and expose success', async () => {
     const store = TestBed.inject(PasswortStore);
 
-    await store.changePassword('altes-passwort', 'neues-passwort');
+    await store.savePasswort('altes-passwort', 'neues-passwort');
 
     expect(authServiceMock.changePassword).toHaveBeenCalledWith('altes-passwort', 'neues-passwort');
     expect(store.erfolgreich()).toBe(true);
@@ -29,7 +29,7 @@ describe('PasswortStore', () => {
     authServiceMock.changePassword.mockRejectedValue({ code: 'auth/invalid-credential' });
     const store = TestBed.inject(PasswortStore);
 
-    await expect(store.changePassword('falsch', 'neues-passwort')).rejects.toEqual({
+    await expect(store.savePasswort('falsch', 'neues-passwort')).rejects.toEqual({
       code: 'auth/invalid-credential',
     });
     expect(store.error()).toBe('E-Mail-Adresse oder Passwort ist nicht korrekt.');

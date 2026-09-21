@@ -38,9 +38,12 @@ interface ICreateBenutzerDependencies {
     password: string;
     disabled: true;
   }): Promise<{ uid: string }>;
-  setBenutzerDokument(uid: string, data: Omit<ICreateBenutzerData, 'passwort'>): Promise<void>;
+  setBenutzerProfilDokument(
+    uid: string,
+    data: Omit<ICreateBenutzerData, 'passwort'>,
+  ): Promise<void>;
   setAuthBenutzerDisabled(uid: string, disabled: boolean): Promise<void>;
-  deactivateBenutzerDokument(uid: string): Promise<void>;
+  deactivateBenutzerProfilDokument(uid: string): Promise<void>;
   logAnlageError(uid: string, schritt: string, error: unknown): void;
   deleteAuthBenutzer(uid: string): Promise<void>;
   logRollbackError(uid: string, error: unknown): void;
@@ -260,8 +263,8 @@ export async function handleCreateBenutzer(
 
   let aktivierungVersucht = false;
   try {
-    const { passwort, ...benutzerDokument } = data;
-    await dependencies.setBenutzerDokument(authBenutzer.uid, benutzerDokument);
+    const { passwort, ...benutzerProfilDokument } = data;
+    await dependencies.setBenutzerProfilDokument(authBenutzer.uid, benutzerProfilDokument);
 
     aktivierungVersucht = true;
     await dependencies.setAuthBenutzerDisabled(authBenutzer.uid, false);
@@ -282,7 +285,10 @@ export async function handleCreateBenutzer(
       // Das Profil bleibt erhalten, damit vorhandene Tokens nie Legacy-Rechte erhalten.
       for (const [schritt, bereinigen] of [
         ['auth-deaktivieren', () => dependencies.setAuthBenutzerDisabled(authBenutzer.uid, true)],
-        ['profil-deaktivieren', () => dependencies.deactivateBenutzerDokument(authBenutzer.uid)],
+        [
+          'profil-deaktivieren',
+          () => dependencies.deactivateBenutzerProfilDokument(authBenutzer.uid),
+        ],
       ] as const) {
         try {
           await bereinigen();

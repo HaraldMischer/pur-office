@@ -110,8 +110,8 @@
         @if (benutzerForm.controls.userRole.value === 'filiale') {
           <app-datenzugriff-auswahl
             [unternehmer]="verwaltungStore.unternehmer()"
-            [firmenLaden]="verwaltungStore.firmenLaden()"
-            [filialenLaden]="verwaltungStore.filialenLaden()"
+            [firmenLaden]="verwaltungStore.firmenDownload()"
+            [filialenLaden]="verwaltungStore.filialenDownload()"
             [unternehmerIds]="verwaltungStore.unternehmerIds()"
             (unternehmerIdsChange)="verwaltungStore.selectUnternehmer($event)"
             [firmaIds]="verwaltungStore.firmaIds()"
@@ -125,8 +125,8 @@
         } @else {
           <app-datenzugriff-auswahl
             [unternehmer]="verwaltungStore.unternehmer()"
-            [firmenLaden]="verwaltungStore.firmenLaden()"
-            [filialenLaden]="verwaltungStore.filialenLaden()"
+            [firmenLaden]="verwaltungStore.firmenDownload()"
+            [filialenLaden]="verwaltungStore.filialenDownload()"
             [unternehmerIds]="verwaltungStore.unternehmerIds()"
             (unternehmerIdsChange)="verwaltungStore.selectUnternehmer($event)"
             [firmaIds]="verwaltungStore.firmaIds()"
@@ -147,14 +147,14 @@
 
         <!-- Ladestatus -->
         @for (status of verwaltungStore.datenStatus(); track status.key) {
-          @if (status.laden) {
+          @if (status.download) {
             <p role="status">{{ status.name }} werden geladen …</p>
-          } @else if (status.fehler) {
-            <p class="pur-form__error" role="alert">{{ status.name }}: {{ status.fehler }}</p>
+          } @else if (status.error) {
+            <p class="pur-form__error" role="alert">{{ status.name }}: {{ status.error }}</p>
             <button matButton type="button" (click)="verwaltungStore.loadAuswahl()">
               Erneut laden
             </button>
-          } @else if (status.geladen && status.daten.length === 0) {
+          } @else if (status.isLoaded && status.daten.length === 0) {
             <p role="status">{{ status.name }}: Keine Einträge vorhanden.</p>
           }
         }
@@ -172,7 +172,7 @@
     }
 
     <!-- Benutzer anlegen -->
-    <div class="pur-form__row formular-aktionen">
+    <div class="pur-form__row pur-form__row--actions-end">
       <button
         matButton="filled"
         type="submit"

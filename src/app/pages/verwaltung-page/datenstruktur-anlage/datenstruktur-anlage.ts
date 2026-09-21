@@ -2,7 +2,7 @@
 
 import { BreakpointObserver } from '@angular/cdk/layout';
 import type { StepperOrientation } from '@angular/cdk/stepper';
-import { ChangeDetectionStrategy, Component, Signal, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnInit, Signal, effect, inject } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import {
   AbstractControl,
@@ -14,11 +14,16 @@ import {
 } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
+import { MatDialog } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatStepperModule } from '@angular/material/stepper';
-import { map } from 'rxjs';
+import { firstValueFrom, map } from 'rxjs';
+
+import { UnternehmerStore } from '../../../stores/domain/unternehmer.store';
+import { UnternehmerAnlegenDialog } from './unternehmer-anlegen-dialog/unternehmer-anlegen-dialog';
 
 type TAnlageModus = 'vorhanden' | 'neu';
 
@@ -26,6 +31,10 @@ type TAuswahlForm = {
   modus: FormControl<TAnlageModus>;
   id: FormControl<string>;
   name: FormControl<string>;
+};
+
+type TUnternehmerForm = {
+  id: FormControl<string>;
 };
 
 const nichtLeerValidator = (control: AbstractControl): ValidationErrors | null =>
@@ -37,6 +46,7 @@ const nichtLeerValidator = (control: AbstractControl): ValidationErrors | null =
     MatButtonModule,
     MatButtonToggleModule,
     MatFormFieldModule,
+    MatIconModule,
     MatInputModule,
     MatSelectModule,
     MatStepperModule,
@@ -46,8 +56,10 @@ const nichtLeerValidator = (control: AbstractControl): ValidationErrors | null =
   styleUrl: './datenstruktur-anlage.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class DatenstrukturAnlage {
+export class DatenstrukturAnlage implements OnInit {
   private readonly breakpointObserver = inject(BreakpointObserver);
+  private readonly dialog = inject(MatDialog);
+  readonly unternehmerStore = inject(UnternehmerStore);
 
   readonly stepperOrientation: Signal<StepperOrientation> = toSignal(
     this.breakpointObserver
@@ -56,7 +68,9 @@ export class DatenstrukturAnlage {
     { initialValue: 'horizontal' },
   );
 
-  readonly unternehmerForm = this.createAuswahlForm();
+  readonly unternehmerForm = new FormGroup<TUnternehmerForm>({
+    id: new FormControl('', { nonNullable: true, validators: [Validators.required] }),
+  });
   readonly firmaForm = this.createAuswahlForm();
   readonly filialeForm = new FormGroup({
     name: new FormControl('', {
@@ -66,12 +80,42 @@ export class DatenstrukturAnlage {
   });
 
   constructor() {
-    this.setupModus(this.unternehmerForm);
     this.setupModus(this.firmaForm);
+    effect(() => {
+      if (this.unternehmerStore.download()) {
+        this.unternehmerForm.controls.id.disable({ emitEvent: false });
+      } else {
+        this.unternehmerForm.controls.id.enable({ emitEvent: false });
+      }
+    });
+  }
+
+  ngOnInit(): void {
+    void this.unternehmerStore.loadUnternehmer().catch(() => undefined);
+  }
+
+  async openUnternehmerDialog(): Promise<void> {
+    this.unternehmerStore.clearError();
+    const ergebnis = await firstValueFrom(
+      this.dialog
+        .open(UnternehmerAnlegenDialog, {
+          panelClass: ['pur-dialog__panel', 'pur-dialog__panel--large'],
+        })
+        .afterClosed(),
+    );
+
+    if (ergebnis) {
+      this.unternehmerForm.controls.id.setValue(ergebnis.id);
+      this.unternehmerForm.controls.id.markAsDirty();
+    }
   }
 
   getUnternehmerBezeichnung(): string {
-    return this.getAuswahlBezeichnung(this.unternehmerForm, 'Kein Unternehmer gewählt');
+    const unternehmerId = this.unternehmerForm.controls.id.value;
+    return (
+      this.unternehmerStore.unternehmer().find((eintrag) => eintrag.id === unternehmerId)?.name ??
+      'Kein Unternehmer gewählt'
+    );
   }
 
   getFirmaBezeichnung(): string {

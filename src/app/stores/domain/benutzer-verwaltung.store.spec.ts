@@ -68,8 +68,8 @@ describe('BenutzerVerwaltungStore', () => {
   function prepareDaten() {
     const daten = TestBed.inject(DatenzugriffService);
     vi.mocked(daten.loadUnternehmer).mockResolvedValue([
-      { id: 'a', name: 'A' },
-      { id: 'b', name: 'B' },
+      { id: 'a', name: 'A', nummer: 1 },
+      { id: 'b', name: 'B', nummer: 2 },
     ]);
     vi.mocked(daten.loadFirmen).mockResolvedValue([{ id: 'f', name: 'Firma' }]);
     vi.mocked(daten.loadFilialen).mockResolvedValue([{ id: 'z', name: 'Filiale' }]);
@@ -108,16 +108,16 @@ describe('BenutzerVerwaltungStore', () => {
     const { daten, store } = prepareDaten();
     vi.mocked(daten.loadUnternehmer).mockRejectedValueOnce({ code: 'permission-denied' });
     await store.loadAuswahl();
-    expect(store.datenStatus()[0].fehler).toBeTruthy();
-    expect(store.datenStatus()[0].geladen).toBe(false);
+    expect(store.datenStatus()[0].error).toBeTruthy();
+    expect(store.datenStatus()[0].isLoaded).toBe(false);
     expect(store.error()).toBeNull();
     expect(store.inProgress()).toBe(false);
     vi.mocked(daten.loadUnternehmer).mockResolvedValue([]);
     await store.loadAuswahl();
     expect(store.datenStatus()[0]).toMatchObject({
-      geladen: true,
-      laden: false,
-      fehler: null,
+      isLoaded: true,
+      download: false,
+      error: null,
       daten: [],
     });
     await store.loadAuswahl();
@@ -153,7 +153,7 @@ describe('BenutzerVerwaltungStore', () => {
 
   it('should ignore pending data after reset', async () => {
     const { daten, store } = prepareDaten();
-    let resolve!: (data: { id: string; name: string }[]) => void;
+    let resolve!: (data: { id: string; name: string; nummer: number }[]) => void;
     vi.mocked(daten.loadUnternehmer).mockImplementation(
       () =>
         new Promise((done) => {
@@ -162,9 +162,9 @@ describe('BenutzerVerwaltungStore', () => {
     );
     const pending = store.loadAuswahl();
     await Promise.resolve();
-    expect(store.datenStatus()[0].laden).toBe(true);
+    expect(store.datenStatus()[0].download).toBe(true);
     store.reset();
-    resolve([{ id: 'old', name: 'Alt' }]);
+    resolve([{ id: 'old', name: 'Alt', nummer: 1 }]);
     await pending;
     expect(store.unternehmer()).toEqual([]);
     expect(store.listen()).toEqual({});

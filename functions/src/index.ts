@@ -23,7 +23,7 @@ export const createBenutzer = onCall<ICreateBenutzerData, Promise<ICreateBenutze
       { auth: request.auth, data: request.data },
       {
         getBenutzerProfil: async (uid) => {
-          const snapshot = await firestore.doc(`benutzer/${uid}`).get();
+          const snapshot = await firestore.doc(`benutzerprofil/${uid}`).get();
           return snapshot.exists ? snapshot.data() : null;
         },
         existierenDokumente: async (pfade) => {
@@ -38,8 +38,8 @@ export const createBenutzer = onCall<ICreateBenutzerData, Promise<ICreateBenutze
             disabled: data.disabled,
             emailVerified: false,
           }),
-        setBenutzerDokument: async (uid, data) => {
-          await firestore.doc(`benutzer/${uid}`).set({
+        setBenutzerProfilDokument: async (uid, data) => {
+          await firestore.doc(`benutzerprofil/${uid}`).set({
             email: data.email,
             anzeigename: data.anzeigename,
             aktiv: true,
@@ -53,8 +53,8 @@ export const createBenutzer = onCall<ICreateBenutzerData, Promise<ICreateBenutze
         setAuthBenutzerDisabled: async (uid, disabled) => {
           await auth.updateUser(uid, { disabled });
         },
-        deactivateBenutzerDokument: async (uid) => {
-          await firestore.doc(`benutzer/${uid}`).update({
+        deactivateBenutzerProfilDokument: async (uid) => {
+          await firestore.doc(`benutzerprofil/${uid}`).update({
             aktiv: false,
             aktualisiertAm: FieldValue.serverTimestamp(),
           });

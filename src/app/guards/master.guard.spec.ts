@@ -5,7 +5,7 @@ import { TestBed } from '@angular/core/testing';
 import { Router, UrlTree } from '@angular/router';
 import { of } from 'rxjs';
 
-import { IBenutzerDokument } from '../commons/models/domain/benutzer';
+import { IBenutzerProfilDokument } from '../commons/models/domain/benutzer';
 import { AuthService } from '../services/firebase/auth.service';
 import { BenutzerService } from '../services/firebase/benutzer.service';
 import { masterGuard } from './master.guard';
@@ -20,7 +20,7 @@ describe('masterGuard', () => {
   let routerMock: {
     createUrlTree: ReturnType<typeof vi.fn>;
   };
-  let profil: IBenutzerDokument;
+  let profil: IBenutzerProfilDokument;
 
   beforeEach(() => {
     profil = {

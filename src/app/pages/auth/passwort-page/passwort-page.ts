@@ -79,7 +79,7 @@ export class PasswortPage {
     const value = this.passwortForm.getRawValue();
 
     try {
-      await this.passwortStore.changePassword(value.aktuellesPasswort, value.neuesPasswort);
+      await this.passwortStore.savePasswort(value.aktuellesPasswort, value.neuesPasswort);
       this.passwortForm.reset();
     } catch {
       // Der Store stellt die benutzerfreundliche Fehlermeldung bereit.

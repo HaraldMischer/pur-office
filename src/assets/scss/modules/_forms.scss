@@ -1,4 +1,4 @@
-// pur-office/src/assets/scss/modules/forms.scss
+// pur-office/src/assets/scss/modules/_forms.scss
 
 .pur-form {
   gap: 1rem;
@@ -12,6 +12,10 @@
     flex-wrap: wrap;
     align-items: flex-start;
     gap: 1rem;
+
+    &--actions-end {
+      justify-content: flex-end;
+    }
 
     > .pur-form__field {
       flex: 1 1 260px;
@@ -36,6 +40,7 @@
     width: 100%;
   }
 
+  &__message,
   &__success,
   &__error {
     margin: 0;
@@ -45,6 +50,10 @@
     font: var(--mat-sys-body-medium);
     font-weight: 500;
     overflow-wrap: anywhere;
+  }
+
+  &__message {
+    color: var(--pur-sys-info);
   }
 
   &__success {
@@ -64,6 +73,7 @@
       flex: 1 1 260px;
     }
 
+    .pur-form__message,
     .pur-form__error,
     .pur-form__success {
       flex: 1 0 100%;

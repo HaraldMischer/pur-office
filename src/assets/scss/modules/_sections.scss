@@ -32,12 +32,39 @@
   }
 
   &__message,
-  &__empty-state {
+  &__empty-state,
+  &__summary {
     margin: 0;
     padding: 1.25rem;
-    border: 1px dashed var(--mat-sys-outline);
+    border: 1px solid var(--mat-sys-outline);
     border-radius: 0.75rem;
     background: var(--mat-sys-surface-container-lowest);
     overflow-wrap: anywhere;
+  }
+
+  &__empty-state {
+    border-style: dashed;
+  }
+
+  &__summary {
+    display: grid;
+    gap: 0.5rem;
+
+    > div {
+      display: grid;
+      grid-template-columns: minmax(7rem, 1fr) minmax(0, 4fr);
+      gap: 1rem;
+    }
+
+    > div > span:first-child {
+      font: var(--mat-sys-label-large);
+    }
+
+    @media (max-width: 600px) {
+      > div {
+        grid-template-columns: 1fr;
+        gap: 0.25rem;
+      }
+    }
   }
 }

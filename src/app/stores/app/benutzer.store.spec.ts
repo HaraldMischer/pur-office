@@ -3,7 +3,7 @@
 import { TestBed } from '@angular/core/testing';
 import { UserCredential } from '@angular/fire/auth';
 
-import { IBenutzerDokument } from '../../commons/models/domain/benutzer';
+import { IBenutzerProfilDokument } from '../../commons/models/domain/benutzer';
 import { AuthService } from '../../services/firebase/auth.service';
 import { BenutzerService } from '../../services/firebase/benutzer.service';
 import { BenutzerStore } from './benutzer.store';
@@ -17,7 +17,7 @@ describe('BenutzerStore', () => {
   let benutzerServiceMock: {
     getBenutzerProfil: ReturnType<typeof vi.fn>;
   };
-  let profil: IBenutzerDokument;
+  let profil: IBenutzerProfilDokument;
 
   beforeEach(() => {
     profil = {
@@ -55,6 +55,7 @@ describe('BenutzerStore', () => {
     expect(store.error()).toBeNull();
     expect(store.isLoggedIn()).toBe(false);
     expect(store.istMaster()).toBe(false);
+    expect(store.zugriffe()).toEqual({});
   });
 
   it('should login and load the user profile', async () => {

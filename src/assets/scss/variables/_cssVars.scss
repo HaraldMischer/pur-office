@@ -3,5 +3,6 @@
 @use 'colorVars' as colors;
 
 :root {
+  --pur-sys-info: light-dark(#{colors.$info-light}, #{colors.$info-dark});
   --pur-sys-success: light-dark(#{colors.$success-light}, #{colors.$success-dark});
 }

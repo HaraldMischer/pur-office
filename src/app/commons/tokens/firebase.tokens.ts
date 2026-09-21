@@ -11,12 +11,14 @@ import {
   updatePassword,
 } from '@angular/fire/auth';
 import {
+  addDoc,
   collection,
   collectionData,
   doc,
   getDoc,
   getDocs,
   query,
+  serverTimestamp,
   where,
 } from '@angular/fire/firestore';
 import { httpsCallable } from '@angular/fire/functions';
@@ -108,3 +110,16 @@ export const FIRESTORE_GET_DOCS = new InjectionToken<typeof getDocs>('FIRESTORE_
   providedIn: 'root',
   factory: () => getDocs,
 });
+
+export const FIRESTORE_ADD_DOC = new InjectionToken<typeof addDoc>('FIRESTORE_ADD_DOC', {
+  providedIn: 'root',
+  factory: () => addDoc,
+});
+
+export const FIRESTORE_SERVER_TIMESTAMP = new InjectionToken<typeof serverTimestamp>(
+  'FIRESTORE_SERVER_TIMESTAMP',
+  {
+    providedIn: 'root',
+    factory: () => serverTimestamp,
+  },
+);

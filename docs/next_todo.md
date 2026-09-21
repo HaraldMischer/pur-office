@@ -4,28 +4,85 @@
 
 ## 5. Todo: Datenstruktur-Anlage
 
-> **Status am 20.09.2026: UI-Dummy umgesetzt; manuelle Sichtpruefung ausstehend.**
+> **Status am 20.09.2026:**
+> 5.1 UI-Dummy abgeschlossen.
+> 5.2 Unternehmer-Anlage vorbereitet.
 
-Ziel: Ein Master kann die hierarchische Datenstruktur fuer Pur Office schrittweise vorbereiten. Die Benutzeroberflaeche fuehrt in der Reihenfolge Unternehmer, Firma und Filiale durch die Anlage. Zunaechst wird nur ein funktionsfaehiger UI-Dummy ohne Firestore-Schreibzugriff umgesetzt.
+### 5.1 UI-Dummy fuer die Datenstruktur-Anlage
 
-### Geplante Umsetzung
-1. [x] Einen linearen Angular-Material-Stepper in `src/app/pages/verwaltung-page/datenstruktur-anlage` umsetzen.
-2. [x] Schritt 1: vorhandenen Unternehmer waehlen oder einen neuen Unternehmer ueber ein Pflichtfeld vorbereiten.
-3. [x] Schritt 2: fuer den in Schritt 1 bestimmten Unternehmer eine vorhandene Firma waehlen oder eine neue Firma ueber ein Pflichtfeld vorbereiten.
-4. [x] Schritt 3: Namen der neu anzulegenden Filiale erfassen und die vollstaendige Hierarchie zusammenfassend anzeigen.
-5. [x] Auswahl und Neuanlage je Schritt klar voneinander unterscheiden; abhaengige Eingaben erst freigeben, wenn die vorherige Auswahl gueltig ist.
-6. [x] Zurueck-/Weiter-Navigation und Formularvalidierung funktionsfaehig umsetzen. Auf kleinen Bildschirmen den Stepper vertikal darstellen.
-7. [x] Die bisherigen drei Empty-State-Platzhalter durch den Stepper ersetzen.
-8. [x] Noch keine Firestore-Dokumente schreiben. Den abschliessenden Anlage-Button als nicht angebunden kennzeichnen und deaktiviert lassen.
-9. [x] Component- und Seitentests fuer Schritte, Validierung, Navigation und responsive Ausrichtung ergaenzen.
-10. [x] `npm test` und `npm run build` erfolgreich ausfuehren.
+#### Ziel
 
-### Erledigt, wenn
-- [ ] Der Stepper bildet die drei Schritte Unternehmer, Firma und Filiale verstaendlich ab; manuelle Sichtpruefung durch den Benutzer steht aus.
-- [x] Auswahl, Neuanlage, Validierung und Navigation funktionieren als UI-Dummy.
-- [x] Die Darstellung wechselt auf kleinen Bildschirmen in eine vertikale Ausrichtung.
-- [x] Der Dummy fuehrt noch keine Firestore-Schreibzugriffe aus.
-- [x] Tests und Produktionsbuild sind erfolgreich.
+Den dreistufigen Material-Stepper ohne Firestore-Schreibzugriffe vorbereiten.
+
+#### Umsetzung
+
+- [x] Material-Stepper anlegen.
+- [x] Unternehmerauswahl und vorbereitete Neuanlage darstellen.
+- [x] Firmenauswahl und vorbereitete Neuanlage darstellen.
+- [x] Filialanlage und Zusammenfassung darstellen.
+- [x] Navigation und Validierung umsetzen.
+- [x] Responsive Ausrichtung umsetzen.
+- [x] Tests und Produktionsbuild ausfuehren.
+
+#### Erledigt, wenn
+
+- [x] Manuelle Sichtpruefung ist abgeschlossen.
+- [x] Drei Schritte werden verstaendlich dargestellt.
+- [x] Navigation und Validierung funktionieren.
+- [x] Es werden noch keine Firestore-Dokumente geschrieben.
+- [x] Tests und Build sind erfolgreich.
+
+### 5.2 Unternehmer-Anlage
+
+#### Ziel
+
+Ein Master kann im ersten Schritt einen vorhandenen Unternehmer auswaehlen oder
+ueber einen Material-Dialog einen neuen Unternehmer direkt in Firestore anlegen.
+Nach erfolgreicher Anlage wird der neue Unternehmer automatisch ausgewaehlt.
+
+#### Datenmodell
+
+- [x] Gemeinsames Adressmodell `IAdresse` unter `src/app/commons/models/domain/adresse.ts` anlegen.
+- [x] Gemeinsames Kontaktmodell `IKontakt` unter `src/app/commons/models/domain/kontakt.ts` anlegen.
+- [x] Unternehmermodell mit `IUnternehmerAnlage`, `IUnternehmerEintrag` und `IUnternehmerDokument` unter `src/app/commons/models/domain/unternehmer.ts` anlegen.
+- [x] Ergebnis-Typ fuer einen neu angelegten Unternehmer mit Dokument-ID, Unternehmernummer und Name ergaenzen.
+
+#### Berechtigung
+
+- [x] Firestore Rules so erweitern, dass aktive Master alle Dokumente lesen und schreiben duerfen.
+- [x] Rules-Tests an das Schreibrecht des Masters anpassen und erfolgreich ausfuehren.
+- [x] Aktualisierte Firestore Rules deployen; Deployment vom Benutzer bestaetigt.
+
+#### Dialog
+
+- [x] `UnternehmerAnlegenDialog` unter `src/app/pages/verwaltung-page/datenstruktur-anlage/unternehmer-anlegen-dialog` anlegen.
+- [x] Angular-Material-Dialog mit den Formulargruppen Grunddaten, Adresse und Kontaktdaten umsetzen.
+- [x] Name, Adresse und Kontaktdaten entsprechend den Domainmodellen erfassen; die Unternehmernummer automatisch fortlaufend ab `1` vergeben.
+- [x] Pflichtfelder, E-Mail-Adresse und ausschliesslich aus Leerzeichen bestehende Eingaben validieren.
+- [x] Abbrechen und validiertes Uebergeben der Anlage umsetzen.
+- [x] Ladezustand und Fehlerausgabe bei der Store-Anbindung umsetzen.
+
+#### Store und Firestore
+
+- [x] `UnternehmerService` unter `src/app/services/firebase` fuer den direkten Firestore-Zugriff anlegen.
+- [x] `UnternehmerStore` unter `src/app/stores/domain` mit Unternehmerliste, Ladezustand, Anlagezustand und Fehlerstatus anlegen.
+- [x] `loadUnternehmer()` und `createUnternehmer()` im Store bereitstellen; die naechste Nummer aus der vollstaendig geladenen Unternehmerliste mit `max(nummer) + 1` ermitteln.
+- [x] Neue Unternehmer unter `unternehmer/{unternehmerId}` mit automatischer Dokument-ID speichern.
+- [x] `aktiv`, `erstelltAm` und `aktualisiertAm` beim Anlegen setzen.
+- [x] Neue Unternehmerdokumente ueber `name` anzeigen.
+
+#### Einbindung in Schritt 1
+
+- [x] Den bisherigen Neu-anlegen-Dummy durch ein Unternehmer-Select und den Button `Unternehmer anlegen` ersetzen.
+- [x] Den Unternehmer-Dialog ueber den Button oeffnen.
+- [x] Nach erfolgreicher Anlage den Dialog schliessen, die Store-Liste aktualisieren und den neuen Unternehmer automatisch auswaehlen.
+- [x] Schritt 2 erst nach einer gueltigen Unternehmerauswahl freigeben.
+
+#### Tests und Abschluss
+
+- [x] Dialog-, Service-, Store- und Stepper-Tests ergaenzen.
+- [x] `npm test`, `npm run test:rules` und `npm run build` erfolgreich ausfuehren.
+- [ ] Unternehmeranlage manuell gegen Firestore pruefen.
 
 ## 4. Todo: Verwaltungsbereich und Benutzeranlage umsetzen
 
@@ -35,6 +92,7 @@ Ziel: Ein Master kann die hierarchische Datenstruktur fuer Pur Office schrittwei
 Ziel: Ein serverseitig bestaetigter Master kann einen Benutzer mit Anzeigename, Rolle, E-Mail, Anfangspasswort, erlaubten Bereichen und Datenzugriffen anlegen. Die Datenzugriffe fuer Pur Office folgen der Hierarchie `unternehmer/{unternehmerId}/firma/{firmaId}/filiale/{filialId}`. Die Altanwendung bleibt auf `purCustomers/{unternehmerId}/company/{firmaId}/branches/{filialId}`. Eine Selbstregistrierung bleibt ausgeschlossen; die Sitzung des Masters bleibt erhalten.
 
 ### Bereits umgesetzt
+
 - [x] Filial-Lesezugriff am 19.09.2026 mit dem angemeldeten Testkonto direkt gegen Firestore geprueft: eigene zugeordnete Filiale lesbar, andere vorhandene Filiale derselben Firma mit `permission-denied` gesperrt. Beide Ergebnisse vom Benutzer per Screenshot bestaetigt.
 - [x] Nach erfolgreicher Anlage Formularwerte und Absendezustand zuruecksetzen, sodass leere Pflichtfelder ohne Fehlermarkierung angezeigt werden; Erfolgsmeldung bleibt erhalten.
 - [x] Rollenabhaengige Auswahl: Filiale genau ein Unternehmer/eine Firma/eine Filiale; Office Unternehmer einfach und Firmen/Filialen mehrfach; Master ohne Auswahl. Separate Komponenteninstanzen mit festen Modi; Rollenwechsel setzt Zuordnungen zurueck. Seiten- und Backendvalidierung begrenzen Filialkonten auf genau eine Filiale. Rollenvalidierung laut Benutzer erfolgreich als Function deployed.
@@ -63,6 +121,7 @@ Ziel: Ein serverseitig bestaetigter Master kann einen Benutzer mit Anzeigename, 
 - [x] Vereinfachte Function ohne `zugriffsIndex` deployen; Deployment vom Benutzer bestaetigt.
 
 ### Aufteilung fuer den Datenzugriff
+
 - Der bestehende `BenutzerVerwaltungStore` in `src/app/stores/domain/benutzer-verwaltung.store.ts` verwaltet zusaetzlich Unternehmer, Firmen, Filialen und deren Auswahl. Er orchestriert das Laden und bereitet die ausgewaehlten Zugriffe fuer die Benutzeranlage vor.
 - Der neue `DatenzugriffService` in `src/app/services/firebase/datenzugriff.service.ts` kapselt die lesenden Firestore-Abfragen und die Uebertragung in die Auswahlmodelle. Der bestehende `BenutzerVerwaltungService` bleibt fuer den Aufruf der Benutzeranlage zustaendig.
 - Lade- und Fehlerzustaende der Auswahllisten werden getrennt von `inProgress` und dem Feedback der Benutzeranlage gehalten. Leere Listen werden von Ladefehlern unterschieden.
@@ -70,6 +129,7 @@ Ziel: Ein serverseitig bestaetigter Master kann einen Benutzer mit Anzeigename, 
 - Fuer diesen Umfang ist kein eigener `DatenzugriffStore` vorgesehen. Eine Auslagerung wird erst bei gemeinsam benoetigter Lade- und Auswahllogik auf weiteren Seiten geprueft. Der `PasswortStore` bleibt separat.
 
 ### Naechste Umsetzungsschritte
+
 1. [ ] Office-Firmenfreigabe klaeren: Zugriff auf alle aktuellen und zukuenftigen Filialen der Firma oder stets explizite Filialauswahl? Office darf ausschliesslich freigegebene Firmen/Filialen sehen; kein globaler Lesezugriff. Bis zur Entscheidung die explizite Filialzuordnung beibehalten.
 2. [ ] Schreibrechte festlegen: Welche Daten erzeugt/bearbeitet ein Filialkonto in seiner eigenen Filiale? Welche Office-Aktionen (z. B. Mitarbeiter anlegen/bearbeiten) sind innerhalb der freigegebenen Datenbereiche erlaubt? Danach gezielte Backend-/Rules-Pruefungen mit Tests umsetzen; Zugriff der Altanwendung erhalten.
 3. [ ] Aktuelles Frontend bereitstellen und mit echten Testkonten pruefen: Anlage, Auth-Konto und Profil samt Zuordnungen, Login, erlaubte und verweigerte Lese-/Schreibzugriffe sowie Passwortwechsel. Die vereinfachte Function und die vereinfachten Rules sind bereits deployed. Erfolgreiche Anlage ueber das Formular wurde vom Benutzer bestaetigt. Anmeldung, Bereichsfreigabe, Verwaltungssperre, Passwortwechsel und erneute Anmeldung wurden vom Benutzer bestaetigt. Der direkte Filial-Lesetest ist ebenfalls erfolgreich: eigene Filiale erlaubt, andere vorhandene Filiale gesperrt. Office-Zugriffe, Unterdokumente und kuenftige Schreibrechte sind noch separat zu pruefen.

@@ -24,7 +24,7 @@ export interface IBenutzerAnlageErgebnis {
 
 // ===== Firestore-Dokumente ==================
 
-export interface IBenutzerDokument {
+export interface IBenutzerProfilDokument {
   email: string;
   anzeigename: string;
   aktiv: boolean;

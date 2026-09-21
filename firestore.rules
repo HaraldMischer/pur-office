@@ -11,11 +11,11 @@ service cloud.firestore {
     }
 
     function hasProfil() {
-      return isAuthenticated() && exists(/databases/$(database)/documents/benutzer/$(request.auth.uid));
+      return isAuthenticated() && exists(/databases/$(database)/documents/benutzerprofil/$(request.auth.uid));
     }
 
     function profil() {
-      return get(/databases/$(database)/documents/benutzer/$(request.auth.uid)).data;
+      return get(/databases/$(database)/documents/benutzerprofil/$(request.auth.uid)).data;
     }
 
     function isMaster() {
@@ -47,11 +47,11 @@ service cloud.firestore {
     }
 
     // =====================================================
-    // 1. Master duerfen alles lesen
+    // 1. Master duerfen alles lesen und schreiben
     // =====================================================
 
     match /{document=**} {
-      allow read: if isMaster();
+      allow read, write: if isMaster();
     }
 
     // =====================================================
@@ -74,7 +74,7 @@ service cloud.firestore {
     // 3. Das eigene Benutzerprofil bleibt lesbar
     // =====================================================
 
-    match /benutzer/{uid} {
+    match /benutzerprofil/{uid} {
       allow get: if isAuthenticated() && request.auth.uid == uid;
     }
 
@@ -85,7 +85,7 @@ service cloud.firestore {
     match /{collection}/{document=**} {
       allow read, write: if isAuthenticated()
         && !hasProfil()
-        && collection != 'benutzer'
+        && collection != 'benutzerprofil'
         && collection != 'unternehmer';
     }
   }

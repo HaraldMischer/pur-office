@@ -23,9 +23,9 @@ describe('handleCreateBenutzer', () => {
       }),
       existierenDokumente: vi.fn().mockResolvedValue(true),
       createAuthBenutzer: vi.fn().mockResolvedValue({ uid: 'neu-123' }),
-      setBenutzerDokument: vi.fn().mockResolvedValue(undefined),
+      setBenutzerProfilDokument: vi.fn().mockResolvedValue(undefined),
       setAuthBenutzerDisabled: vi.fn().mockResolvedValue(undefined),
-      deactivateBenutzerDokument: vi.fn().mockResolvedValue(undefined),
+      deactivateBenutzerProfilDokument: vi.fn().mockResolvedValue(undefined),
       logAnlageError: vi.fn(),
       deleteAuthBenutzer: vi.fn().mockResolvedValue(undefined),
       logRollbackError: vi.fn(),
@@ -56,8 +56,8 @@ describe('handleCreateBenutzer', () => {
       disabled: true,
     });
     const { passwort, ...profil } = data;
-    expect(dependencies.setBenutzerDokument).toHaveBeenCalledWith('neu-123', profil);
-    expect(dependencies.setBenutzerDokument.mock.calls[0][1]).not.toHaveProperty('passwort');
+    expect(dependencies.setBenutzerProfilDokument).toHaveBeenCalledWith('neu-123', profil);
+    expect(dependencies.setBenutzerProfilDokument.mock.calls[0][1]).not.toHaveProperty('passwort');
     expect(result).toEqual({
       uid: 'neu-123',
       email: data.email,
@@ -184,7 +184,7 @@ describe('handleCreateBenutzer', () => {
 
   it('should delete the auth user when writing the user document fails', async () => {
     const dependencies = createDependencies();
-    dependencies.setBenutzerDokument.mockRejectedValue(new Error('Firestore error'));
+    dependencies.setBenutzerProfilDokument.mockRejectedValue(new Error('Firestore error'));
 
     await expect(
       handleCreateBenutzer(
@@ -204,7 +204,7 @@ describe('handleCreateBenutzer', () => {
   it('should log a failed rollback', async () => {
     const dependencies = createDependencies();
     const rollbackError = new Error('Auth rollback error');
-    dependencies.setBenutzerDokument.mockRejectedValue(new Error('Firestore error'));
+    dependencies.setBenutzerProfilDokument.mockRejectedValue(new Error('Firestore error'));
     dependencies.deleteAuthBenutzer.mockRejectedValue(rollbackError);
 
     await expect(
@@ -251,7 +251,7 @@ describe('handleCreateBenutzer', () => {
       handleCreateBenutzer({ auth: { uid: 'master' }, data }, dependencies),
     ).rejects.toMatchObject({ code: 'invalid-argument' });
     expect(dependencies.createAuthBenutzer).not.toHaveBeenCalled();
-    expect(dependencies.setBenutzerDokument).not.toHaveBeenCalled();
+    expect(dependencies.setBenutzerProfilDokument).not.toHaveBeenCalled();
   });
 
   it('should merge duplicates only within the same entrepreneur and preserve other tenants', async () => {
@@ -270,7 +270,7 @@ describe('handleCreateBenutzer', () => {
       },
       dependencies,
     );
-    expect(dependencies.setBenutzerDokument.mock.calls[0][1].zugriffe).toEqual({
+    expect(dependencies.setBenutzerProfilDokument.mock.calls[0][1].zugriffe).toEqual({
       a: { f: ['b', 'c'] },
       z: { f: ['b'] },
     });
@@ -301,7 +301,7 @@ describe('handleCreateBenutzer', () => {
       dependencies,
     );
     expect(dependencies.existierenDokumente).not.toHaveBeenCalled();
-    expect(dependencies.setBenutzerDokument.mock.calls[0][1].zugriffe).toEqual({});
+    expect(dependencies.setBenutzerProfilDokument.mock.calls[0][1].zugriffe).toEqual({});
   });
   it('waits for the profile write before enabling the new account', async () => {
     const dependencies = createDependencies();
@@ -309,9 +309,9 @@ describe('handleCreateBenutzer', () => {
     const write = new Promise<void>((resolve) => {
       finishWrite = resolve;
     });
-    dependencies.setBenutzerDokument.mockImplementation(() => write);
+    dependencies.setBenutzerProfilDokument.mockImplementation(() => write);
     const pending = handleCreateBenutzer({ auth: { uid: 'master' }, data }, dependencies);
-    await vi.waitFor(() => expect(dependencies.setBenutzerDokument).toHaveBeenCalled());
+    await vi.waitFor(() => expect(dependencies.setBenutzerProfilDokument).toHaveBeenCalled());
     expect(dependencies.createAuthBenutzer).toHaveBeenCalledWith(
       expect.objectContaining({ disabled: true }),
     );
@@ -324,7 +324,7 @@ describe('handleCreateBenutzer', () => {
 
   it('never enables an account after a failed profile write even if deletion fails', async () => {
     const dependencies = createDependencies();
-    dependencies.setBenutzerDokument.mockRejectedValue(new Error('write failed'));
+    dependencies.setBenutzerProfilDokument.mockRejectedValue(new Error('write failed'));
     dependencies.deleteAuthBenutzer.mockRejectedValue(new Error('delete failed'));
     await expect(
       handleCreateBenutzer({ auth: { uid: 'master' }, data }, dependencies),
@@ -345,7 +345,7 @@ describe('handleCreateBenutzer', () => {
       ['neu-123', false],
       ['neu-123', true],
     ]);
-    expect(dependencies.deactivateBenutzerDokument).toHaveBeenCalledWith('neu-123');
+    expect(dependencies.deactivateBenutzerProfilDokument).toHaveBeenCalledWith('neu-123');
     expect(dependencies.deleteAuthBenutzer).toHaveBeenCalledWith('neu-123');
     expect(dependencies.logAnlageError).toHaveBeenCalledWith(
       'neu-123',
@@ -354,7 +354,9 @@ describe('handleCreateBenutzer', () => {
     );
   });
 
-  it.each(['setAuthBenutzerDisabled', 'deactivateBenutzerDokument', 'deleteAuthBenutzer'] as const)(
+  it.each(
+    ['setAuthBenutzerDisabled', 'deactivateBenutzerProfilDokument', 'deleteAuthBenutzer'] as const,
+  )(
     'continues cleanup and reports incomplete cleanup when %s fails',
     async (step) => {
       const dependencies = createDependencies();
@@ -366,7 +368,7 @@ describe('handleCreateBenutzer', () => {
         code: 'internal',
         message: expect.stringContaining('Bereinigung ist unvollständig'),
       });
-      expect(dependencies.deactivateBenutzerDokument).toHaveBeenCalledWith('neu-123');
+      expect(dependencies.deactivateBenutzerProfilDokument).toHaveBeenCalledWith('neu-123');
       expect(dependencies.deleteAuthBenutzer).toHaveBeenCalledWith('neu-123');
     },
   );
@@ -381,7 +383,7 @@ describe('handleCreateBenutzer', () => {
         ),
       ).rejects.toMatchObject({ code: 'invalid-argument' });
       expect(dependencies.createAuthBenutzer).not.toHaveBeenCalled();
-      expect(dependencies.setBenutzerDokument).not.toHaveBeenCalled();
+      expect(dependencies.setBenutzerProfilDokument).not.toHaveBeenCalled();
     },
   );
   it.each([

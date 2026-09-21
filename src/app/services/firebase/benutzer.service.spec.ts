@@ -3,7 +3,7 @@
 import { TestBed } from '@angular/core/testing';
 import { Firestore } from '@angular/fire/firestore';
 
-import { IBenutzerDokument } from '../../commons/models/domain/benutzer';
+import { IBenutzerProfilDokument } from '../../commons/models/domain/benutzer';
 import { FIRESTORE_DOC, FIRESTORE_GET_DOC } from '../../commons/tokens/firebase.tokens';
 import { BenutzerService } from './benutzer.service';
 
@@ -14,7 +14,7 @@ describe('BenutzerService', () => {
 
   beforeEach(() => {
     firestoreMock = {} as Firestore;
-    firestoreDocMock = vi.fn().mockReturnValue('benutzer-doc-ref');
+    firestoreDocMock = vi.fn().mockReturnValue('benutzerprofil-doc-ref');
     firestoreGetDocMock = vi.fn();
 
     TestBed.configureTestingModule({
@@ -28,7 +28,7 @@ describe('BenutzerService', () => {
   });
 
   it('should load an existing user profile', async () => {
-    const profil: IBenutzerDokument = {
+    const profil: IBenutzerProfilDokument = {
       anzeigename: 'Test',
       email: 'test@example.com',
       aktiv: true,
@@ -44,8 +44,12 @@ describe('BenutzerService', () => {
 
     const result = await service.getBenutzerProfil('benutzer-123');
 
-    expect(firestoreDocMock).toHaveBeenCalledWith(firestoreMock, 'benutzer', 'benutzer-123');
-    expect(firestoreGetDocMock).toHaveBeenCalledWith('benutzer-doc-ref');
+    expect(firestoreDocMock).toHaveBeenCalledWith(
+      firestoreMock,
+      'benutzerprofil',
+      'benutzer-123',
+    );
+    expect(firestoreGetDocMock).toHaveBeenCalledWith('benutzerprofil-doc-ref');
     expect(result).toEqual(profil);
   });
 
