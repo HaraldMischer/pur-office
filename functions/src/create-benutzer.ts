@@ -3,7 +3,13 @@
 import { HttpsError } from 'firebase-functions/v2/https';
 
 const USER_ROLES = ['filiale', 'office', 'master'] as const;
-const APP_BEREICHE = ['dashboard', 'schichtplan', 'mitarbeiter', 'verwaltung'] as const;
+const APP_BEREICHE = [
+  'dashboard',
+  'schichtplan',
+  'mitarbeiter',
+  'verwaltung',
+  'systemverwaltung',
+] as const;
 
 type TUserRole = (typeof USER_ROLES)[number];
 type TAppBereich = (typeof APP_BEREICHE)[number];

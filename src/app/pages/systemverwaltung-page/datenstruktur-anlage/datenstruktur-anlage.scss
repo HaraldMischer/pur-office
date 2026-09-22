@@ -1,0 +1,5 @@
+// pur-office/src/app/pages/systemverwaltung-page/datenstruktur-anlage/datenstruktur-anlage.scss
+
+.pur-page-section__summary > div {
+  grid-template-columns: minmax(6rem, 1fr) minmax(0, 9fr);
+}

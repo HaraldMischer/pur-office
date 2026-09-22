@@ -9,7 +9,7 @@ Pur Office ist eine Angular-Anwendung zur Darstellung von Office- und Organisati
 ## Zielrichtung
 
 - Die fachlichen App-Bereiche lesen Daten aus Firestore.
-- Ausschliesslich der Verwaltungsbereich darf administrative Schreibvorgaenge ausloesen. Sicherheitskritische Auth-Vorgaenge laufen ueber ein geschuetztes Backend; fachliche Stammdaten darf ein aktiver Master innerhalb der Firestore Rules direkt schreiben.
+- Ausschliesslich die Systemverwaltung darf administrative Schreibvorgaenge ausloesen. Sicherheitskritische Auth-Vorgaenge laufen ueber ein geschuetztes Backend; fachliche Stammdaten darf ein aktiver Master innerhalb der Firestore Rules direkt schreiben.
 - Fachliche Bereiche werden klar getrennt.
 - UI und Datenzugriff werden ueber Components, Stores und Services getrennt.
 
@@ -27,8 +27,11 @@ Pur Office ist eine Angular-Anwendung zur Darstellung von Office- und Organisati
 
 - Components enthalten UI und einfache Formular- oder Interaktionslogik.
 - Stores halten App-State, Lade- und Fehlerzustaende und orchestrieren Service-Aufrufe.
-- Services kapseln externe Systeme und technische Zugriffe, z. B. Firebase Auth und Firestore.
-- Der bevorzugte Datenfluss ist `Component -> Store -> Service -> Firebase/Firestore`.
+- Fachliche Services kapseln Domaenen-Mapping, Sortierung und fachlich benannte Datenoperationen.
+- Der technische `FirestoreDbService` kapselt direkte AngularFire-Aufrufe, den Angular-Injection-Kontext und die globale Registrierung lesender Ladevorgaenge.
+- Firestore-Collection- und Dokumentpfade werden zentral erzeugt und nicht in fachlichen Services zusammengesetzt.
+- Der bevorzugte Datenfluss ist `Component -> Store -> fachlicher Service -> FirestoreDbService -> Firebase/Firestore`.
+- Offline-Strategien und Synchronisationsstatus werden erst ergaenzt, wenn die Datenmanagement- und PWA-Strategie festgelegt ist.
 
 ## Auth und Berechtigungen
 
@@ -42,7 +45,7 @@ Die Berechtigungen liegen im Firestore-Dokument:
 benutzerprofil/{uid}
 ```
 
-Das Benutzerprofil enthaelt mit `userRole` zusaetzlich die Rolle `filiale`, `office` oder `master`. Die allgemeinen Bereichsfreigaben richten sich nach `erlaubteBereiche`. Der administrative Bereich `verwaltung` erfordert zusaetzlich die Rolle `master`.
+Das Benutzerprofil enthaelt mit `userRole` zusaetzlich die Rolle `filiale`, `office` oder `master`. Die allgemeinen Bereichsfreigaben richten sich nach `erlaubteBereiche`. Der administrative Bereich `systemverwaltung` erfordert zusaetzlich die Rolle `master`.
 
 Welche App-Bereiche und welche Datenraeume der Benutzer lesen darf, wird ueber `erlaubteBereiche` und `zugriffe` festgelegt. Die Zugriffe sind als verschachtelte Map `Unternehmer-ID -> Firma-ID -> Filial-IDs` gespeichert. Altprofile mit der frueheren Array-Struktur bleiben fuer Login und Bereichsfreigaben lesbar, gewaehren Office- und Filialkonten aber keinen Datenzugriff. Aktive Master bleiben davon unberuehrt.
 
@@ -50,7 +53,7 @@ Die App speichert keine direkten Firestore-Pfade als Berechtigung, sondern fachl
 
 Die Firestore Rules erlauben aktiven Mastern das Lesen und Schreiben aller Collections samt Untercollections, einschliesslich aller Benutzerprofile. Office und Filiale lesen Geschaeftsdaten direkt anhand der verschachtelten `zugriffe`-Map und weiterhin ihr eigenes Profil. Ein separater Zugriffsindex wird nicht gespeichert. Weitere Client-Schreibzugriffe profilierter Office- und Filialkonten bleiben gesperrt. Bestaetigte Altanwendungskonten ohne `benutzerprofil`-Dokument behalten ihren bisherigen Zugriff ausserhalb von `benutzerprofil` und `unternehmer`. Clientseitige Guards ersetzen die Rules nicht.
 
-Eine Selbstregistrierung ist nicht vorgesehen. Benutzerzugaenge werden im Zielablauf im Bereich `verwaltung` von einem `master` vorkonfiguriert. Die Angular-App ruft dafuer eine geschuetzte Firebase Cloud Function auf. Die Function prueft die Rolle des aufrufenden Benutzers serverseitig, legt mit dem Firebase Admin SDK den Auth-Benutzer und anschliessend das Dokument `benutzerprofil/{uid}` an. Der angemeldete `master` bleibt dabei eingeloggt.
+Eine Selbstregistrierung ist nicht vorgesehen. Benutzerzugaenge werden im Zielablauf im Bereich `systemverwaltung` von einem `master` vorkonfiguriert. Die Angular-App ruft dafuer eine geschuetzte Firebase Cloud Function auf. Die Function prueft die Rolle des aufrufenden Benutzers serverseitig, legt mit dem Firebase Admin SDK den Auth-Benutzer und anschliessend das Dokument `benutzerprofil/{uid}` an. Der angemeldete `master` bleibt dabei eingeloggt.
 
 Der Master vergibt bei der Anlage ein Anfangspasswort mit mindestens 8 Zeichen. Der Benutzer kann dieses nach der Anmeldung ueber `/passwort` freiwillig aendern. Schlaegt das Anlegen des Benutzerdokuments fehl, muss der zuvor erzeugte Auth-Benutzer wieder entfernt werden, damit kein unvollstaendiger Zugang bestehen bleibt.
 
@@ -72,7 +75,7 @@ unternehmer/{unternehmerId}/firma/{firmaId}/filiale/{filialId}
 
 Die Altanwendung verwendet weiterhin unveraendert `purCustomers/{unternehmerId}/company/{firmaId}/branches/{filialId}`. Ihre Konten ohne `benutzerprofil`-Dokument behalten dort den bisherigen Zugriff, erhalten aber keinen Legacy-Zugriff auf die neue Top-Level-Collection `unternehmer`.
 
-Die Verwaltungsseite erzeugt fuer Filiale und Office getrennte Auswahlkomponenten mit festen Mehrfachauswahl-Einstellungen; bei Master entfaellt die Auswahl. Ein Rollenwechsel setzt die bisherige Zuordnung zurueck. Die Auswahlkomponente selbst schaltet ihre Modi nicht dynamisch um.
+Die Systemverwaltungsseite erzeugt fuer Filiale und Office getrennte Auswahlkomponenten mit festen Mehrfachauswahl-Einstellungen; bei Master entfaellt die Auswahl. Ein Rollenwechsel setzt die bisherige Zuordnung zurueck. Die Auswahlkomponente selbst schaltet ihre Modi nicht dynamisch um.
 
 Die Auswahl erfolgt abhaengig voneinander: zuerst Unternehmer, danach dessen Firmen, danach deren Filialen. Das gemeinsame Auswahlmodell und die Firestore-Dokumente verwenden fuer alle Ebenen einheitlich `anzeigename`. Die Zuordnung verwendet die jeweiligen Dokument-IDs.
 
@@ -113,7 +116,7 @@ Aktuell vorgesehene Navigationslinks:
 /dashboard    -> Dashboard
 /schichtplan  -> Schichtplan
 /mitarbeiter  -> Mitarbeiter
-/verwaltung   -> Verwaltung
+/systemverwaltung -> Systemverwaltung
 ```
 
 Die Sidebar enthaelt die Hauptnavigation der Anwendung. Aktuell sind vier Bereiche vorgesehen:
@@ -127,7 +130,7 @@ Die Sidebar enthaelt die Hauptnavigation der Anwendung. Aktuell sind vier Bereic
 3. **Mitarbeiter**
    Stammdaten der Mitarbeiter.
 
-4. **Verwaltung**
+4. **Systemverwaltung**
    Administrativer Bereich fuer `master`. Er umfasst die hierarchische Datenstruktur-Anlage, die Anlage vorkonfigurierter Benutzerzugaenge und die geplante Bearbeitung vorhandener Benutzerprofile. Die Auth-Benutzeranlage erfolgt serverseitig ueber eine geschuetzte Firebase Cloud Function mit Firebase Admin SDK; fachliche Stammdaten darf der Master direkt in Firestore schreiben.
 
 Die Benutzeranlage erstellt Auth-Konten zunaechst deaktiviert und aktiviert sie erst nach erfolgreicher Profilspeicherung. Bei unklaren Aktivierungsfehlern bleibt das Profil zur Absicherung vorhandener Tokens erhalten; fehlgeschlagene Bereinigungen werden fuer manuelle Administratorpruefung protokolliert.

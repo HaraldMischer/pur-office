@@ -78,9 +78,15 @@ export class AppSidenav {
     },
     {
       label: 'Verwaltung',
-      icon: 'admin_panel_settings',
+      icon: 'settings',
       route: '/verwaltung',
       bereich: 'verwaltung',
+    },
+    {
+      label: 'Systemverwaltung',
+      icon: 'admin_panel_settings',
+      route: '/systemverwaltung',
+      bereich: 'systemverwaltung',
       masterOnly: true,
     },
   ]);

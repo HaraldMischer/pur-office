@@ -1,23 +1,18 @@
 // pur-office/src/app/services/firebase/firma.service.spec.ts
 
 import { TestBed } from '@angular/core/testing';
-import { Firestore } from '@angular/fire/firestore';
 
 import { IFirmaAnlage } from '../../commons/models/domain/firma';
-import {
-  FIRESTORE_ADD_DOC,
-  FIRESTORE_COLLECTION,
-  FIRESTORE_GET_DOCS,
-  FIRESTORE_SERVER_TIMESTAMP,
-} from '../../commons/tokens/firebase.tokens';
 import { FirmaService } from './firma.service';
+import { FirestoreDbService } from './firestore-db.service';
 
 describe('FirmaService', () => {
-  const firestoreMock = {} as Firestore;
-  const collectionMock = vi.fn().mockReturnValue('firma-ref');
-  const addDocMock = vi.fn().mockResolvedValue({ id: 'firma-123' });
-  const getDocsMock = vi.fn();
-  const serverTimestampMock = vi.fn().mockReturnValue('server-zeitstempel');
+  const firestoreDbServiceMock = {
+    loadCollection: vi.fn(),
+    loadDocument: vi.fn(),
+    createDocument: vi.fn(),
+    createServerTimestamp: vi.fn(),
+  };
   const anlage: IFirmaAnlage = {
     anzeigename: 'Firma Nord',
     firmenname: 'Firma Nord GmbH',
@@ -36,29 +31,45 @@ describe('FirmaService', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    addDocMock.mockResolvedValue({ id: 'firma-123' });
-    getDocsMock.mockResolvedValue({ docs: [] });
+    firestoreDbServiceMock.loadCollection.mockResolvedValue([]);
+    firestoreDbServiceMock.loadDocument.mockResolvedValue(null);
+    firestoreDbServiceMock.createDocument.mockResolvedValue('firma-123');
+    firestoreDbServiceMock.createServerTimestamp.mockReturnValue('server-zeitstempel');
 
     TestBed.configureTestingModule({
-      providers: [
-        FirmaService,
-        { provide: Firestore, useValue: firestoreMock },
-        { provide: FIRESTORE_ADD_DOC, useValue: addDocMock },
-        { provide: FIRESTORE_COLLECTION, useValue: collectionMock },
-        { provide: FIRESTORE_GET_DOCS, useValue: getDocsMock },
-        { provide: FIRESTORE_SERVER_TIMESTAMP, useValue: serverTimestampMock },
-      ],
+      providers: [FirmaService, { provide: FirestoreDbService, useValue: firestoreDbServiceMock }],
     });
   });
 
-  it('should load, normalize and sort companies of an entrepreneur', async () => {
-    getDocsMock.mockResolvedValue({
-      docs: [
-        { id: 'b', data: () => ({ anzeigename: ' Beta ', nummer: 2 }) },
-        { id: 'a', data: () => ({ anzeigename: 'Alpha', nummer: 1 }) },
-        { id: 'z', data: () => ({ anzeigename: 42, nummer: -1 }) },
-      ],
+  it('should load one assigned company by its complete path', async () => {
+    firestoreDbServiceMock.loadDocument.mockResolvedValue({
+      id: 'firma-1',
+      daten: { anzeigename: ' Firma Nord ', nummer: 3 },
     });
+    const service = TestBed.inject(FirmaService);
+
+    await expect(service.loadFirmaEintrag('unternehmer-1', 'firma-1')).resolves.toEqual({
+      id: 'firma-1',
+      anzeigename: 'Firma Nord',
+      nummer: 3,
+    });
+    expect(firestoreDbServiceMock.loadDocument).toHaveBeenCalledWith(
+      'unternehmer/unternehmer-1/firma/firma-1',
+    );
+  });
+
+  it('should return null for a missing assigned company', async () => {
+    const service = TestBed.inject(FirmaService);
+
+    await expect(service.loadFirmaEintrag('unternehmer-1', 'unbekannt')).resolves.toBeNull();
+  });
+
+  it('should load, normalize and sort companies of an entrepreneur', async () => {
+    firestoreDbServiceMock.loadCollection.mockResolvedValue([
+      { id: 'b', daten: { anzeigename: ' Beta ', nummer: 2 } },
+      { id: 'a', daten: { anzeigename: 'Alpha', nummer: 1 } },
+      { id: 'z', daten: { anzeigename: 42, nummer: -1 } },
+    ]);
     const service = TestBed.inject(FirmaService);
 
     await expect(service.loadFirmen('unternehmer-1')).resolves.toEqual([
@@ -66,13 +77,9 @@ describe('FirmaService', () => {
       { id: 'b', anzeigename: 'Beta', nummer: 2 },
       { id: 'z', anzeigename: 'z', nummer: 0 },
     ]);
-    expect(collectionMock).toHaveBeenCalledWith(
-      firestoreMock,
-      'unternehmer',
-      'unternehmer-1',
-      'firma',
+    expect(firestoreDbServiceMock.loadCollection).toHaveBeenCalledWith(
+      'unternehmer/unternehmer-1/firma',
     );
-    expect(getDocsMock).toHaveBeenCalledWith('firma-ref');
   });
 
   it('should create an active company with server timestamps', async () => {
@@ -83,25 +90,22 @@ describe('FirmaService', () => {
       nummer: 8,
       anzeigename: 'Firma Nord',
     });
-    expect(collectionMock).toHaveBeenCalledWith(
-      firestoreMock,
-      'unternehmer',
-      'unternehmer-1',
-      'firma',
+    expect(firestoreDbServiceMock.createServerTimestamp).toHaveBeenCalledOnce();
+    expect(firestoreDbServiceMock.createDocument).toHaveBeenCalledWith(
+      'unternehmer/unternehmer-1/firma',
+      {
+        ...anlage,
+        nummer: 8,
+        aktiv: true,
+        erstelltAm: 'server-zeitstempel',
+        aktualisiertAm: 'server-zeitstempel',
+      },
     );
-    expect(serverTimestampMock).toHaveBeenCalledOnce();
-    expect(addDocMock).toHaveBeenCalledWith('firma-ref', {
-      ...anlage,
-      nummer: 8,
-      aktiv: true,
-      erstelltAm: 'server-zeitstempel',
-      aktualisiertAm: 'server-zeitstempel',
-    });
   });
 
   it('should propagate Firestore errors', async () => {
     const error = { code: 'permission-denied' };
-    addDocMock.mockRejectedValue(error);
+    firestoreDbServiceMock.createDocument.mockRejectedValue(error);
     const service = TestBed.inject(FirmaService);
 
     await expect(service.createFirma('unternehmer-1', anlage, 1)).rejects.toBe(error);

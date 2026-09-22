@@ -2,10 +2,10 @@
 
 # Offene Todos
 
-## 4. Todo: Verwaltung
+## 4. Todo: Systemverwaltung
 
 > **Status am 22.09.2026:**
-> Die Verwaltungsseite enthaelt die Bereiche Datenstruktur anlegen, Benutzer
+> Die Systemverwaltungsseite enthaelt die Bereiche Datenstruktur anlegen, Benutzer
 > anlegen und Benutzer verwalten. Todo 4.1 Datenstruktur anlegen ist abgeschlossen:
 > Die Unternehmer-, Firmen- und Filialanlage sind technisch umgesetzt und die
 > vollstaendige Hierarchie wurde erfolgreich gegen Firestore geprueft. Die
@@ -36,7 +36,7 @@ Store uebernommen und fuer den naechsten Schritt ausgewaehlt.
 - src/app/stores/domain/unternehmer.store.ts
 - src/app/stores/domain/firma.store.ts
 - src/app/stores/domain/filiale.store.ts
-- src/app/pages/verwaltung-page/datenstruktur-anlage/
+- src/app/pages/systemverwaltung-page/datenstruktur-anlage/
 - firestore.rules
 - rules-tests/
 - docs/projekt-stand.md
@@ -117,7 +117,7 @@ erhalten.
 - src/app/commons/models/domain/benutzer.ts
 - src/app/commons/models/domain/datenzugriff.ts
 - src/app/components/datenzugriff-auswahl/
-- src/app/pages/verwaltung-page/benutzer-anlage/
+- src/app/pages/systemverwaltung-page/benutzer-anlage/
 - src/app/services/firebase/benutzer-verwaltung.service.ts
 - src/app/services/firebase/datenzugriff.service.ts
 - src/app/stores/domain/benutzer-verwaltung.store.ts
@@ -126,9 +126,9 @@ erhalten.
 - rules-tests/
 - docs/projekt-stand.md
 
-#### Schritt 1: Verwaltungszugang und Benutzerformular
+#### Schritt 1: Systemverwaltungszugang und Benutzerformular
 
-- [x] Verwaltungsroute, Navigation und Client-Guards fuer berechtigte Master-Benutzer umsetzen.
+- [x] Systemverwaltungsroute, Navigation und Client-Guards fuer berechtigte Master-Benutzer umsetzen.
 - [x] Formular mit Zugangsdaten, Bereichs-Checkboxen und Datenzugriff-Auswahl anlegen.
 - [x] Anfangspasswort mit mindestens acht Zeichen und Ein-/Ausblendfunktion erfassen, aber nicht in Firestore speichern.
 - [x] Formularvalidierung und Schutz vor doppeltem Absenden umsetzen.
@@ -171,7 +171,7 @@ erhalten.
 
 - [x] Service-, Store-, Function-, Rules- und Formulartests fuer die umgesetzte Benutzeranlage ergaenzen.
 - [x] Fehlerfaelle einschliesslich fehlgeschlagener Rueckabwicklung durch Backend-Tests pruefen und manuelle Nachbearbeitung dokumentieren.
-- [x] Erfolgreiche Benutzeranlage, Anmeldung, Bereichsfreigabe, Verwaltungssperre, Passwortwechsel und erneute Anmeldung vom Benutzer bestaetigen.
+- [x] Erfolgreiche Benutzeranlage, Anmeldung, Bereichsfreigabe, Systemverwaltungssperre, Passwortwechsel und erneute Anmeldung vom Benutzer bestaetigen.
 - [x] Den aktuellen Gesamtablauf mit echten Unternehmer-, Firmen- und Filialzuordnungen pruefen.
 - [x] Vereinbarte Office- und Filial-Schreibrechte mit Firestore-Emulator-Tests pruefen.
 - [ ] `projekt-stand.md` nach Abschluss aktualisieren.
@@ -200,11 +200,11 @@ ersten Ausbaustufe nicht veraendert.
 - src/app/commons/models/domain/benutzer.ts
 - src/app/services/firebase/benutzer-verwaltung.service.ts
 - src/app/stores/domain/benutzer-verwaltung.store.ts
-- src/app/pages/verwaltung-page/verwaltung-page.ts
-- src/app/pages/verwaltung-page/verwaltung-page.html
-- src/app/pages/verwaltung-page/verwaltung-page.spec.ts
-- src/app/pages/verwaltung-page/benutzer-verwaltung/
-- src/app/pages/verwaltung-page/benutzer-verwaltung/benutzer-bearbeiten-dialog/
+- src/app/pages/systemverwaltung-page/systemverwaltung-page.ts
+- src/app/pages/systemverwaltung-page/systemverwaltung-page.html
+- src/app/pages/systemverwaltung-page/systemverwaltung-page.spec.ts
+- src/app/pages/systemverwaltung-page/benutzer-verwaltung/
+- src/app/pages/systemverwaltung-page/benutzer-verwaltung/benutzer-bearbeiten-dialog/
 - firestore.rules
 - rules-tests/
 - docs/projekt-stand.md
@@ -223,7 +223,7 @@ ersten Ausbaustufe nicht veraendert.
 
 #### Schritt 3: Benutzerprofil auswaehlen
 
-- [x] Eigenstaendigen UI-Dummy unter `verwaltung-page/benutzer-verwaltung` anlegen.
+- [x] Eigenstaendigen UI-Dummy unter `systemverwaltung-page/benutzer-verwaltung` anlegen.
 - [x] Leeres Benutzer-Select und deaktivierten Button `Benutzer bearbeiten` ohne produktive Mockdaten vorbereiten.
 - [ ] Benutzer ueber ein `mat-select` auswaehlen und die `uid` als Select-Wert verwenden.
 - [ ] Anzeigename und E-Mail-Adresse als verstaendliche Bezeichnung im Benutzer-Select anzeigen.
@@ -263,6 +263,126 @@ ersten Ausbaustufe nicht veraendert.
 - [ ] Der Master kann sich nicht selbst deaktivieren oder seine eigene Masterrolle entfernen.
 - [ ] Die aktualisierte Store-Liste und Oberflaeche zeigen den gespeicherten Stand ohne erneutes Laden.
 - [ ] Tests, Rules-Tests, Build und manuelle Pruefung sind erfolgreich.
+
+## 5. Todo: Verwaltung
+
+### 5.1 Firmen- und Filialdaten bearbeiten
+
+#### Ziel
+
+Ein Office-Benutzer kann die Stammdaten seiner zugeordneten Firmen und Filialen
+unter `/verwaltung` auswaehlen und bearbeiten. Ein Master kann denselben Bereich
+verwenden, wenn `verwaltung` in seinen erlaubten Bereichen enthalten ist.
+Filialkonten erhalten keinen Zugriff auf diesen Verwaltungsbereich. Bestehende
+Dokumente werden aktualisiert; Firmen, Filialen und Unterdokumente koennen hier
+weder angelegt noch geloescht werden.
+
+#### Betroffene Dateien
+
+- src/app/commons/models/app/app-bereich.ts
+- src/app/commons/models/domain/firma.ts
+- src/app/commons/models/domain/filiale.ts
+- src/app/commons/constants/firebase.constants.ts
+- src/app/commons/tokens/firebase.tokens.ts
+- src/app/components/app-shell/app-sidenav/
+- src/app/components/app-shell/app-toolbar/
+- src/app/guards/
+- src/app/pages/verwaltung-page/
+- src/app/services/core/loading.service.ts
+- src/app/services/firebase/firestore-db.service.ts
+- src/app/services/firebase/benutzer.service.ts
+- src/app/services/firebase/unternehmer.service.ts
+- src/app/services/firebase/firma.service.ts
+- src/app/services/firebase/filiale.service.ts
+- src/app/stores/domain/firma.store.ts
+- src/app/stores/domain/filiale.store.ts
+- src/app/app.routes.ts
+- functions/src/create-benutzer.ts
+- firestore.rules
+- rules-tests/
+- docs/projekt-plan.md
+- docs/projekt-stand.md
+
+#### Schritt 1: Verwaltungsbereich und Rollenzugriff anlegen
+
+- [x] `verwaltung` zusaetzlich zu `systemverwaltung` als eigenen `TAppBereich` aufnehmen.
+- [x] Backend-Validierung der erlaubten Bereiche um `verwaltung` erweitern.
+- [x] Eigenstaendige `verwaltung-page` unter `src/app/pages/verwaltung-page` anlegen.
+- [x] Route `/verwaltung` mit `authGuard` und `bereichGuard` anlegen, zusaetzlich per Guard auf Office und Master beschraenken und nicht berechtigte Benutzer zum Dashboard umleiten.
+- [x] Navigationslink `Verwaltung` anhand von `erlaubteBereiche` in der Sidebar einblenden.
+- [x] Filialkonten auch bei einem fehlerhaft gesetzten Bereichsschluessel vom Verwaltungsbereich ausschliessen.
+
+#### Schritt 2: Zugeordnete Firmen und Filialen laden
+
+- [x] Datenzugriffe aus dem angemeldeten Benutzerprofil als Grundlage fuer die erlaubten Dokumentpfade verwenden.
+- [x] Zugeordnete Unternehmer, Firmen und Filialen gezielt ueber ihre Dokumentpfade laden; keine unbeschraenkten Collection-Abfragen fuer Office verwenden.
+- [x] Unternehmer-, Firmen- und Filialauswahl mit abhaengigen Material-Selects aufbauen.
+- [x] Auswahl beim Wechsel eines uebergeordneten Eintrags konsistent zuruecksetzen.
+- [x] Lade-, Leer- und Fehlerzustaende fuer die zugeordneten Stammdaten darstellen.
+
+#### Schritt 3: Globalen Ladeindikator vereinheitlichen
+
+- [x] Globalen Lade-Service mit Zaehler fuer parallele Ladevorgaenge anlegen.
+- [x] Eine unbestimmte Progress-Bar am unteren Rand der App-Toolbar anzeigen.
+- [x] Aktuelle Firestore-Lesevorgaenge fuer Benutzerprofil, Unternehmer, Firmen und Filialen zentral registrieren.
+- [x] Lokale Ladetexte entfernen; lokale Fehler- und Leerzustaende erhalten.
+- [x] Service-, Toolbar- und Seitentests fuer den globalen Ladeindikator ergaenzen.
+
+#### Schritt 4: Firestore-Anbindung zentral strukturieren
+
+- [x] Collection- und Dokumentpfade fuer Benutzerprofile, Unternehmer, Firmen und Filialen zentral definieren.
+- [x] Technischen `FirestoreDbService` fuer Collection-Lesen, Dokument-Lesen, Anlegen, Merge-Aktualisieren und Server-Zeitstempel anlegen.
+- [x] Angular-Injection-Kontext und globale Ladeanzeige innerhalb der technischen Firestore-Schicht kapseln.
+- [x] `BenutzerService`, `UnternehmerService`, `FirmaService` und `FilialeService` auf den `FirestoreDbService` umstellen, ohne ihre oeffentliche API zu aendern.
+- [x] Offline-Strategien, Synchronisationsstatus, Migrationen und Batch-Schreibvorgaenge bewusst fuer eine spaetere Datenmanagement-Entscheidung ausklammern.
+- [x] Tests fuer technische Firestore-Schicht und fachliche Services anpassen und ergaenzen.
+
+#### Schritt 5: Firmendaten bearbeiten
+
+- [ ] Aktualisierungsmodell fuer bearbeitbare Firmendaten festlegen.
+- [ ] Bearbeitungsdialog fuer `anzeigename`, `firmenname`, Adresse und Kontaktdaten anlegen.
+- [ ] Dokument-ID, `nummer`, `erstelltAm` und Hierarchiepfad nicht als bearbeitbare Felder anbieten.
+- [ ] `FirmaService` und `FirmaStore` um das Aktualisieren einer ausgewaehlten Firma erweitern.
+- [ ] Beim Speichern `aktualisiertAm` mit einem Server-Timestamp setzen.
+- [ ] Aktualisierte Firma ohne erneutes Laden in die Store-Liste uebernehmen.
+
+#### Schritt 6: Filialdaten bearbeiten
+
+- [ ] Aktualisierungsmodell fuer bearbeitbare Filialdaten festlegen.
+- [ ] Bearbeitungsdialog fuer `anzeigename`, `filialname`, Adresse und Kontaktdaten anlegen.
+- [ ] Dokument-ID, `nummer`, `erstelltAm` und Hierarchiepfad nicht als bearbeitbare Felder anbieten.
+- [ ] `FilialeService` und `FilialeStore` um das Aktualisieren einer ausgewaehlten Filiale erweitern.
+- [ ] Beim Speichern `aktualisiertAm` mit einem Server-Timestamp setzen.
+- [ ] Aktualisierte Filiale ohne erneutes Laden in die Store-Liste uebernehmen.
+
+#### Schritt 7: Schreibrechte real pruefen
+
+- [ ] Zugeordnete Firma mit einem realen Office-Testkonto erfolgreich aktualisieren.
+- [ ] Zugeordnete Filiale mit einem realen Office-Testkonto erfolgreich aktualisieren.
+- [ ] Aktualisierung einer nicht zugeordneten Firma und Filiale ablehnen.
+- [ ] Anlegen und Loeschen von Firmen und Filialen fuer Office ablehnen.
+- [ ] Schreiben in Filial-Untercollections fuer Office weiterhin ablehnen.
+- [ ] Schreibzugriffe eines Filialkontos weiterhin ablehnen.
+- [ ] Entscheiden, ob die aktuell vollstaendige Dokumentaktualisierung spaeter durch feldgenaue Rules eingeschraenkt werden soll.
+
+#### Tests und Abschluss
+
+- [x] Guard-, Routen- und Sidebar-Tests fuer Office, Master und Filiale ergaenzen.
+- [ ] Service- und Store-Tests fuer Laden, Aktualisieren und Fehlerfaelle ergaenzen.
+- [ ] Dialog- und Seitentests fuer Auswahl, Validierung und Speichern ergaenzen.
+- [ ] Firestore-Emulator-Tests fuer erlaubte und verbotene Aktualisierungen erfolgreich ausfuehren.
+- [ ] Den Verwaltungsablauf mit einem realen Office-Testkonto pruefen.
+- [ ] `projekt-plan.md` und `projekt-stand.md` nach Abschluss aktualisieren.
+- [ ] `npm test`, `npm run test:rules`, Functions-Tests und `npm run build` erfolgreich ausfuehren.
+
+#### Erledigt, wenn
+
+- [ ] Office und Master koennen den Bereich `/verwaltung` nur mit entsprechender Bereichsfreigabe oeffnen.
+- [ ] Filialkonten koennen den Verwaltungsbereich nicht oeffnen.
+- [ ] Office sieht ausschliesslich die im Benutzerprofil zugeordneten Firmen und Filialen.
+- [ ] Bearbeitbare Firmen- und Filialdaten koennen gespeichert und ohne erneutes Laden angezeigt werden.
+- [ ] Office kann keine nicht zugeordneten Dokumente, Untercollections, Neuanlagen oder Loeschungen schreiben.
+- [ ] Tests, Rules-Tests, Builds und reale manuelle Pruefung sind erfolgreich.
 
 # Erledigte Todos
 

@@ -3,6 +3,7 @@ import { Routes } from '@angular/router';
 import { authGuard } from './guards/auth.guard';
 import { bereichGuard } from './guards/bereich.guard';
 import { masterGuard } from './guards/master.guard';
+import { verwaltungGuard } from './guards/verwaltung.guard';
 
 export const routes: Routes = [
   {
@@ -50,10 +51,20 @@ export const routes: Routes = [
   {
     path: 'verwaltung',
     title: 'Verwaltung',
-    canActivate: [authGuard, bereichGuard, masterGuard],
+    canActivate: [authGuard, bereichGuard, verwaltungGuard],
     data: { bereich: 'verwaltung' },
     loadComponent: () =>
       import('./pages/verwaltung-page/verwaltung-page').then((m) => m.VerwaltungPage),
+  },
+  {
+    path: 'systemverwaltung',
+    title: 'Systemverwaltung',
+    canActivate: [authGuard, bereichGuard, masterGuard],
+    data: { bereich: 'systemverwaltung' },
+    loadComponent: () =>
+      import('./pages/systemverwaltung-page/systemverwaltung-page').then(
+        (m) => m.SystemverwaltungPage,
+      ),
   },
   {
     path: '**',

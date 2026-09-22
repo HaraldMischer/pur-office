@@ -28,3 +28,9 @@
 .app-toolbar__spacer {
   flex: 1 1 auto;
 }
+
+.app-toolbar__progress {
+  position: absolute;
+  inset-inline: 0;
+  inset-block-end: -1px;
+}

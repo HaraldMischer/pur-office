@@ -10,21 +10,24 @@ import {
 } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
+import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { Router, RouterLink } from '@angular/router';
+import { LoadingService } from '../../../services/core/loading.service';
 import { StoreDebugService } from '../../../services/core/store-debug.service';
 import { ThemeService } from '../../../services/core/theme.service';
 import { BenutzerStore } from '../../../stores/app/benutzer.store';
 
 @Component({
   selector: 'app-toolbar',
-  imports: [MatButtonModule, MatIconModule, MatToolbarModule, RouterLink],
+  imports: [MatButtonModule, MatIconModule, MatProgressBarModule, MatToolbarModule, RouterLink],
   templateUrl: './app-toolbar.html',
   styleUrl: './app-toolbar.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AppToolbar {
   private readonly _benutzerStore = inject(BenutzerStore);
+  private readonly _loadingService = inject(LoadingService);
   private readonly _router = inject(Router);
   private readonly _storeDebugService = inject(StoreDebugService);
   private readonly _themeService = inject(ThemeService);
@@ -35,6 +38,7 @@ export class AppToolbar {
   readonly isAuthenticated = input(false);
   readonly inProgress = input(false);
   readonly isDevelopmentMode = isDevMode();
+  readonly isLoading = this._loadingService.isLoading;
   readonly navigationToggle = output<void>();
   readonly themeIcon = this._themeService.themeIcon;
   readonly title = input('Pur Office');

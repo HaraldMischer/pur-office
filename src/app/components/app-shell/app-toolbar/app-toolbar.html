@@ -55,4 +55,13 @@
       <mat-icon aria-hidden="true">logout</mat-icon>
     </button>
   }
+
+  <!-- Globaler Ladeindikator -->
+  @if (isLoading()) {
+    <mat-progress-bar
+      class="app-toolbar__progress"
+      mode="indeterminate"
+      aria-label="Daten werden geladen"
+    />
+  }
 </mat-toolbar>

@@ -19,6 +19,7 @@ import {
   getDocs,
   query,
   serverTimestamp,
+  setDoc,
   where,
 } from '@angular/fire/firestore';
 import { httpsCallable } from '@angular/fire/functions';
@@ -114,6 +115,11 @@ export const FIRESTORE_GET_DOCS = new InjectionToken<typeof getDocs>('FIRESTORE_
 export const FIRESTORE_ADD_DOC = new InjectionToken<typeof addDoc>('FIRESTORE_ADD_DOC', {
   providedIn: 'root',
   factory: () => addDoc,
+});
+
+export const FIRESTORE_SET_DOC = new InjectionToken<typeof setDoc>('FIRESTORE_SET_DOC', {
+  providedIn: 'root',
+  factory: () => setDoc,
 });
 
 export const FIRESTORE_SERVER_TIMESTAMP = new InjectionToken<typeof serverTimestamp>(

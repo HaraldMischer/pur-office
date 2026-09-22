@@ -1,23 +1,18 @@
 // pur-office/src/app/services/firebase/unternehmer.service.spec.ts
 
 import { TestBed } from '@angular/core/testing';
-import { Firestore } from '@angular/fire/firestore';
 
 import { IUnternehmerAnlage } from '../../commons/models/domain/unternehmer';
-import {
-  FIRESTORE_ADD_DOC,
-  FIRESTORE_COLLECTION,
-  FIRESTORE_GET_DOCS,
-  FIRESTORE_SERVER_TIMESTAMP,
-} from '../../commons/tokens/firebase.tokens';
+import { FirestoreDbService } from './firestore-db.service';
 import { UnternehmerService } from './unternehmer.service';
 
 describe('UnternehmerService', () => {
-  const firestoreMock = {} as Firestore;
-  const collectionMock = vi.fn().mockReturnValue('unternehmer-ref');
-  const addDocMock = vi.fn().mockResolvedValue({ id: 'unternehmer-123' });
-  const getDocsMock = vi.fn();
-  const serverTimestampMock = vi.fn().mockReturnValue('server-zeitstempel');
+  const firestoreDbServiceMock = {
+    loadCollection: vi.fn(),
+    loadDocument: vi.fn(),
+    createDocument: vi.fn(),
+    createServerTimestamp: vi.fn(),
+  };
   const anlage: IUnternehmerAnlage = {
     anzeigename: 'Unternehmer Nord',
     person: {
@@ -39,29 +34,46 @@ describe('UnternehmerService', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    addDocMock.mockResolvedValue({ id: 'unternehmer-123' });
-    getDocsMock.mockResolvedValue({ docs: [] });
+    firestoreDbServiceMock.loadCollection.mockResolvedValue([]);
+    firestoreDbServiceMock.loadDocument.mockResolvedValue(null);
+    firestoreDbServiceMock.createDocument.mockResolvedValue('unternehmer-123');
+    firestoreDbServiceMock.createServerTimestamp.mockReturnValue('server-zeitstempel');
 
     TestBed.configureTestingModule({
       providers: [
         UnternehmerService,
-        { provide: Firestore, useValue: firestoreMock },
-        { provide: FIRESTORE_ADD_DOC, useValue: addDocMock },
-        { provide: FIRESTORE_COLLECTION, useValue: collectionMock },
-        { provide: FIRESTORE_GET_DOCS, useValue: getDocsMock },
-        { provide: FIRESTORE_SERVER_TIMESTAMP, useValue: serverTimestampMock },
+        { provide: FirestoreDbService, useValue: firestoreDbServiceMock },
       ],
     });
   });
 
-  it('should load, normalize and sort entrepreneurs', async () => {
-    getDocsMock.mockResolvedValue({
-      docs: [
-        { id: 'b', data: () => ({ anzeigename: ' Beta ', nummer: 2 }) },
-        { id: 'a', data: () => ({ anzeigename: 'Alpha', nummer: 1 }) },
-        { id: 'z', data: () => ({ anzeigename: 42, nummer: -1 }) },
-      ],
+  it('should load one assigned entrepreneur by document id', async () => {
+    firestoreDbServiceMock.loadDocument.mockResolvedValue({
+      id: 'unternehmer-1',
+      daten: { anzeigename: ' Unternehmer Nord ', nummer: 3 },
     });
+    const service = TestBed.inject(UnternehmerService);
+
+    await expect(service.loadUnternehmerEintrag('unternehmer-1')).resolves.toEqual({
+      id: 'unternehmer-1',
+      anzeigename: 'Unternehmer Nord',
+      nummer: 3,
+    });
+    expect(firestoreDbServiceMock.loadDocument).toHaveBeenCalledWith('unternehmer/unternehmer-1');
+  });
+
+  it('should return null for a missing assigned entrepreneur', async () => {
+    const service = TestBed.inject(UnternehmerService);
+
+    await expect(service.loadUnternehmerEintrag('unbekannt')).resolves.toBeNull();
+  });
+
+  it('should load, normalize and sort entrepreneurs', async () => {
+    firestoreDbServiceMock.loadCollection.mockResolvedValue([
+      { id: 'b', daten: { anzeigename: ' Beta ', nummer: 2 } },
+      { id: 'a', daten: { anzeigename: 'Alpha', nummer: 1 } },
+      { id: 'z', daten: { anzeigename: 42, nummer: -1 } },
+    ]);
     const service = TestBed.inject(UnternehmerService);
 
     await expect(service.loadUnternehmer()).resolves.toEqual([
@@ -69,8 +81,7 @@ describe('UnternehmerService', () => {
       { id: 'b', anzeigename: 'Beta', nummer: 2 },
       { id: 'z', anzeigename: 'z', nummer: 0 },
     ]);
-    expect(collectionMock).toHaveBeenCalledWith(firestoreMock, 'unternehmer');
-    expect(getDocsMock).toHaveBeenCalledWith('unternehmer-ref');
+    expect(firestoreDbServiceMock.loadCollection).toHaveBeenCalledWith('unternehmer');
   });
 
   it('should create an active entrepreneur with server timestamps', async () => {
@@ -81,9 +92,8 @@ describe('UnternehmerService', () => {
       nummer: 8,
       anzeigename: 'Unternehmer Nord',
     });
-    expect(collectionMock).toHaveBeenCalledWith(firestoreMock, 'unternehmer');
-    expect(serverTimestampMock).toHaveBeenCalledOnce();
-    expect(addDocMock).toHaveBeenCalledWith('unternehmer-ref', {
+    expect(firestoreDbServiceMock.createServerTimestamp).toHaveBeenCalledOnce();
+    expect(firestoreDbServiceMock.createDocument).toHaveBeenCalledWith('unternehmer', {
       ...anlage,
       nummer: 8,
       aktiv: true,
@@ -94,7 +104,7 @@ describe('UnternehmerService', () => {
 
   it('should propagate Firestore errors', async () => {
     const error = { code: 'permission-denied' };
-    addDocMock.mockRejectedValue(error);
+    firestoreDbServiceMock.createDocument.mockRejectedValue(error);
     const service = TestBed.inject(UnternehmerService);
 
     await expect(service.createUnternehmer(anlage, 1)).rejects.toBe(error);

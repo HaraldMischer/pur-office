@@ -1,19 +1,27 @@
 // pur-office/src/app/pages/verwaltung-page/verwaltung-page.ts
 
-import { ChangeDetectionStrategy, Component } from '@angular/core';
-import { MatDivider } from '@angular/material/list';
+import { ChangeDetectionStrategy, Component, OnInit, inject } from '@angular/core';
+import { MatButtonModule } from '@angular/material/button';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatSelectModule } from '@angular/material/select';
 
-import { BenutzerVerwaltungStore } from '../../stores/domain/benutzer-verwaltung.store';
-import { BenutzerAnlage } from './benutzer-anlage/benutzer-anlage';
-import { BenutzerVerwaltung } from './benutzer-verwaltung/benutzer-verwaltung';
-import { DatenstrukturAnlage } from './datenstruktur-anlage/datenstruktur-anlage';
+import { VerwaltungStore } from '../../stores/domain/verwaltung.store';
 
 @Component({
   selector: 'app-verwaltung-page',
-  imports: [BenutzerAnlage, BenutzerVerwaltung, DatenstrukturAnlage, MatDivider],
-  providers: [BenutzerVerwaltungStore],
+  imports: [MatButtonModule, MatFormFieldModule, MatSelectModule],
+  providers: [VerwaltungStore],
   templateUrl: './verwaltung-page.html',
   styleUrl: './verwaltung-page.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class VerwaltungPage {}
+export class VerwaltungPage implements OnInit {
+  readonly verwaltungStore = inject(VerwaltungStore);
+
+  /**
+   * Laedt beim Oeffnen der Seite die fuer das Benutzerprofil erlaubten Unternehmer.
+   */
+  ngOnInit(): void {
+    void this.verwaltungStore.loadUnternehmer();
+  }
+}

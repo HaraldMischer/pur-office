@@ -1,28 +1,38 @@
 // pur-office/src/app/services/firebase/unternehmer.service.ts
 
-import { Injectable, Injector, inject, runInInjectionContext } from '@angular/core';
-import { Firestore } from '@angular/fire/firestore';
+import { Injectable, inject } from '@angular/core';
 
+import {
+  FIRESTORE_COLLECTION_PATHS,
+  FIRESTORE_DOCUMENT_PATHS,
+} from '../../commons/constants/firebase.constants';
 import {
   IUnternehmerAnlage,
   IUnternehmerAnlageErgebnis,
   IUnternehmerEintrag,
 } from '../../commons/models/domain/unternehmer';
-import {
-  FIRESTORE_ADD_DOC,
-  FIRESTORE_COLLECTION,
-  FIRESTORE_GET_DOCS,
-  FIRESTORE_SERVER_TIMESTAMP,
-} from '../../commons/tokens/firebase.tokens';
+import { FirestoreDbService } from './firestore-db.service';
+
+// ===== Top-Level Helper =====================
+
+function mapUnternehmerEintrag(id: string, daten: Record<string, unknown>): IUnternehmerEintrag {
+  const anzeigename = daten['anzeigename'];
+  const nummer = daten['nummer'];
+
+  return {
+    id,
+    anzeigename: typeof anzeigename === 'string' && anzeigename.trim() ? anzeigename.trim() : id,
+    nummer: Number.isInteger(nummer) && Number(nummer) > 0 ? Number(nummer) : 0,
+  };
+}
 
 @Injectable({ providedIn: 'root' })
 export class UnternehmerService {
-  private readonly injector = inject(Injector);
-  private readonly firestore = inject(Firestore);
-  private readonly addDoc = inject(FIRESTORE_ADD_DOC);
-  private readonly collection = inject(FIRESTORE_COLLECTION);
-  private readonly getDocs = inject(FIRESTORE_GET_DOCS);
-  private readonly serverTimestamp = inject(FIRESTORE_SERVER_TIMESTAMP);
+  // ===== Interne Dependency Injection =========
+
+  private readonly firestoreDbService = inject(FirestoreDbService);
+
+  // ===== Oeffentliche Aktionen =================
 
   /**
    * Laedt alle Unternehmer und bildet sie als sortierte Domaeneneintraege ab.
@@ -31,25 +41,28 @@ export class UnternehmerService {
    * @throws Gibt Fehler des Firestore-Zugriffs an die aufrufende Stelle weiter.
    */
   async loadUnternehmer(): Promise<IUnternehmerEintrag[]> {
-    const snapshot = await runInInjectionContext(this.injector, () =>
-      this.getDocs(this.collection(this.firestore, 'unternehmer')),
+    const dokumente = await this.firestoreDbService.loadCollection<Record<string, unknown>>(
+      FIRESTORE_COLLECTION_PATHS.unternehmer,
     );
 
-    return snapshot.docs
-      .map((dokument) => {
-        const daten = dokument.data();
-        const anzeigename: unknown = daten['anzeigename'];
-        const nummer: unknown = daten['nummer'];
-        return {
-          id: dokument.id,
-          anzeigename:
-            typeof anzeigename === 'string' && anzeigename.trim()
-              ? anzeigename.trim()
-              : dokument.id,
-          nummer: Number.isInteger(nummer) && Number(nummer) > 0 ? Number(nummer) : 0,
-        };
-      })
+    return dokumente
+      .map((dokument) => mapUnternehmerEintrag(dokument.id, dokument.daten))
       .sort((a, b) => a.anzeigename.localeCompare(b.anzeigename, 'de'));
+  }
+
+  /**
+   * Laedt einen Unternehmer gezielt ueber seine Dokument-ID.
+   *
+   * @param unternehmerId - Die Dokument-ID des Unternehmers.
+   * @returns Der kompakte Unternehmereintrag oder `null`, wenn das Dokument nicht existiert.
+   * @throws Gibt Fehler des Firestore-Zugriffs an die aufrufende Stelle weiter.
+   */
+  async loadUnternehmerEintrag(unternehmerId: string): Promise<IUnternehmerEintrag | null> {
+    const dokument = await this.firestoreDbService.loadDocument<Record<string, unknown>>(
+      FIRESTORE_DOCUMENT_PATHS.unternehmer(unternehmerId),
+    );
+
+    return dokument ? mapUnternehmerEintrag(dokument.id, dokument.daten) : null;
   }
 
   /**
@@ -64,19 +77,20 @@ export class UnternehmerService {
     anlage: IUnternehmerAnlage,
     nummer: number,
   ): Promise<IUnternehmerAnlageErgebnis> {
-    const zeitstempel = this.serverTimestamp();
-    const unternehmerRef = await runInInjectionContext(this.injector, () =>
-      this.addDoc(this.collection(this.firestore, 'unternehmer'), {
+    const zeitstempel = this.firestoreDbService.createServerTimestamp();
+    const id = await this.firestoreDbService.createDocument(
+      FIRESTORE_COLLECTION_PATHS.unternehmer,
+      {
         ...anlage,
         nummer,
         aktiv: true,
         erstelltAm: zeitstempel,
         aktualisiertAm: zeitstempel,
-      }),
+      },
     );
 
     return {
-      id: unternehmerRef.id,
+      id,
       nummer,
       anzeigename: anlage.anzeigename,
     };

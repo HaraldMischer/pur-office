@@ -3,6 +3,7 @@
 import { authGuard } from './guards/auth.guard';
 import { bereichGuard } from './guards/bereich.guard';
 import { masterGuard } from './guards/master.guard';
+import { verwaltungGuard } from './guards/verwaltung.guard';
 import { routes } from './app.routes';
 
 describe('app routes', () => {
@@ -14,6 +15,7 @@ describe('app routes', () => {
       ['mitarbeiter', 'Mitarbeiter'],
       ['passwort', 'Passwort ändern'],
       ['verwaltung', 'Verwaltung'],
+      ['systemverwaltung', 'Systemverwaltung'],
     ]);
 
     expectedTitles.forEach((title, path) => {
@@ -36,11 +38,20 @@ describe('app routes', () => {
   });
 
   it('should protect the administration route by area and master role', () => {
+    const systemverwaltungRoute = routes.find((route) => route.path === 'systemverwaltung');
+
+    expect(systemverwaltungRoute).toBeDefined();
+    expect(systemverwaltungRoute?.data?.['bereich']).toBe('systemverwaltung');
+    expect(systemverwaltungRoute?.canActivate).toEqual([authGuard, bereichGuard, masterGuard]);
+    expect(systemverwaltungRoute?.loadComponent).toBeDefined();
+  });
+
+  it('should protect the management route by area and allowed roles', () => {
     const verwaltungRoute = routes.find((route) => route.path === 'verwaltung');
 
     expect(verwaltungRoute).toBeDefined();
     expect(verwaltungRoute?.data?.['bereich']).toBe('verwaltung');
-    expect(verwaltungRoute?.canActivate).toEqual([authGuard, bereichGuard, masterGuard]);
+    expect(verwaltungRoute?.canActivate).toEqual([authGuard, bereichGuard, verwaltungGuard]);
     expect(verwaltungRoute?.loadComponent).toBeDefined();
   });
 });

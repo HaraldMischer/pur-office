@@ -28,7 +28,7 @@ describe('masterGuard', () => {
       anzeigename: 'Test',
       aktiv: true,
       userRole: 'master',
-      erlaubteBereiche: ['verwaltung'],
+      erlaubteBereiche: ['systemverwaltung'],
       zugriffe: {},
     };
     authServiceMock = {

@@ -1,28 +1,24 @@
 // pur-office/src/app/services/firebase/benutzer.service.spec.ts
 
 import { TestBed } from '@angular/core/testing';
-import { Firestore } from '@angular/fire/firestore';
 
 import { IBenutzerProfilDokument } from '../../commons/models/domain/benutzer';
-import { FIRESTORE_DOC, FIRESTORE_GET_DOC } from '../../commons/tokens/firebase.tokens';
 import { BenutzerService } from './benutzer.service';
+import { FirestoreDbService } from './firestore-db.service';
 
 describe('BenutzerService', () => {
-  let firestoreMock: Firestore;
-  let firestoreDocMock: ReturnType<typeof vi.fn>;
-  let firestoreGetDocMock: ReturnType<typeof vi.fn>;
+  const firestoreDbServiceMock = {
+    loadDocument: vi.fn(),
+  };
 
   beforeEach(() => {
-    firestoreMock = {} as Firestore;
-    firestoreDocMock = vi.fn().mockReturnValue('benutzerprofil-doc-ref');
-    firestoreGetDocMock = vi.fn();
+    vi.clearAllMocks();
+    firestoreDbServiceMock.loadDocument.mockResolvedValue(null);
 
     TestBed.configureTestingModule({
       providers: [
         BenutzerService,
-        { provide: Firestore, useValue: firestoreMock },
-        { provide: FIRESTORE_DOC, useValue: firestoreDocMock },
-        { provide: FIRESTORE_GET_DOC, useValue: firestoreGetDocMock },
+        { provide: FirestoreDbService, useValue: firestoreDbServiceMock },
       ],
     });
   });
@@ -36,34 +32,29 @@ describe('BenutzerService', () => {
       erlaubteBereiche: ['dashboard'],
       zugriffe: { 'u-1': { 'f-1': ['b-1'] } },
     };
-    firestoreGetDocMock.mockResolvedValue({
-      exists: () => true,
-      data: () => profil,
+    firestoreDbServiceMock.loadDocument.mockResolvedValue({
+      id: 'benutzer-123',
+      daten: profil,
     });
     const service = TestBed.inject(BenutzerService);
 
     const result = await service.getBenutzerProfil('benutzer-123');
 
-    expect(firestoreDocMock).toHaveBeenCalledWith(
-      firestoreMock,
-      'benutzerprofil',
-      'benutzer-123',
-    );
-    expect(firestoreGetDocMock).toHaveBeenCalledWith('benutzerprofil-doc-ref');
+    expect(firestoreDbServiceMock.loadDocument).toHaveBeenCalledWith('benutzerprofil/benutzer-123');
     expect(result).toEqual(profil);
   });
 
   it('should normalize legacy array access without granting data access', async () => {
-    firestoreGetDocMock.mockResolvedValue({
-      exists: () => true,
-      data: () => ({
+    firestoreDbServiceMock.loadDocument.mockResolvedValue({
+      id: 'alt',
+      daten: {
         email: 'alt@example.com',
         anzeigename: 'Altprofil',
         aktiv: true,
         userRole: 'master',
         erlaubteBereiche: ['dashboard'],
         zugriffe: [],
-      }),
+      },
     });
     const service = TestBed.inject(BenutzerService);
 
@@ -71,16 +62,16 @@ describe('BenutzerService', () => {
   });
 
   it('should discard malformed and empty access entries', async () => {
-    firestoreGetDocMock.mockResolvedValue({
-      exists: () => true,
-      data: () => ({
+    firestoreDbServiceMock.loadDocument.mockResolvedValue({
+      id: 'test',
+      daten: {
         email: 'test@example.com',
         anzeigename: 'Test',
         aktiv: true,
         userRole: 'office',
         erlaubteBereiche: ['dashboard'],
         zugriffe: { u: { leer: [], falsch: 'b', gueltig: ['b'] } },
-      }),
+      },
     });
     const service = TestBed.inject(BenutzerService);
 
@@ -90,9 +81,6 @@ describe('BenutzerService', () => {
   });
 
   it('should return null when the user profile does not exist', async () => {
-    firestoreGetDocMock.mockResolvedValue({
-      exists: () => false,
-    });
     const service = TestBed.inject(BenutzerService);
 
     const result = await service.getBenutzerProfil('benutzer-123');

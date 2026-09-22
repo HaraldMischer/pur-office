@@ -10,7 +10,7 @@ describe('handleCreateBenutzer', () => {
     email: 'user@example.com',
     anzeigename: 'Test Benutzer',
     userRole: 'office',
-    erlaubteBereiche: ['dashboard', 'schichtplan'],
+    erlaubteBereiche: ['dashboard', 'verwaltung'],
     zugriffe: { 'u-1': { 'firma-1': ['filiale-1'] } },
     passwort: 'SicheresPasswort123!',
   };
@@ -354,24 +354,23 @@ describe('handleCreateBenutzer', () => {
     );
   });
 
-  it.each(
-    ['setAuthBenutzerDisabled', 'deactivateBenutzerProfilDokument', 'deleteAuthBenutzer'] as const,
-  )(
-    'continues cleanup and reports incomplete cleanup when %s fails',
-    async (step) => {
-      const dependencies = createDependencies();
-      dependencies.setAuthBenutzerDisabled.mockRejectedValueOnce(new Error('activation timeout'));
-      dependencies[step].mockRejectedValue(new Error('cleanup failed'));
-      await expect(
-        handleCreateBenutzer({ auth: { uid: 'master' }, data }, dependencies),
-      ).rejects.toMatchObject({
-        code: 'internal',
-        message: expect.stringContaining('Bereinigung ist unvollständig'),
-      });
-      expect(dependencies.deactivateBenutzerProfilDokument).toHaveBeenCalledWith('neu-123');
-      expect(dependencies.deleteAuthBenutzer).toHaveBeenCalledWith('neu-123');
-    },
-  );
+  it.each([
+    'setAuthBenutzerDisabled',
+    'deactivateBenutzerProfilDokument',
+    'deleteAuthBenutzer',
+  ] as const)('continues cleanup and reports incomplete cleanup when %s fails', async (step) => {
+    const dependencies = createDependencies();
+    dependencies.setAuthBenutzerDisabled.mockRejectedValueOnce(new Error('activation timeout'));
+    dependencies[step].mockRejectedValue(new Error('cleanup failed'));
+    await expect(
+      handleCreateBenutzer({ auth: { uid: 'master' }, data }, dependencies),
+    ).rejects.toMatchObject({
+      code: 'internal',
+      message: expect.stringContaining('Bereinigung ist unvollständig'),
+    });
+    expect(dependencies.deactivateBenutzerProfilDokument).toHaveBeenCalledWith('neu-123');
+    expect(dependencies.deleteAuthBenutzer).toHaveBeenCalledWith('neu-123');
+  });
   it.each(['office', 'filiale'])(
     'rejects %s without scopes before creating an auth account',
     async (userRole) => {

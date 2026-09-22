@@ -27,7 +27,9 @@ describe('AppSidenav', () => {
     benutzerStoreMock = {
       benutzerProfil: vi.fn().mockReturnValue(null),
       darfBereichNutzen: vi.fn((bereich: TAppBereich) =>
-        ['dashboard', 'schichtplan', 'mitarbeiter', 'verwaltung'].includes(bereich),
+        ['dashboard', 'schichtplan', 'mitarbeiter', 'verwaltung', 'systemverwaltung'].includes(
+          bereich,
+        ),
       ),
       istMaster: vi.fn().mockReturnValue(true),
     };
@@ -40,6 +42,7 @@ describe('AppSidenav', () => {
           { path: 'schichtplan', component: AppSidenavHost },
           { path: 'mitarbeiter', component: AppSidenavHost },
           { path: 'verwaltung', component: AppSidenavHost },
+          { path: 'systemverwaltung', component: AppSidenavHost },
         ]),
         { provide: BenutzerStore, useValue: benutzerStoreMock },
       ],
@@ -86,6 +89,7 @@ describe('AppSidenav', () => {
     expect(navigationText).toContain('Schichtplan');
     expect(navigationText).toContain('Mitarbeiter');
     expect(navigationText).toContain('Verwaltung');
+    expect(navigationText).toContain('Systemverwaltung');
   });
 
   it('should hide navigation entries without permission', () => {
@@ -100,6 +104,7 @@ describe('AppSidenav', () => {
     expect(navigationText).toContain('Dashboard');
     expect(navigationText).not.toContain('Schichtplan');
     expect(navigationText).not.toContain('Mitarbeiter');
+    expect(navigationText).not.toContain('Verwaltung');
   });
 
   it('should hide administration from users without the master role', () => {
@@ -110,7 +115,8 @@ describe('AppSidenav', () => {
     const navigationText = compiled.querySelector('mat-nav-list')?.textContent;
 
     expect(navigationText).toContain('Dashboard');
-    expect(navigationText).not.toContain('Verwaltung');
+    expect(navigationText).toContain('Verwaltung');
+    expect(navigationText).not.toContain('Systemverwaltung');
   });
 
   it('should emit a navigation selection on handset', () => {

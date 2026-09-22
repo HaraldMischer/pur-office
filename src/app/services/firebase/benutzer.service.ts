@@ -1,30 +1,38 @@
 // pur-office/src/app/services/firebase/benutzer.service.ts
 
-import { Injectable, Injector, inject, runInInjectionContext } from '@angular/core';
-import { Firestore } from '@angular/fire/firestore';
+import { Injectable, inject } from '@angular/core';
 
+import { FIRESTORE_DOCUMENT_PATHS } from '../../commons/constants/firebase.constants';
 import { IBenutzerProfilDokument, TBenutzerZugriffe } from '../../commons/models/domain/benutzer';
-import { FIRESTORE_DOC, FIRESTORE_GET_DOC } from '../../commons/tokens/firebase.tokens';
+import { FirestoreDbService } from './firestore-db.service';
 
 @Injectable({
   providedIn: 'root',
 })
 export class BenutzerService {
-  private readonly _injector = inject(Injector);
-  private readonly _firestore = inject(Firestore);
-  private readonly _firestoreDoc = inject(FIRESTORE_DOC);
-  private readonly _firestoreGetDoc = inject(FIRESTORE_GET_DOC);
+  // ===== Interne Dependency Injection =========
 
+  private readonly firestoreDbService = inject(FirestoreDbService);
+
+  // ===== Oeffentliche Aktionen =================
+
+  /**
+   * Laedt das Benutzerprofil fuer die uebergebene Firebase-Auth-UID.
+   *
+   * @param uid - UID des angemeldeten Firebase-Benutzers.
+   * @returns Das normalisierte Benutzerprofil oder `null`, wenn kein Profil existiert.
+   * @throws Gibt Fehler des Firestore-Zugriffs an die aufrufende Stelle weiter.
+   */
   async getBenutzerProfil(uid: string): Promise<IBenutzerProfilDokument | null> {
-    const dokument = await runInInjectionContext(this._injector, () =>
-      this._firestoreGetDoc(this._firestoreDoc(this._firestore, 'benutzerprofil', uid)),
-    );
+    const dokument = await this.firestoreDbService.loadDocument<
+      Omit<IBenutzerProfilDokument, 'zugriffe'> & { zugriffe?: unknown }
+    >(FIRESTORE_DOCUMENT_PATHS.benutzerprofil(uid));
 
-    if (!dokument.exists()) {
+    if (!dokument) {
       return null;
     }
 
-    const profil = dokument.data() as Omit<IBenutzerProfilDokument, 'zugriffe'> & { zugriffe?: unknown };
+    const profil = dokument.daten;
 
     return {
       email: profil.email,
@@ -37,6 +45,8 @@ export class BenutzerService {
       aktualisiertAm: profil.aktualisiertAm,
     };
   }
+
+  // ===== Interne Helfer =======================
 
   private parseZugriffe(value: unknown): TBenutzerZugriffe {
     if (typeof value !== 'object' || value === null || Array.isArray(value)) {

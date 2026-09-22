@@ -1,7 +1,9 @@
 // pur-office/src/app/components/app-shell/app-toolbar/app-toolbar.spec.ts
 
+import { signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { Router, provideRouter } from '@angular/router';
+import { LoadingService } from '../../../services/core/loading.service';
 import { StoreDebugService } from '../../../services/core/store-debug.service';
 import { ThemeService } from '../../../services/core/theme.service';
 import { BenutzerStore } from '../../../stores/app/benutzer.store';
@@ -18,6 +20,7 @@ describe('AppToolbar', () => {
   let storeDebugServiceMock: {
     logStoreSnapshots: ReturnType<typeof vi.fn>;
   };
+  const isLoading = signal(false);
 
   beforeEach(async () => {
     benutzerStoreMock = {
@@ -30,12 +33,14 @@ describe('AppToolbar', () => {
     storeDebugServiceMock = {
       logStoreSnapshots: vi.fn(),
     };
+    isLoading.set(false);
 
     await TestBed.configureTestingModule({
       imports: [AppToolbar],
       providers: [
         provideRouter([]),
         { provide: BenutzerStore, useValue: benutzerStoreMock },
+        { provide: LoadingService, useValue: { isLoading } },
         { provide: StoreDebugService, useValue: storeDebugServiceMock },
         { provide: ThemeService, useValue: themeServiceMock },
       ],
@@ -44,11 +49,27 @@ describe('AppToolbar', () => {
 
   it('should render the current route title', () => {
     const fixture = TestBed.createComponent(AppToolbar);
-    fixture.componentRef.setInput('title', 'Verwaltung');
+    fixture.componentRef.setInput('title', 'Systemverwaltung');
     fixture.detectChanges();
     const compiled = fixture.nativeElement as HTMLElement;
 
-    expect(compiled.querySelector('.app-toolbar__title')?.textContent).toContain('Verwaltung');
+    expect(compiled.querySelector('.app-toolbar__title')?.textContent).toContain(
+      'Systemverwaltung',
+    );
+  });
+
+  it('should show the global progress bar while data is loading', () => {
+    const fixture = TestBed.createComponent(AppToolbar);
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.querySelector('mat-progress-bar')).toBeNull();
+
+    isLoading.set(true);
+    fixture.detectChanges();
+
+    const progressBar = fixture.nativeElement.querySelector('mat-progress-bar');
+    expect(progressBar).not.toBeNull();
+    expect(progressBar?.getAttribute('aria-label')).toBe('Daten werden geladen');
   });
 
   it('should render and toggle the theme mode', () => {
