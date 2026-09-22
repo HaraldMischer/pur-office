@@ -33,7 +33,7 @@ export class ThemeService {
   private readonly _isBrowser = isPlatformBrowser(this._platformId);
   private readonly _themeMode: WritableSignal<TThemeMode> = signal(this._loadInitialThemeMode());
 
-  // ===== Oeffentliche Ableitungen ==============
+  // ===== Öffentliche Ableitungen ==============
 
   readonly themeIcon: Signal<string> = computed(() => {
     return this._themeMode() === 'dark' ? 'light_mode' : 'dark_mode';
@@ -43,7 +43,7 @@ export class ThemeService {
     this._applyThemeMode(this._themeMode());
   }
 
-  // ===== Oeffentliche Aktionen =================
+  // ===== Öffentliche Aktionen =================
 
   /**
    * Schaltet zwischen hellem und dunklem Theme um und speichert die Auswahl lokal.

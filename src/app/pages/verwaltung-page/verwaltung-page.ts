@@ -10,7 +10,6 @@ import { VerwaltungStore } from '../../stores/domain/verwaltung.store';
 @Component({
   selector: 'app-verwaltung-page',
   imports: [MatButtonModule, MatFormFieldModule, MatSelectModule],
-  providers: [VerwaltungStore],
   templateUrl: './verwaltung-page.html',
   styleUrl: './verwaltung-page.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -19,7 +18,7 @@ export class VerwaltungPage implements OnInit {
   readonly verwaltungStore = inject(VerwaltungStore);
 
   /**
-   * Laedt beim Oeffnen der Seite die fuer das Benutzerprofil erlaubten Unternehmer.
+   * Lädt beim Öffnen der Seite die für das Benutzerprofil erlaubten Unternehmer.
    */
   ngOnInit(): void {
     void this.verwaltungStore.loadUnternehmer();

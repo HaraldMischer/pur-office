@@ -51,7 +51,7 @@ service cloud.firestore {
     }
 
     // =====================================================
-    // 1. Master duerfen alles lesen und schreiben
+    // 1. Master dürfen alles lesen und schreiben
     // =====================================================
 
     match /{document=**} {

@@ -47,7 +47,7 @@ describe('LoginPage', () => {
 
     expect(compiled.querySelector('mat-card-title button')?.textContent).toContain('pur-master');
     expect(fixture.componentInstance.loginForm.getRawValue()).toEqual({
-      email: 'pur-system-master@pur-software.de',
+      email: 'harry-master@pur-system.de',
       password: '',
     });
   });

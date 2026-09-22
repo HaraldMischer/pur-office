@@ -3,7 +3,7 @@
 import { TestBed } from '@angular/core/testing';
 
 import { IBenutzerAnlage } from '../../commons/models/domain/benutzer';
-import { DatenzugriffService } from '../../services/firebase/datenzugriff.service';
+import { DatenzugriffService } from '../../services/domain/datenzugriff.service';
 import { BenutzerVerwaltungService } from '../../services/firebase/benutzer-verwaltung.service';
 import { BenutzerVerwaltungStore } from './benutzer-verwaltung.store';
 
@@ -155,7 +155,7 @@ describe('BenutzerVerwaltungStore', () => {
     store.selectUnternehmer(['b']);
     await store.loadAuswahl();
     await vi.waitFor(() => expect(resolve).toBeTypeOf('function'));
-    resolve([{ id: 'f', anzeigename: 'Spaete Firma' }]);
+    resolve([{ id: 'f', anzeigename: 'Späte Firma' }]);
     await pending;
     expect(store.unternehmerIds()).toEqual(['b']);
     expect(store.firmaIds()).toEqual([]);

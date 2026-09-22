@@ -7,7 +7,7 @@ import { By } from '@angular/platform-browser';
 import { DatenzugriffAuswahl } from '../../components/datenzugriff-auswahl/datenzugriff-auswahl';
 import { TestBed } from '@angular/core/testing';
 
-import { DatenzugriffService } from '../../services/firebase/datenzugriff.service';
+import { DatenzugriffService } from '../../services/domain/datenzugriff.service';
 import { BenutzerVerwaltungService } from '../../services/firebase/benutzer-verwaltung.service';
 import { BenutzerVerwaltungStore } from '../../stores/domain/benutzer-verwaltung.store';
 import { FirmaStore } from '../../stores/domain/firma.store';

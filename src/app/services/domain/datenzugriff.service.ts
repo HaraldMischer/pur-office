@@ -1,4 +1,4 @@
-// pur-office/src/app/services/firebase/datenzugriff.service.ts
+// pur-office/src/app/services/domain/datenzugriff.service.ts
 
 import { Injectable, inject } from '@angular/core';
 import { IDatenzugriffEintrag } from '../../commons/models/domain/datenzugriff';
@@ -13,7 +13,7 @@ export class DatenzugriffService {
   private readonly unternehmerService = inject(UnternehmerService);
 
   /**
-   * Laedt Unternehmer als kompakte Eintraege fuer die Datenzugriffsauswahl.
+   * Lädt Unternehmer als kompakte Einträge für die Datenzugriffsauswahl.
    *
    * @returns Die IDs und Anzeigenamen der Unternehmer.
    * @throws Gibt Fehler des Unternehmer-Service an die aufrufende Stelle weiter.
@@ -27,9 +27,9 @@ export class DatenzugriffService {
   }
 
   /**
-   * Laedt die Firmen eines Unternehmers fuer die Datenzugriffsauswahl.
+   * Lädt die Firmen eines Unternehmers für die Datenzugriffsauswahl.
    *
-   * @param unternehmerId - Die Dokument-ID des uebergeordneten Unternehmers.
+   * @param unternehmerId - Die Dokument-ID des übergeordneten Unternehmers.
    * @returns Die IDs und Anzeigenamen der Firmen.
    * @throws Gibt Fehler des Firestore-Zugriffs an die aufrufende Stelle weiter.
    */
@@ -42,10 +42,10 @@ export class DatenzugriffService {
   }
 
   /**
-   * Laedt die Filialen einer Firma fuer die Datenzugriffsauswahl.
+   * Lädt die Filialen einer Firma für die Datenzugriffsauswahl.
    *
-   * @param unternehmerId - Die Dokument-ID des uebergeordneten Unternehmers.
-   * @param firmaId - Die Dokument-ID der uebergeordneten Firma.
+   * @param unternehmerId - Die Dokument-ID des übergeordneten Unternehmers.
+   * @param firmaId - Die Dokument-ID der übergeordneten Firma.
    * @returns Die IDs und Anzeigenamen der Filialen.
    * @throws Gibt Fehler des Firestore-Zugriffs an die aufrufende Stelle weiter.
    */

@@ -5,23 +5,23 @@
 ## 4. Todo: Systemverwaltung
 
 > **Status am 22.09.2026:**
-> Die Systemverwaltungsseite enthaelt die Bereiche Datenstruktur anlegen, Benutzer
+> Die Systemverwaltungsseite enthält die Bereiche Datenstruktur anlegen, Benutzer
 > anlegen und Benutzer verwalten. Todo 4.1 Datenstruktur anlegen ist abgeschlossen:
 > Die Unternehmer-, Firmen- und Filialanlage sind technisch umgesetzt und die
-> vollstaendige Hierarchie wurde erfolgreich gegen Firestore geprueft. Die
+> vollständige Hierarchie wurde erfolgreich gegen Firestore geprüft. Die
 > Bearbeitung bestehender Benutzerprofile ist noch offen.
-> Die Benutzeranlage wurde mit der neuen Datenhierarchie fuer reale Office- und
-> Filialkonten erfolgreich geprueft. Offen bleiben der reale Schreibtest fuer
-> Office-Datenrechte und der abschliessende Deployment-Nachweis.
+> Die Benutzeranlage wurde mit der neuen Datenhierarchie für reale Office- und
+> Filialkonten erfolgreich geprüft. Offen bleiben der reale Schreibtest für
+> Office-Datenrechte und der abschließende Deployment-Nachweis.
 
 ### 4.1 Datenstruktur anlegen
 
 #### Ziel
 
 Ein Master kann die Hierarchie Unternehmer, Firma und Filiale in einem
-dreistufigen Material-Stepper auswaehlen beziehungsweise neu anlegen. Neu
-angelegte Eintraege werden direkt in Firestore gespeichert, in den jeweiligen
-Store uebernommen und fuer den naechsten Schritt ausgewaehlt.
+dreistufigen Material-Stepper auswählen beziehungsweise neu anlegen. Neu
+angelegte Einträge werden direkt in Firestore gespeichert, in den jeweiligen
+Store übernommen und für den nächsten Schritt ausgewählt.
 
 #### Betroffene Dateien
 
@@ -43,69 +43,69 @@ Store uebernommen und fuer den naechsten Schritt ausgewaehlt.
 
 #### Schritt 1: Stepper und UI-Grundlage
 
-- [x] Dreistufigen Material-Stepper fuer Unternehmer, Firma und Filiale anlegen.
+- [x] Dreistufigen Material-Stepper für Unternehmer, Firma und Filiale anlegen.
 - [x] Auswahl, vorbereitete Neuanlage, Navigation und Validierung darstellen.
 - [x] Filialanlage und Hierarchie-Zusammenfassung als UI-Dummy darstellen.
 - [x] Responsive horizontale und vertikale Ausrichtung umsetzen.
-- [x] Manuelle Sichtpruefung des UI-Dummys abschliessen.
+- [x] Manuelle Sichtprüfung des UI-Dummys abschließen.
 
-#### Schritt 2: Unternehmer auswaehlen und anlegen
+#### Schritt 2: Unternehmer auswählen und anlegen
 
 - [x] Gemeinsame Modelle `IAdresse` und `IKontakt` anlegen.
 - [x] Unternehmermodell mit `anzeigename`, eingebetteter `IPerson` sowie Anlage-, Dokument-, Eintrags- und Ergebnis-Typen anlegen.
-- [x] `UnternehmerService` und `UnternehmerStore` fuer Laden und Anlegen umsetzen.
-- [x] Die naechste Unternehmernummer aus der vollstaendig geladenen Liste mit `max(nummer) + 1` bestimmen.
+- [x] `UnternehmerService` und `UnternehmerStore` für Laden und Anlegen umsetzen.
+- [x] Die nächste Unternehmernummer aus der vollständig geladenen Liste mit `max(nummer) + 1` bestimmen.
 - [x] Neue Unternehmer unter `unternehmer/{unternehmerId}` mit automatischer Dokument-ID, `aktiv`, `erstelltAm` und `aktualisiertAm` speichern.
 - [x] Unternehmerdialog mit Anzeigename, Vorname, Nachname, Adresse sowie optionaler E-Mail-Adresse und Telefonnummer umsetzen.
-- [x] Pflichtfelder, E-Mail-Adresse und ausschliesslich aus Leerzeichen bestehende Eingaben validieren.
-- [x] Vorhandene Unternehmer ueber ein Select auswaehlen und den Dialog ueber `Unternehmer anlegen` oeffnen.
-- [x] Neu angelegte Unternehmer in die Store-Liste uebernehmen und automatisch auswaehlen.
-- [x] Schritt 2 erst nach einer gueltigen Unternehmerauswahl freigeben.
-- [x] Firestore Rules und Rules-Tests fuer das Schreibrecht aktiver Master erweitern und deployen.
+- [x] Pflichtfelder, E-Mail-Adresse und ausschließlich aus Leerzeichen bestehende Eingaben validieren.
+- [x] Vorhandene Unternehmer über ein Select auswählen und den Dialog über `Unternehmer anlegen` öffnen.
+- [x] Neu angelegte Unternehmer in die Store-Liste übernehmen und automatisch auswählen.
+- [x] Schritt 2 erst nach einer gültigen Unternehmerauswahl freigeben.
+- [x] Firestore Rules und Rules-Tests für das Schreibrecht aktiver Master erweitern und deployen.
 
-#### Schritt 3: Firma auswaehlen und anlegen
+#### Schritt 3: Firma auswählen und anlegen
 
 - [x] Firmenmodell mit getrenntem `anzeigename` und `firmenname` sowie Anlage-, Dokument-, Eintrags- und Ergebnis-Typen festlegen.
-- [x] Firmen des ausgewaehlten Unternehmers laden und sortiert im Store halten.
-- [x] Firma-Service und Firma-Store fuer Laden und Anlegen umsetzen.
-- [x] Dialog zum Anlegen einer Firma unter dem ausgewaehlten Unternehmer erstellen.
-- [x] Neue Firma in die Store-Liste uebernehmen und automatisch auswaehlen.
-- [x] Filialschritt erst nach einer gueltigen Firmenauswahl freigeben.
+- [x] Firmen des ausgewählten Unternehmers laden und sortiert im Store halten.
+- [x] Firma-Service und Firma-Store für Laden und Anlegen umsetzen.
+- [x] Dialog zum Anlegen einer Firma unter dem ausgewählten Unternehmer erstellen.
+- [x] Neue Firma in die Store-Liste übernehmen und automatisch auswählen.
+- [x] Filialschritt erst nach einer gültigen Firmenauswahl freigeben.
 
 #### Schritt 4: Filiale anlegen
 
 - [x] Filialmodell mit getrenntem `anzeigename` und `filialname` sowie Anlage-, Dokument-, Eintrags- und Ergebnis-Typen festlegen.
-- [x] Filialen der ausgewaehlten Firma laden und im Store halten.
-- [x] Filiale-Service und Filiale-Store fuer Laden und Anlegen umsetzen.
-- [x] Dialog zum Anlegen einer Filiale unter der ausgewaehlten Firma erstellen.
-- [x] Angelegte Filiale in die Store-Liste uebernehmen und in der Zusammenfassung anzeigen.
-- [x] Vollstaendige Hierarchie Unternehmer, Firma und Filiale abschliessend bestaetigen.
+- [x] Filialen der ausgewählten Firma laden und im Store halten.
+- [x] Filiale-Service und Filiale-Store für Laden und Anlegen umsetzen.
+- [x] Dialog zum Anlegen einer Filiale unter der ausgewählten Firma erstellen.
+- [x] Angelegte Filiale in die Store-Liste übernehmen und in der Zusammenfassung anzeigen.
+- [x] Vollständige Hierarchie Unternehmer, Firma und Filiale abschließend bestätigen.
 
 #### Tests und Abschluss
 
-- [x] Dialog-, Service-, Store- und Stepper-Tests fuer die Unternehmer-Anlage ergaenzen.
-- [x] `npm test`, `npm run test:rules` und `npm run build` fuer die Unternehmer-Anlage erfolgreich ausfuehren.
-- [x] Unternehmeranlage manuell gegen Firestore pruefen.
-- [x] Service-, Store-, Dialog- und Stepper-Tests fuer die Firmenanlage ergaenzen.
-- [x] Service-, Store-, Dialog- und Stepper-Tests fuer die Filialanlage ergaenzen.
-- [x] Vollstaendige Datenstruktur-Anlage manuell gegen Firestore pruefen.
+- [x] Dialog-, Service-, Store- und Stepper-Tests für die Unternehmer-Anlage ergänzen.
+- [x] `npm test`, `npm run test:rules` und `npm run build` für die Unternehmer-Anlage erfolgreich ausführen.
+- [x] Unternehmeranlage manuell gegen Firestore prüfen.
+- [x] Service-, Store-, Dialog- und Stepper-Tests für die Firmenanlage ergänzen.
+- [x] Service-, Store-, Dialog- und Stepper-Tests für die Filialanlage ergänzen.
+- [x] Vollständige Datenstruktur-Anlage manuell gegen Firestore prüfen.
 - [x] `projekt-stand.md` um den technischen Stand der Filialanlage aktualisieren.
-- [x] `npm test`, `npm run test:rules` und `npm run build` fuer den Gesamtablauf erfolgreich ausfuehren.
+- [x] `npm test`, `npm run test:rules` und `npm run build` für den Gesamtablauf erfolgreich ausführen.
 
 #### Erledigt, wenn
 
-- [x] Der Stepper stellt die drei Hierarchiestufen verstaendlich und responsiv dar.
-- [x] Ein Unternehmer kann ausgewaehlt oder neu angelegt werden.
-- [x] Eine Firma kann fuer den ausgewaehlten Unternehmer ausgewaehlt oder neu angelegt werden.
-- [x] Eine Filiale kann technisch fuer die ausgewaehlte Firma angelegt werden.
-- [x] Die vollstaendige Hierarchie wird korrekt in Firestore gespeichert, im UI zusammengefasst und nach einem Anwendungsneustart erneut geladen.
+- [x] Der Stepper stellt die drei Hierarchiestufen verständlich und responsiv dar.
+- [x] Ein Unternehmer kann ausgewählt oder neu angelegt werden.
+- [x] Eine Firma kann für den ausgewählten Unternehmer ausgewählt oder neu angelegt werden.
+- [x] Eine Filiale kann technisch für die ausgewählte Firma angelegt werden.
+- [x] Die vollständige Hierarchie wird korrekt in Firestore gespeichert, im UI zusammengefasst und nach einem Anwendungsneustart erneut geladen.
 - [x] Der reale Gesamtablauf sowie Tests, Rules-Tests und Build sind erfolgreich.
 
 ### 4.2 Benutzer anlegen
 
 #### Ziel
 
-Ein serverseitig bestaetigter Master kann einen Benutzer mit Anzeigename, Rolle,
+Ein serverseitig bestätigter Master kann einen Benutzer mit Anzeigename, Rolle,
 E-Mail, Anfangspasswort, erlaubten Bereichen und Datenzugriffen anlegen. Die
 Datenzugriffe folgen der Hierarchie
 `unternehmer/{unternehmerId}/firma/{firmaId}/filiale/{filialId}`. Eine
@@ -128,72 +128,72 @@ erhalten.
 
 #### Schritt 1: Systemverwaltungszugang und Benutzerformular
 
-- [x] Systemverwaltungsroute, Navigation und Client-Guards fuer berechtigte Master-Benutzer umsetzen.
+- [x] Systemverwaltungsroute, Navigation und Client-Guards für berechtigte Master-Benutzer umsetzen.
 - [x] Formular mit Zugangsdaten, Bereichs-Checkboxen und Datenzugriff-Auswahl anlegen.
 - [x] Anfangspasswort mit mindestens acht Zeichen und Ein-/Ausblendfunktion erfassen, aber nicht in Firestore speichern.
 - [x] Formularvalidierung und Schutz vor doppeltem Absenden umsetzen.
-- [x] Formular und Absendezustand nach erfolgreicher Anlage zuruecksetzen und die Erfolgsmeldung erhalten.
-- [x] Passwortaenderung unter `/passwort` mit erneuter Authentifizierung und Passwortbestaetigung umsetzen.
+- [x] Formular und Absendezustand nach erfolgreicher Anlage zurücksetzen und die Erfolgsmeldung erhalten.
+- [x] Passwortänderung unter `/passwort` mit erneuter Authentifizierung und Passwortbestätigung umsetzen.
 
 #### Schritt 2: Rollen und Datenzugriffe
 
-- [x] Wiederverwendbare Material-Selects fuer Unternehmer, Firmen und Filialen an echte Firebase-Daten anbinden.
-- [x] Rollenabhaengige Auswahl umsetzen: Filiale genau eine vollstaendige Zuordnung, Office eine Unternehmerauswahl und mehrere Firmen beziehungsweise Filialen, Master ohne Datenzuordnung.
-- [x] Abhaengige Auswahlen bereinigen und bereits geladene Listen nach vollstaendigem Pfad zwischenspeichern.
-- [x] Lade-, Leer- und Fehlerzustaende der Datenlisten getrennt vom Anlagezustand verwalten.
+- [x] Wiederverwendbare Material-Selects für Unternehmer, Firmen und Filialen an echte Firebase-Daten anbinden.
+- [x] Rollenabhängige Auswahl umsetzen: Filiale genau eine vollständige Zuordnung, Office eine Unternehmerauswahl und mehrere Firmen beziehungsweise Filialen, Master ohne Datenzuordnung.
+- [x] Abhängige Auswahlen bereinigen und bereits geladene Listen nach vollständigem Pfad zwischenspeichern.
+- [x] Lade-, Leer- und Fehlerzustände der Datenlisten getrennt vom Anlagezustand verwalten.
 - [x] Im gemeinsamen Auswahlmodell und in den Firestore-Dokumenten durchgehend `anzeigename` verwenden.
-- [x] Ausgewaehlte Zugriffe in Formularvalidierung und Anlage-Payload uebernehmen.
-- [x] Firmen- und Filialzuordnungen im Backend gegen die Firestore-Hierarchie pruefen.
+- [x] Ausgewählte Zugriffe in Formularvalidierung und Anlage-Payload übernehmen.
+- [x] Firmen- und Filialzuordnungen im Backend gegen die Firestore-Hierarchie prüfen.
 - [x] Office-Firmenfreigabe festlegen: Firmen und Filialen werden explizit zugeordnet; neue Filialen werden nicht automatisch freigegeben.
 
 #### Schritt 3: Konto und Profil sicher anlegen
 
-- [x] Store, Service und Callable Function fuer die Benutzeranlage umsetzen.
-- [x] Anmeldung, aktives Profil und Master-Rolle serverseitig pruefen.
+- [x] Store, Service und Callable Function für die Benutzeranlage umsetzen.
+- [x] Anmeldung, aktives Profil und Master-Rolle serverseitig prüfen.
 - [x] Auth-Konto und Profil unter `benutzerprofil/{uid}` mit dem Admin SDK sicher anlegen.
-- [x] Ohne erfolgreich gespeichertes Profil kein neues Auth-Konto aktivieren und Fehlerfaelle kontrolliert bereinigen.
-- [x] Vereinfachte Function ohne `zugriffsIndex` deployen; Deployment vom Benutzer bestaetigt.
-- [x] Vereinfachte Rules ohne `zugriffsIndex` deployen; Deployment vom Benutzer bestaetigt.
-- [x] Vorhandenes Master-Profil pruefen; eine Datenmigration war nicht erforderlich.
+- [x] Ohne erfolgreich gespeichertes Profil kein neues Auth-Konto aktivieren und Fehlerfälle kontrolliert bereinigen.
+- [x] Vereinfachte Function ohne `zugriffsIndex` deployen; Deployment vom Benutzer bestätigt.
+- [x] Vereinfachte Rules ohne `zugriffsIndex` deployen; Deployment vom Benutzer bestätigt.
+- [x] Vorhandenes Master-Profil prüfen; eine Datenmigration war nicht erforderlich.
 
 #### Schritt 4: Rechte und realen Gesamtablauf absichern
 
-- [x] Aktive Master fuer alle benoetigten Collections berechtigen.
+- [x] Aktive Master für alle benötigten Collections berechtigen.
 - [x] Office- und Filialprofile lesend auf zugeordnete Hierarchien samt Untercollections begrenzen.
-- [x] Direkten Filial-Lesetest ausfuehren: eigene Filiale erlaubt, andere Filiale derselben Firma gesperrt.
-- [x] Lesen und Schreiben der Altanwendung nach dem Rules-Deployment bestaetigen.
-- [x] Office-Konten das Aktualisieren zugeordneter Firmen- und Filialdokumente erlauben; Anlegen, Loeschen und Schreiben in Untercollections weiterhin sperren.
-- [x] Filialkonten vorerst ausschliesslich lesend auf ihre zugeordnete Hierarchie begrenzen.
+- [x] Direkten Filial-Lesetest ausführen: eigene Filiale erlaubt, andere Filiale derselben Firma gesperrt.
+- [x] Lesen und Schreiben der Altanwendung nach dem Rules-Deployment bestätigen.
+- [x] Office-Konten das Aktualisieren zugeordneter Firmen- und Filialdokumente erlauben; Anlegen, Löschen und Schreiben in Untercollections weiterhin sperren.
+- [x] Filialkonten vorerst ausschließlich lesend auf ihre zugeordnete Hierarchie begrenzen.
 - [x] Aktualisierte Firestore Rules mit den Office-Schreibrechten erfolgreich deployen.
-- [ ] Office-Zugriffe und Unterdokumente mit realen Testkonten pruefen.
+- [ ] Office-Zugriffe und Unterdokumente mit realen Testkonten prüfen.
 
 #### Tests und Abschluss
 
-- [x] Service-, Store-, Function-, Rules- und Formulartests fuer die umgesetzte Benutzeranlage ergaenzen.
-- [x] Fehlerfaelle einschliesslich fehlgeschlagener Rueckabwicklung durch Backend-Tests pruefen und manuelle Nachbearbeitung dokumentieren.
-- [x] Erfolgreiche Benutzeranlage, Anmeldung, Bereichsfreigabe, Systemverwaltungssperre, Passwortwechsel und erneute Anmeldung vom Benutzer bestaetigen.
-- [x] Den aktuellen Gesamtablauf mit echten Unternehmer-, Firmen- und Filialzuordnungen pruefen.
-- [x] Vereinbarte Office- und Filial-Schreibrechte mit Firestore-Emulator-Tests pruefen.
+- [x] Service-, Store-, Function-, Rules- und Formulartests für die umgesetzte Benutzeranlage ergänzen.
+- [x] Fehlerfälle einschließlich fehlgeschlagener Rückabwicklung durch Backend-Tests prüfen und manuelle Nachbearbeitung dokumentieren.
+- [x] Erfolgreiche Benutzeranlage, Anmeldung, Bereichsfreigabe, Systemverwaltungssperre, Passwortwechsel und erneute Anmeldung vom Benutzer bestätigen.
+- [x] Den aktuellen Gesamtablauf mit echten Unternehmer-, Firmen- und Filialzuordnungen prüfen.
+- [x] Vereinbarte Office- und Filial-Schreibrechte mit Firestore-Emulator-Tests prüfen.
 - [ ] `projekt-stand.md` nach Abschluss aktualisieren.
-- [x] `npm test`, `npm run test:rules` und `npm run build` abschliessend erfolgreich ausfuehren.
+- [x] `npm test`, `npm run test:rules` und `npm run build` abschließend erfolgreich ausführen.
 
 #### Erledigt, wenn
 
-- [x] Das Rollenmodell ist vollstaendig umgesetzt und die vereinbarten Schreibrechte sind abgesichert.
+- [x] Das Rollenmodell ist vollständig umgesetzt und die vereinbarten Schreibrechte sind abgesichert.
 - [x] Der Master kann einen Benutzer mit echten Unternehmer-, Firmen- und Filialzuordnungen anlegen.
-- [x] Die Zuordnungen werden vollstaendig gespeichert und serverseitig geprueft.
-- [x] Benutzer koennen `userRole`, `erlaubteBereiche` und `zugriffe` nicht selbst ueber den Client veraendern.
-- [x] Es gibt keine oeffentliche Selbstregistrierung.
-- [ ] Der aktuelle Gesamtablauf ist deployed und mit realen Daten erfolgreich geprueft.
+- [x] Die Zuordnungen werden vollständig gespeichert und serverseitig geprüft.
+- [x] Benutzer können `userRole`, `erlaubteBereiche` und `zugriffe` nicht selbst über den Client verändern.
+- [x] Es gibt keine öffentliche Selbstregistrierung.
+- [ ] Der aktuelle Gesamtablauf ist deployed und mit realen Daten erfolgreich geprüft.
 
 ### 4.3 Bestehende Benutzerprofile verwalten
 
 #### Ziel
 
-Ein Master kann vorhandene Profile aus `benutzerprofil` auswaehlen und deren
+Ein Master kann vorhandene Profile aus `benutzerprofil` auswählen und deren
 Anzeigename, Aktivstatus, Benutzerrolle, erlaubte Bereiche und Datenzugriffe
 bearbeiten. Die E-Mail-Adresse und der Firebase-Auth-Status werden in dieser
-ersten Ausbaustufe nicht veraendert.
+ersten Ausbaustufe nicht verändert.
 
 #### Betroffene Dateien
 
@@ -211,58 +211,58 @@ ersten Ausbaustufe nicht veraendert.
 
 #### Schritt 1: Datenmodell vorbereiten
 
-- [x] `IBenutzerProfilEintrag` fuer ein Benutzerprofil mit der Dokument-ID als `uid` ergaenzen.
-- [x] `IBenutzerProfilAktualisierung` fuer die direkt bearbeitbaren Profilfelder ergaenzen.
-- [x] E-Mail-Adresse und Passwort bewusst aus dem Aktualisierungsmodell ausschliessen.
+- [x] `IBenutzerProfilEintrag` für ein Benutzerprofil mit der Dokument-ID als `uid` ergänzen.
+- [x] `IBenutzerProfilAktualisierung` für die direkt bearbeitbaren Profilfelder ergänzen.
+- [x] E-Mail-Adresse und Passwort bewusst aus dem Aktualisierungsmodell ausschließen.
 
 #### Schritt 2: Benutzerprofile laden und im Store verwalten
 
-- [ ] Alle Benutzerprofile fuer den Master aus `benutzerprofil` laden und die Dokument-ID als `uid` abbilden.
+- [x] Alle Benutzerprofile für den Master aus `benutzerprofil` laden und die Dokument-ID als `uid` abbilden.
 - [ ] Benutzer-Verwaltungs-Store um Profilbestand, Auswahl, Ladezustand und Aktualisierungsstatus erweitern.
 - [ ] Leere Liste, Ladefehler und erfolgreichen Ladezustand unterscheidbar darstellen.
 
-#### Schritt 3: Benutzerprofil auswaehlen
+#### Schritt 3: Benutzerprofil auswählen
 
-- [x] Eigenstaendigen UI-Dummy unter `systemverwaltung-page/benutzer-verwaltung` anlegen.
+- [x] Eigenständigen UI-Dummy unter `systemverwaltung-page/benutzer-verwaltung` anlegen.
 - [x] Leeres Benutzer-Select und deaktivierten Button `Benutzer bearbeiten` ohne produktive Mockdaten vorbereiten.
-- [ ] Benutzer ueber ein `mat-select` auswaehlen und die `uid` als Select-Wert verwenden.
-- [ ] Anzeigename und E-Mail-Adresse als verstaendliche Bezeichnung im Benutzer-Select anzeigen.
-- [ ] Den Bearbeiten-Button erst nach einer gueltigen Benutzerauswahl aktivieren.
-- [ ] Das ausgewaehlte `IBenutzerProfilEintrag` an den Bearbeitungsdialog uebergeben.
+- [ ] Benutzer über ein `mat-select` auswählen und die `uid` als Select-Wert verwenden.
+- [ ] Anzeigename und E-Mail-Adresse als verständliche Bezeichnung im Benutzer-Select anzeigen.
+- [ ] Den Bearbeiten-Button erst nach einer gültigen Benutzerauswahl aktivieren.
+- [ ] Das ausgewählte `IBenutzerProfilEintrag` an den Bearbeitungsdialog übergeben.
 
 #### Schritt 4: Benutzerprofil bearbeiten und speichern
 
-- [ ] Bearbeitungsdialog fuer Anzeigename, Aktivstatus, Rolle, erlaubte Bereiche und Datenzugriffe anlegen.
-- [ ] Vorhandene `DatenzugriffAuswahl` wiederverwenden und rollenabhaengige Validierung aus der Benutzeranlage uebernehmen.
+- [ ] Bearbeitungsdialog für Anzeigename, Aktivstatus, Rolle, erlaubte Bereiche und Datenzugriffe anlegen.
+- [ ] Vorhandene `DatenzugriffAuswahl` wiederverwenden und rollenabhängige Validierung aus der Benutzeranlage übernehmen.
 - [ ] Firebase-Service um das Aktualisieren von `benutzerprofil/{uid}` erweitern.
 - [ ] Beim Speichern `aktualisiertAm` mit einem Server-Timestamp setzen.
-- [ ] Aktualisierten Eintrag ohne erneutes Laden in die Store-Liste uebernehmen.
-- [ ] Erfolgs-, Fehler-, Lade- und Speicherzustand in der Oberflaeche anzeigen.
+- [ ] Aktualisierten Eintrag ohne erneutes Laden in die Store-Liste übernehmen.
+- [ ] Erfolgs-, Fehler-, Lade- und Speicherzustand in der Oberfläche anzeigen.
 
-#### Schritt 5: Selbstschutz und spaetere Auth-Erweiterung
+#### Schritt 5: Selbstschutz und spätere Auth-Erweiterung
 
 - [ ] Verhindern, dass ein Master sich selbst deaktiviert oder seine eigene Masterrolle entfernt.
-- [ ] Firestore Rules beziehungsweise Backend-Schutz fuer erlaubte Profilaktualisierungen gezielt testen.
-- [ ] Festlegen, wie angemeldete Benutzer geaenderte Bereiche und Zugriffe ohne erneute Anmeldung erhalten.
-- [ ] E-Mail-Aenderungen spaeter ueber eine Cloud Function gleichzeitig in Firebase Auth und Firestore umsetzen.
-- [ ] Eine vollstaendige Kontosperre spaeter ueber eine Cloud Function mit Firebase Auth `disabled` und Profilfeld `aktiv` synchronisieren.
+- [ ] Firestore Rules beziehungsweise Backend-Schutz für erlaubte Profilaktualisierungen gezielt testen.
+- [ ] Festlegen, wie angemeldete Benutzer geänderte Bereiche und Zugriffe ohne erneute Anmeldung erhalten.
+- [ ] E-Mail-Änderungen später über eine Cloud Function gleichzeitig in Firebase Auth und Firestore umsetzen.
+- [ ] Eine vollständige Kontosperre später über eine Cloud Function mit Firebase Auth `disabled` und Profilfeld `aktiv` synchronisieren.
 
 #### Tests und Abschluss
 
-- [ ] Service- und Store-Tests fuer Laden, Aktualisieren und Fehlerfaelle ergaenzen.
-- [ ] Dialog- und Seitentests fuer Auswahl, Validierung, Speichern und Selbstschutz ergaenzen.
-- [ ] Profilbearbeitung mit einem realen Testkonto pruefen.
+- [ ] Service- und Store-Tests für Laden, Aktualisieren und Fehlerfälle ergänzen.
+- [ ] Dialog- und Seitentests für Auswahl, Validierung, Speichern und Selbstschutz ergänzen.
+- [ ] Profilbearbeitung mit einem realen Testkonto prüfen.
 - [ ] `projekt-stand.md` nach Abschluss aktualisieren.
-- [ ] `npm test`, `npm run test:rules` und `npm run build` erfolgreich ausfuehren.
+- [ ] `npm test`, `npm run test:rules` und `npm run build` erfolgreich ausführen.
 
 #### Erledigt, wenn
 
-- [ ] Ein Master kann ein bestehendes Benutzerprofil ueber das Select auswaehlen.
-- [ ] Anzeigename, Aktivstatus, Rolle, erlaubte Bereiche und Datenzugriffe koennen sicher aktualisiert werden.
-- [ ] E-Mail-Adresse, Passwort und Firebase-Auth-Status bleiben in dieser Ausbaustufe unveraendert.
+- [ ] Ein Master kann ein bestehendes Benutzerprofil über das Select auswählen.
+- [ ] Anzeigename, Aktivstatus, Rolle, erlaubte Bereiche und Datenzugriffe können sicher aktualisiert werden.
+- [ ] E-Mail-Adresse, Passwort und Firebase-Auth-Status bleiben in dieser Ausbaustufe unverändert.
 - [ ] Der Master kann sich nicht selbst deaktivieren oder seine eigene Masterrolle entfernen.
-- [ ] Die aktualisierte Store-Liste und Oberflaeche zeigen den gespeicherten Stand ohne erneutes Laden.
-- [ ] Tests, Rules-Tests, Build und manuelle Pruefung sind erfolgreich.
+- [ ] Die aktualisierte Store-Liste und Oberfläche zeigen den gespeicherten Stand ohne erneutes Laden.
+- [ ] Tests, Rules-Tests, Build und manuelle Prüfung sind erfolgreich.
 
 ## 5. Todo: Verwaltung
 
@@ -271,11 +271,11 @@ ersten Ausbaustufe nicht veraendert.
 #### Ziel
 
 Ein Office-Benutzer kann die Stammdaten seiner zugeordneten Firmen und Filialen
-unter `/verwaltung` auswaehlen und bearbeiten. Ein Master kann denselben Bereich
+unter `/verwaltung` auswählen und bearbeiten. Ein Master kann denselben Bereich
 verwenden, wenn `verwaltung` in seinen erlaubten Bereichen enthalten ist.
 Filialkonten erhalten keinen Zugriff auf diesen Verwaltungsbereich. Bestehende
-Dokumente werden aktualisiert; Firmen, Filialen und Unterdokumente koennen hier
-weder angelegt noch geloescht werden.
+Dokumente werden aktualisiert; Firmen, Filialen und Unterdokumente können hier
+weder angelegt noch gelöscht werden.
 
 #### Betroffene Dateien
 
@@ -296,6 +296,8 @@ weder angelegt noch geloescht werden.
 - src/app/services/firebase/filiale.service.ts
 - src/app/stores/domain/firma.store.ts
 - src/app/stores/domain/filiale.store.ts
+- src/app/stores/app/benutzer.store.ts
+- src/app/stores/app/stammdaten.store.ts
 - src/app/app.routes.ts
 - functions/src/create-benutzer.ts
 - firestore.rules
@@ -305,93 +307,103 @@ weder angelegt noch geloescht werden.
 
 #### Schritt 1: Verwaltungsbereich und Rollenzugriff anlegen
 
-- [x] `verwaltung` zusaetzlich zu `systemverwaltung` als eigenen `TAppBereich` aufnehmen.
+- [x] `verwaltung` zusätzlich zu `systemverwaltung` als eigenen `TAppBereich` aufnehmen.
 - [x] Backend-Validierung der erlaubten Bereiche um `verwaltung` erweitern.
-- [x] Eigenstaendige `verwaltung-page` unter `src/app/pages/verwaltung-page` anlegen.
-- [x] Route `/verwaltung` mit `authGuard` und `bereichGuard` anlegen, zusaetzlich per Guard auf Office und Master beschraenken und nicht berechtigte Benutzer zum Dashboard umleiten.
+- [x] Eigenständige `verwaltung-page` unter `src/app/pages/verwaltung-page` anlegen.
+- [x] Route `/verwaltung` mit `authGuard` und `bereichGuard` anlegen, zusätzlich per Guard auf Office und Master beschränken und nicht berechtigte Benutzer zum Dashboard umleiten.
 - [x] Navigationslink `Verwaltung` anhand von `erlaubteBereiche` in der Sidebar einblenden.
-- [x] Filialkonten auch bei einem fehlerhaft gesetzten Bereichsschluessel vom Verwaltungsbereich ausschliessen.
+- [x] Filialkonten auch bei einem fehlerhaft gesetzten Bereichsschlüssel vom Verwaltungsbereich ausschließen.
 
 #### Schritt 2: Zugeordnete Firmen und Filialen laden
 
-- [x] Datenzugriffe aus dem angemeldeten Benutzerprofil als Grundlage fuer die erlaubten Dokumentpfade verwenden.
-- [x] Zugeordnete Unternehmer, Firmen und Filialen gezielt ueber ihre Dokumentpfade laden; keine unbeschraenkten Collection-Abfragen fuer Office verwenden.
-- [x] Unternehmer-, Firmen- und Filialauswahl mit abhaengigen Material-Selects aufbauen.
-- [x] Auswahl beim Wechsel eines uebergeordneten Eintrags konsistent zuruecksetzen.
-- [x] Lade-, Leer- und Fehlerzustaende fuer die zugeordneten Stammdaten darstellen.
+- [x] Datenzugriffe aus dem angemeldeten Benutzerprofil als Grundlage für die erlaubten Dokumentpfade verwenden.
+- [x] Zugeordnete Unternehmer, Firmen und Filialen gezielt über ihre Dokumentpfade laden; keine unbeschränkten Collection-Abfragen für Office verwenden.
+- [x] Unternehmer-, Firmen- und Filialauswahl mit abhängigen Material-Selects aufbauen.
+- [x] Auswahl beim Wechsel eines übergeordneten Eintrags konsistent zurücksetzen.
+- [x] Lade-, Leer- und Fehlerzustände für die zugeordneten Stammdaten darstellen.
 
 #### Schritt 3: Globalen Ladeindikator vereinheitlichen
 
-- [x] Globalen Lade-Service mit Zaehler fuer parallele Ladevorgaenge anlegen.
+- [x] Globalen Lade-Service mit Zähler für parallele Ladevorgänge anlegen.
 - [x] Eine unbestimmte Progress-Bar am unteren Rand der App-Toolbar anzeigen.
-- [x] Aktuelle Firestore-Lesevorgaenge fuer Benutzerprofil, Unternehmer, Firmen und Filialen zentral registrieren.
-- [x] Lokale Ladetexte entfernen; lokale Fehler- und Leerzustaende erhalten.
-- [x] Service-, Toolbar- und Seitentests fuer den globalen Ladeindikator ergaenzen.
+- [x] Aktuelle Firestore-Lesevorgänge für Benutzerprofil, Unternehmer, Firmen und Filialen zentral registrieren.
+- [x] Lokale Ladetexte entfernen; lokale Fehler- und Leerzustände erhalten.
+- [x] Service-, Toolbar- und Seitentests für den globalen Ladeindikator ergänzen.
 
 #### Schritt 4: Firestore-Anbindung zentral strukturieren
 
-- [x] Collection- und Dokumentpfade fuer Benutzerprofile, Unternehmer, Firmen und Filialen zentral definieren.
-- [x] Technischen `FirestoreDbService` fuer Collection-Lesen, Dokument-Lesen, Anlegen, Merge-Aktualisieren und Server-Zeitstempel anlegen.
+- [x] Collection- und Dokumentpfade für Benutzerprofile, Unternehmer, Firmen und Filialen zentral definieren.
+- [x] Technischen `FirestoreDbService` für Collection-Lesen, Dokument-Lesen, Anlegen, Merge-Aktualisieren und Server-Zeitstempel anlegen.
 - [x] Angular-Injection-Kontext und globale Ladeanzeige innerhalb der technischen Firestore-Schicht kapseln.
-- [x] `BenutzerService`, `UnternehmerService`, `FirmaService` und `FilialeService` auf den `FirestoreDbService` umstellen, ohne ihre oeffentliche API zu aendern.
-- [x] Offline-Strategien, Synchronisationsstatus, Migrationen und Batch-Schreibvorgaenge bewusst fuer eine spaetere Datenmanagement-Entscheidung ausklammern.
-- [x] Tests fuer technische Firestore-Schicht und fachliche Services anpassen und ergaenzen.
+- [x] `BenutzerService`, `UnternehmerService`, `FirmaService` und `FilialeService` auf den `FirestoreDbService` umstellen, ohne ihre öffentliche API zu ändern.
+- [x] Offline-Strategien, Synchronisationsstatus, Migrationen und Batch-Schreibvorgänge bewusst für eine spätere Datenmanagement-Entscheidung ausklammern.
+- [x] Tests für technische Firestore-Schicht und fachliche Services anpassen und ergänzen.
 
-#### Schritt 5: Firmendaten bearbeiten
+#### Schritt 5: Stammdaten für die Sitzung initialisieren
 
-- [ ] Aktualisierungsmodell fuer bearbeitbare Firmendaten festlegen.
-- [ ] Bearbeitungsdialog fuer `anzeigename`, `firmenname`, Adresse und Kontaktdaten anlegen.
+- [x] Nach dem Laden des Benutzerprofils einen app-weiten Stammdatenbestand initialisieren.
+- [x] Für Master alle Unternehmer, Firmen, Filialen und Benutzerprofile einmalig laden.
+- [x] Für Office- und Filialkonten ausschließlich die im Profil freigegebenen Unternehmer-, Firmen- und Filialdokumente laden.
+- [x] Verwaltung, Systemverwaltung und Datenzugriffsauswahl aus dem gemeinsamen Sitzungsbestand versorgen.
+- [x] Neu angelegte Unternehmer, Firmen, Filialen und Benutzerprofile ohne erneutes Laden in den Sitzungsbestand übernehmen.
+- [x] Identische parallele Firestore-Leseaufträge zusammenfassen und den Sitzungsbestand bei Logout oder Benutzerwechsel zurücksetzen.
+- [x] Service- und Store-Tests für vollständiges Master-Laden, eingeschränktes Office-Laden, Cache-Aktualisierung und Reset ergänzen.
+
+#### Schritt 6: Firmendaten bearbeiten
+
+- [ ] Aktualisierungsmodell für bearbeitbare Firmendaten festlegen.
+- [ ] Bearbeitungsdialog für `anzeigename`, `firmenname`, Adresse und Kontaktdaten anlegen.
 - [ ] Dokument-ID, `nummer`, `erstelltAm` und Hierarchiepfad nicht als bearbeitbare Felder anbieten.
-- [ ] `FirmaService` und `FirmaStore` um das Aktualisieren einer ausgewaehlten Firma erweitern.
+- [ ] `FirmaService` und `FirmaStore` um das Aktualisieren einer ausgewählten Firma erweitern.
 - [ ] Beim Speichern `aktualisiertAm` mit einem Server-Timestamp setzen.
-- [ ] Aktualisierte Firma ohne erneutes Laden in die Store-Liste uebernehmen.
+- [ ] Aktualisierte Firma ohne erneutes Laden in die Store-Liste übernehmen.
 
-#### Schritt 6: Filialdaten bearbeiten
+#### Schritt 7: Filialdaten bearbeiten
 
-- [ ] Aktualisierungsmodell fuer bearbeitbare Filialdaten festlegen.
-- [ ] Bearbeitungsdialog fuer `anzeigename`, `filialname`, Adresse und Kontaktdaten anlegen.
+- [ ] Aktualisierungsmodell für bearbeitbare Filialdaten festlegen.
+- [ ] Bearbeitungsdialog für `anzeigename`, `filialname`, Adresse und Kontaktdaten anlegen.
 - [ ] Dokument-ID, `nummer`, `erstelltAm` und Hierarchiepfad nicht als bearbeitbare Felder anbieten.
-- [ ] `FilialeService` und `FilialeStore` um das Aktualisieren einer ausgewaehlten Filiale erweitern.
+- [ ] `FilialeService` und `FilialeStore` um das Aktualisieren einer ausgewählten Filiale erweitern.
 - [ ] Beim Speichern `aktualisiertAm` mit einem Server-Timestamp setzen.
-- [ ] Aktualisierte Filiale ohne erneutes Laden in die Store-Liste uebernehmen.
+- [ ] Aktualisierte Filiale ohne erneutes Laden in die Store-Liste übernehmen.
 
-#### Schritt 7: Schreibrechte real pruefen
+#### Schritt 8: Schreibrechte real prüfen
 
 - [ ] Zugeordnete Firma mit einem realen Office-Testkonto erfolgreich aktualisieren.
 - [ ] Zugeordnete Filiale mit einem realen Office-Testkonto erfolgreich aktualisieren.
 - [ ] Aktualisierung einer nicht zugeordneten Firma und Filiale ablehnen.
-- [ ] Anlegen und Loeschen von Firmen und Filialen fuer Office ablehnen.
-- [ ] Schreiben in Filial-Untercollections fuer Office weiterhin ablehnen.
+- [ ] Anlegen und Löschen von Firmen und Filialen für Office ablehnen.
+- [ ] Schreiben in Filial-Untercollections für Office weiterhin ablehnen.
 - [ ] Schreibzugriffe eines Filialkontos weiterhin ablehnen.
-- [ ] Entscheiden, ob die aktuell vollstaendige Dokumentaktualisierung spaeter durch feldgenaue Rules eingeschraenkt werden soll.
+- [ ] Entscheiden, ob die aktuell vollständige Dokumentaktualisierung später durch feldgenaue Rules eingeschränkt werden soll.
 
 #### Tests und Abschluss
 
-- [x] Guard-, Routen- und Sidebar-Tests fuer Office, Master und Filiale ergaenzen.
-- [ ] Service- und Store-Tests fuer Laden, Aktualisieren und Fehlerfaelle ergaenzen.
-- [ ] Dialog- und Seitentests fuer Auswahl, Validierung und Speichern ergaenzen.
-- [ ] Firestore-Emulator-Tests fuer erlaubte und verbotene Aktualisierungen erfolgreich ausfuehren.
-- [ ] Den Verwaltungsablauf mit einem realen Office-Testkonto pruefen.
+- [x] Guard-, Routen- und Sidebar-Tests für Office, Master und Filiale ergänzen.
+- [ ] Service- und Store-Tests für Laden, Aktualisieren und Fehlerfälle ergänzen.
+- [ ] Dialog- und Seitentests für Auswahl, Validierung und Speichern ergänzen.
+- [ ] Firestore-Emulator-Tests für erlaubte und verbotene Aktualisierungen erfolgreich ausführen.
+- [ ] Den Verwaltungsablauf mit einem realen Office-Testkonto prüfen.
 - [ ] `projekt-plan.md` und `projekt-stand.md` nach Abschluss aktualisieren.
-- [ ] `npm test`, `npm run test:rules`, Functions-Tests und `npm run build` erfolgreich ausfuehren.
+- [ ] `npm test`, `npm run test:rules`, Functions-Tests und `npm run build` erfolgreich ausführen.
 
 #### Erledigt, wenn
 
-- [ ] Office und Master koennen den Bereich `/verwaltung` nur mit entsprechender Bereichsfreigabe oeffnen.
-- [ ] Filialkonten koennen den Verwaltungsbereich nicht oeffnen.
-- [ ] Office sieht ausschliesslich die im Benutzerprofil zugeordneten Firmen und Filialen.
-- [ ] Bearbeitbare Firmen- und Filialdaten koennen gespeichert und ohne erneutes Laden angezeigt werden.
-- [ ] Office kann keine nicht zugeordneten Dokumente, Untercollections, Neuanlagen oder Loeschungen schreiben.
-- [ ] Tests, Rules-Tests, Builds und reale manuelle Pruefung sind erfolgreich.
+- [ ] Office und Master können den Bereich `/verwaltung` nur mit entsprechender Bereichsfreigabe öffnen.
+- [ ] Filialkonten können den Verwaltungsbereich nicht öffnen.
+- [ ] Office sieht ausschließlich die im Benutzerprofil zugeordneten Firmen und Filialen.
+- [ ] Bearbeitbare Firmen- und Filialdaten können gespeichert und ohne erneutes Laden angezeigt werden.
+- [ ] Office kann keine nicht zugeordneten Dokumente, Untercollections, Neuanlagen oder Löschungen schreiben.
+- [ ] Tests, Rules-Tests, Builds und reale manuelle Prüfung sind erfolgreich.
 
 # Erledigte Todos
 
-Die folgenden Abschnitte dokumentieren den Abschluss des jeweiligen damaligen Arbeitsschritts. Fuer den aktuellen Stand gelten Todo 4 und der [Projekt-Stand](./projekt-stand.md).
+Die folgenden Abschnitte dokumentieren den Abschluss des jeweiligen damaligen Arbeitsschritts. Für den aktuellen Stand gelten Todo 4 und der [Projekt-Stand](./projekt-stand.md).
 
 ## 3. Done Todo: Login und Benutzerberechtigungen vorbereiten
 
 Ziel:
-Bestehende Firebase-Benutzer koennen sich anmelden. Registrierung erfolgt nicht in dieser App. Nach erfolgreichem Login wird das vorhandene Benutzerprofil aus `benutzer/{uid}` gelesen. Das Profil enthaelt eine Benutzerrolle und steuert erlaubte App-Bereiche sowie erlaubte Firmen-/Filial-Zugriffe. Die Rolle bleibt zusaetzlich am Benutzer gespeichert; die Bereichsfreigaben richten sich derzeit nach `erlaubteBereiche`.
+Bestehende Firebase-Benutzer können sich anmelden. Registrierung erfolgt nicht in dieser App. Nach erfolgreichem Login wird das vorhandene Benutzerprofil aus `benutzer/{uid}` gelesen. Das Profil enthält eine Benutzerrolle und steuert erlaubte App-Bereiche sowie erlaubte Firmen-/Filial-Zugriffe. Die Rolle bleibt zusätzlich am Benutzer gespeichert; die Bereichsfreigaben richten sich derzeit nach `erlaubteBereiche`.
 
 Betroffene Dateien:
 
@@ -413,11 +425,11 @@ Betroffene Dateien:
 
 Schritte 1: Auth-Service und Benutzer-State
 
-1. [x] Benutzer-Domainmodell fuer vorhandene Benutzerprofile anlegen.
-2. [x] App-Bereich-Typ fuer erlaubte Bereiche anlegen.
+1. [x] Benutzer-Domainmodell für vorhandene Benutzerprofile anlegen.
+2. [x] App-Bereich-Typ für erlaubte Bereiche anlegen.
 3. [x] Benutzerrollen `filiale`, `office` und `master` im Benutzerprofil abbilden.
-4. [x] AuthService fuer Login, Logout und Auth-State erstellen.
-5. [x] BenutzerService fuer lesenden Zugriff auf `benutzer/{uid}` erstellen.
+4. [x] AuthService für Login, Logout und Auth-State erstellen.
+5. [x] BenutzerService für lesenden Zugriff auf `benutzer/{uid}` erstellen.
 6. [x] BenutzerStore mit `benutzerProfil`, `inProgress` und `error` anlegen.
 7. [x] Benutzerprofil nach Login aus Firestore unter `benutzer/{uid}` lesen.
 8. [x] Keine Registrierung und kein Anlegen von Benutzerprofilen in dieser App umsetzen.
@@ -425,44 +437,44 @@ Schritte 1: Auth-Service und Benutzer-State
 Schritte 2: Login und Routing
 
 1. [x] Loginseite mit E-Mail/Passwort-Formular erstellen.
-2. [x] Formularvalidierung ergaenzen.
+2. [x] Formularvalidierung ergänzen.
 3. [x] Loginseite in den Routes eintragen.
-4. [x] AuthGuard fuer geschuetzte App-Routen anlegen.
-5. [x] BereichGuard fuer `erlaubteBereiche` anlegen.
+4. [x] AuthGuard für geschützte App-Routen anlegen.
+5. [x] BereichGuard für `erlaubteBereiche` anlegen.
 6. [x] Nach erfolgreichem Login zum Dashboard weiterleiten.
-7. [x] Logout-Moeglichkeit in der App-Shell vorbereiten.
+7. [x] Logout-Möglichkeit in der App-Shell vorbereiten.
 
 Schritte 3: Berechtigungen und Datenzugriff
 
-1. [x] Sidebar-Navigation auf `erlaubteBereiche` einschraenken.
+1. [x] Sidebar-Navigation auf `erlaubteBereiche` einschränken.
 2. [x] Routen mit Bereich-Daten versehen, z. B. `data: { bereich: 'mitarbeiter' }`.
-3. [x] Datenzugriff spaeter ueber `zugriffe` mit `firmaId` und `filialIds` einschraenken.
-4. [x] Firestore Rules fuer serverseitige Absicherung einplanen.
+3. [x] Datenzugriff später über `zugriffe` mit `firmaId` und `filialIds` einschränken.
+4. [x] Firestore Rules für serverseitige Absicherung einplanen.
 
 Schritte 4: Fehler, Tests und Abschluss
 
 1. [x] Firebase-Fehler benutzerfreundlich anzeigen.
-2. [x] Tests fuer Service, Store, Guards und Loginformular ergaenzen.
+2. [x] Tests für Service, Store, Guards und Loginformular ergänzen.
 3. [x] `projekt-stand.md` nach Umsetzung aktualisieren.
-4. [x] `npm test` erfolgreich ausfuehren.
-5. [x] `npm run build` erfolgreich ausfuehren.
+4. [x] `npm test` erfolgreich ausführen.
+5. [x] `npm run build` erfolgreich ausführen.
 
 Erledigt wenn:
 
-- [x] Bestehende Benutzer koennen sich mit E-Mail und Passwort einloggen.
+- [x] Bestehende Benutzer können sich mit E-Mail und Passwort einloggen.
 - [x] Die App legt keine Benutzerprofile an.
 - [x] Vorhandenes Benutzerprofil wird aus `benutzer/{uid}` gelesen.
 - [x] Sidebar und Routen richten sich nach `erlaubteBereiche`.
-- [x] Datenzugriff kann ueber `zugriffe` mit `firmaId` und `filialIds` eingeschraenkt werden.
-- [x] App-Routen sind fuer nicht angemeldete Benutzer geschuetzt.
+- [x] Datenzugriff kann über `zugriffe` mit `firmaId` und `filialIds` eingeschränkt werden.
+- [x] App-Routen sind für nicht angemeldete Benutzer geschützt.
 - [x] Firebase-Fehler werden benutzerfreundlich angezeigt.
-- [x] `npm test` laeuft erfolgreich.
-- [x] `npm run build` laeuft erfolgreich.
+- [x] `npm test` läuft erfolgreich.
+- [x] `npm run build` läuft erfolgreich.
 
 ## 2. Done Todo: Firebase-Grundlage einbinden
 
 Ziel:
-Firebase und Firestore werden technisch in die Angular-App eingebunden. Login, Benutzerprofil und Berechtigungen werden noch nicht umgesetzt, sondern erst im naechsten Todo vorbereitet.
+Firebase und Firestore werden technisch in die Angular-App eingebunden. Login, Benutzerprofil und Berechtigungen werden noch nicht umgesetzt, sondern erst im nächsten Todo vorbereitet.
 
 Betroffene Dateien:
 
@@ -480,8 +492,8 @@ Schritte 1: Dependencies und Konfiguration
 
 1. [x] Firebase/AngularFire Dependencies installieren.
 2. [x] Firebase-Konfiguration vorbereiten.
-3. [x] Environment-Dateien fuer Firebase anlegen.
-4. [x] Firebase-Konfiguration ueber `environment.firebase` bereitstellen.
+3. [x] Environment-Dateien für Firebase anlegen.
+4. [x] Firebase-Konfiguration über `environment.firebase` bereitstellen.
 
 Schritte 2: AngularFire Provider
 
@@ -492,15 +504,15 @@ Schritte 2: AngularFire Provider
 
 Schritte 3: Firebase-Struktur
 
-1. [x] Tokens fuer Auth und Firestore anlegen.
+1. [x] Tokens für Auth und Firestore anlegen.
 2. [x] Firebase-nahe Service-Struktur unter `src/app/services/firebase` vorbereiten.
 3. [x] Noch keine Login- oder Registrierungslogik umsetzen.
 
 Schritte 4: Abschluss
 
 1. [x] `projekt-stand.md` nach Umsetzung aktualisieren.
-2. [x] `npm test` erfolgreich ausfuehren.
-3. [x] `npm run build` erfolgreich ausfuehren.
+2. [x] `npm test` erfolgreich ausführen.
+3. [x] `npm run build` erfolgreich ausführen.
 
 Erledigt wenn:
 
@@ -510,13 +522,13 @@ Erledigt wenn:
 - [x] Firebase Tokens sind vorbereitet.
 - [x] Firebase-Service-Ordner ist vorbereitet.
 - [x] Es gibt noch keine Registrierung in dieser App.
-- [x] `npm test` laeuft erfolgreich.
-- [x] `npm run build` laeuft erfolgreich.
+- [x] `npm test` läuft erfolgreich.
+- [x] `npm run build` läuft erfolgreich.
 
 ## 1. Done Todo: App-Shell mit Sidebar und Toolbar anlegen
 
 Ziel:
-Die App erhaelt eine Angular-Material-App-Shell mit Toolbar und Sidebar. Die Shell wird in `app-sidenav` und `app-toolbar` unter `src/app/components/app-shell` aufgeteilt. Die Sidebar enthaelt die Hauptnavigation fuer Dashboard, Schichtplan und Mitarbeiter.
+Die App erhält eine Angular-Material-App-Shell mit Toolbar und Sidebar. Die Shell wird in `app-sidenav` und `app-toolbar` unter `src/app/components/app-shell` aufgeteilt. Die Sidebar enthält die Hauptnavigation für Dashboard, Schichtplan und Mitarbeiter.
 
 Betroffene Dateien:
 
@@ -537,29 +549,29 @@ Schritte 1: Seiten und Routen
 1. [x] `dashboard-page` unter `src/app/pages/dashboard-page` anlegen.
 2. [x] `schichtplan-page` unter `src/app/pages/schichtplan-page` anlegen.
 3. [x] `mitarbeiter-page` unter `src/app/pages/mitarbeiter-page` anlegen.
-4. [x] Routen fuer `/dashboard`, `/schichtplan` und `/mitarbeiter` per `loadComponent` vorbereiten und `/` auf `/dashboard` weiterleiten.
-5. [x] Tests fuer die Platzhalter-Seiten ergaenzen.
+4. [x] Routen für `/dashboard`, `/schichtplan` und `/mitarbeiter` per `loadComponent` vorbereiten und `/` auf `/dashboard` weiterleiten.
+5. [x] Tests für die Platzhalter-Seiten ergänzen.
 
 Schritte 2: App-Shell-Components
 
 1. [x] `app-sidenav` unter `src/app/components/app-shell/app-sidenav` anlegen.
 2. [x] `app-toolbar` unter `src/app/components/app-shell/app-toolbar` anlegen.
-3. [x] Sidebar-Navigation mit Links fuer Dashboard, Schichtplan und Mitarbeiter anlegen.
-4. [x] Toolbar mit Menuebutton und App-Titel anlegen.
-5. [x] Tests fuer Sidebar und Toolbar ergaenzen.
+3. [x] Sidebar-Navigation mit Links für Dashboard, Schichtplan und Mitarbeiter anlegen.
+4. [x] Toolbar mit Menübutton und App-Titel anlegen.
+5. [x] Tests für Sidebar und Toolbar ergänzen.
 
 Schritte 3: App-Layout
 
 1. [x] `app.ts`, `app.html` und `app.scss` auf ein Material-Sidenav-Layout umbauen.
-2. [x] Responsive Verhalten fuer Desktop und kleinere Bildschirme vorbereiten.
+2. [x] Responsive Verhalten für Desktop und kleinere Bildschirme vorbereiten.
 3. [x] App-Test an das neue Layout anpassen.
 
 Schritte 4: Abschluss
 
 1. [x] `projekt-stand.md` nach Umsetzung aktualisieren.
 2. [x] `next_todo.md` nach Umsetzung abhaken oder in erledigte Todos verschieben.
-3. [x] `npm test` erfolgreich ausfuehren.
-4. [x] `npm run build` erfolgreich ausfuehren.
+3. [x] `npm test` erfolgreich ausführen.
+4. [x] `npm run build` erfolgreich ausführen.
 
 Erledigt wenn:
 
@@ -567,7 +579,7 @@ Erledigt wenn:
 - [x] Die Sidebar liegt in `app-sidenav`.
 - [x] Die Toolbar liegt in `app-toolbar`.
 - [x] Die Links Dashboard, Schichtplan und Mitarbeiter sind sichtbar.
-- [x] Die Navigation funktioniert ueber Angular Routes.
+- [x] Die Navigation funktioniert über Angular Routes.
 - [x] Die echten Seiten liegen unter `src/app/pages`.
-- [x] `npm test` laeuft erfolgreich.
-- [x] `npm run build` laeuft erfolgreich.
+- [x] `npm test` läuft erfolgreich.
+- [x] `npm run build` läuft erfolgreich.

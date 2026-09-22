@@ -6,9 +6,11 @@ import { patchState, signalStore, withComputed, withMethods, withState } from '@
 import { TAppBereich } from '../../commons/models/app/app-bereich';
 import { IBenutzerProfilDokument } from '../../commons/models/domain/benutzer';
 import { getFirebaseErrorMessage } from '../../commons/utils/errors/firebase-error-message';
-import { StoreDebugService } from '../../services/core/store-debug.service';
+import { DebugLogService } from '../../services/core/debug-log.service';
+import { StoreSnapshotService } from '../../services/core/store-snapshot.service';
 import { AuthService } from '../../services/firebase/auth.service';
-import { BenutzerService } from '../../services/firebase/benutzer.service';
+import { BenutzerService } from '../../services/domain/benutzer.service';
+import { StammdatenStore } from './stammdaten.store';
 
 // ===== Top-Level Helper =====================
 
@@ -61,12 +63,40 @@ export const BenutzerStore = signalStore(
       store,
       authService = inject(AuthService),
       benutzerService = inject(BenutzerService),
+      stammdatenStore = inject(StammdatenStore),
+      debugLogService = inject(DebugLogService),
       destroyRef = inject(DestroyRef),
-      storeDebugService = inject(StoreDebugService),
+      storeSnapshotService = inject(StoreSnapshotService),
     ) => {
       let authStateInitialisiert = false;
+      let profilBenutzerId: string | null = null;
+      let profilGeneration = 0;
+      let profilAuftrag: { uid: string; promise: Promise<IBenutzerProfilDokument | null> } | null =
+        null;
 
       // ===== Methoden: Laden ======================
+
+      /**
+       * Lädt das Benutzerprofil einmalig für eine UID und teilt parallel laufende Aufträge.
+       *
+       * @param uid - UID des angemeldeten Firebase-Benutzers.
+       * @returns Das geladene beziehungsweise bereits im Store vorhandene Benutzerprofil.
+       * @throws Gibt Fehler des Profilladens an die aufrufende Stelle weiter.
+       */
+      function loadBenutzerProfil(uid: string): Promise<IBenutzerProfilDokument | null> {
+        if (profilBenutzerId === uid && !profilAuftrag) {
+          return Promise.resolve(store.benutzerProfil());
+        }
+        if (profilAuftrag?.uid === uid) {
+          return profilAuftrag.promise;
+        }
+
+        const generation = ++profilGeneration;
+        patchState(store, { inProgress: true, error: null });
+        const promise = executeBenutzerProfilLoad(uid, generation);
+        profilAuftrag = { uid, promise };
+        return promise;
+      }
 
       /**
        * Initialisiert einmalig die Beobachtung des Firebase-Anmeldestatus.
@@ -82,6 +112,8 @@ export const BenutzerStore = signalStore(
           .pipe(takeUntilDestroyed(destroyRef))
           .subscribe(async (benutzer) => {
             if (!benutzer) {
+              resetBenutzerProfilCache();
+              stammdatenStore.reset();
               patchState(store, {
                 benutzerProfil: null,
                 isAuthenticated: false,
@@ -91,15 +123,12 @@ export const BenutzerStore = signalStore(
               return;
             }
 
-            patchState(store, { isAuthenticated: true, inProgress: true, error: null });
+            patchState(store, { isAuthenticated: true, error: null });
 
             try {
-              const benutzerProfil = await benutzerService.getBenutzerProfil(benutzer.uid);
-              patchState(store, { benutzerProfil });
-            } catch (error: unknown) {
-              patchState(store, { error: getFirebaseErrorMessage(error) });
-            } finally {
-              patchState(store, { inProgress: false });
+              await loadBenutzerProfil(benutzer.uid);
+            } catch {
+              // Die Fehlermeldung wird durch loadBenutzerProfil im Store bereitgestellt.
             }
           });
       }
@@ -107,7 +136,7 @@ export const BenutzerStore = signalStore(
       // ===== Methoden: Sonstige Aktionen ==========
 
       /**
-       * Meldet einen Benutzer an und laedt anschliessend sein Benutzerprofil.
+       * Meldet einen Benutzer an und lädt anschließend sein Benutzerprofil.
        *
        * @param email - Die normalisierte E-Mail-Adresse des Benutzers.
        * @param password - Das Passwort des Benutzers.
@@ -118,13 +147,11 @@ export const BenutzerStore = signalStore(
 
         try {
           const credential = await authService.login(email, password);
-          console.log('Login-Benutzer', {
+          debugLogService.log('Authentifizierung', 'Benutzer angemeldet', {
             uid: credential.user.uid,
-            email: credential.user.email,
           });
           patchState(store, { isAuthenticated: true });
-          const benutzerProfil = await benutzerService.getBenutzerProfil(credential.user.uid);
-          patchState(store, { benutzerProfil });
+          await loadBenutzerProfil(credential.user.uid);
         } catch (error: unknown) {
           patchState(store, { error: getFirebaseErrorMessage(error) });
           throw error;
@@ -143,6 +170,8 @@ export const BenutzerStore = signalStore(
 
         try {
           await authService.logout();
+          resetBenutzerProfilCache();
+          stammdatenStore.reset();
           patchState(store, { benutzerProfil: null, isAuthenticated: false });
         } catch (error: unknown) {
           patchState(store, { error: getFirebaseErrorMessage(error) });
@@ -153,10 +182,10 @@ export const BenutzerStore = signalStore(
       }
 
       /**
-       * Prueft, ob der aktive Benutzer einen App-Bereich verwenden darf.
+       * Prüft, ob der aktive Benutzer einen App-Bereich verwenden darf.
        *
-       * @param bereich - Der zu pruefende App-Bereich.
-       * @returns `true`, wenn das Profil aktiv ist und den Bereich enthaelt.
+       * @param bereich - Der zu prüfende App-Bereich.
+       * @returns `true`, wenn das Profil aktiv ist und den Bereich enthält.
        */
       function darfBereichNutzen(bereich: TAppBereich): boolean {
         const benutzerProfil = store.benutzerProfil();
@@ -165,10 +194,10 @@ export const BenutzerStore = signalStore(
       }
 
       /**
-       * Prueft den Lesezugriff des aktiven Benutzers auf eine Firma.
+       * Prüft den Lesezugriff des aktiven Benutzers auf eine Firma.
        *
-       * @param unternehmerId - Die ID des uebergeordneten Unternehmers.
-       * @param firmaId - Die ID der zu pruefenden Firma.
+       * @param unternehmerId - Die ID des übergeordneten Unternehmers.
+       * @param firmaId - Die ID der zu prüfenden Firma.
        * @returns `true`, wenn das Profil aktiv ist und die Firma lesen darf.
        */
       function darfFirmaLesen(unternehmerId: string, firmaId: string): boolean {
@@ -183,11 +212,11 @@ export const BenutzerStore = signalStore(
       }
 
       /**
-       * Prueft den Lesezugriff des aktiven Benutzers auf eine Filiale.
+       * Prüft den Lesezugriff des aktiven Benutzers auf eine Filiale.
        *
-       * @param unternehmerId - Die ID des uebergeordneten Unternehmers.
-       * @param firmaId - Die ID der uebergeordneten Firma.
-       * @param filialId - Die ID der zu pruefenden Filiale.
+       * @param unternehmerId - Die ID des übergeordneten Unternehmers.
+       * @param firmaId - Die ID der übergeordneten Firma.
+       * @param filialId - Die ID der zu prüfenden Filiale.
        * @returns `true`, wenn das Profil aktiv ist und die Filiale lesen darf.
        */
       function darfFilialeLesen(unternehmerId: string, firmaId: string, filialId: string): boolean {
@@ -213,7 +242,7 @@ export const BenutzerStore = signalStore(
       /**
        * Setzt den Zustand einer laufenden Authentifizierungsaktion.
        *
-       * @param inProgress - Gibt an, ob gerade eine Aktion ausgefuehrt wird.
+       * @param inProgress - Gibt an, ob gerade eine Aktion ausgeführt wird.
        */
       function setInProgress(inProgress: boolean): void {
         patchState(store, { inProgress });
@@ -236,16 +265,18 @@ export const BenutzerStore = signalStore(
       }
 
       /**
-       * Setzt den Benutzer-Store auf seinen Anfangszustand zurueck.
+       * Setzt den Benutzer-Store auf seinen Anfangszustand zurück.
        */
       function reset(): void {
+        resetBenutzerProfilCache();
+        stammdatenStore.reset();
         patchState(store, initialState);
       }
 
       /**
        * Liefert eine Momentaufnahme des aktuellen Benutzer-Store-Zustands.
        *
-       * @returns Vollstaendiger, nicht reaktiv verfolgter Store-Zustand.
+       * @returns Vollständiger, nicht reaktiv verfolgter Store-Zustand.
        */
       function snapshot(): TBenutzerSnapshot {
         return untracked(() => ({
@@ -256,11 +287,58 @@ export const BenutzerStore = signalStore(
         }));
       }
 
-      const unregisterSnapshot = storeDebugService.registerStoreSnapshot('BenutzerStore', snapshot);
+      // ===== Interne Helfer =======================
+
+      async function executeBenutzerProfilLoad(
+        uid: string,
+        generation: number,
+      ): Promise<IBenutzerProfilDokument | null> {
+        try {
+          const benutzerProfil = await benutzerService.getBenutzerProfil(uid);
+          debugLogService.logDatenflussTitel('1. BENUTZERPROFIL ');
+          debugLogService.logDatenGeladen(
+            'Benutzerprofil',
+            benutzerProfil ? 1 : 0,
+            benutzerProfil ?? undefined,
+          );
+          if (generation === profilGeneration) {
+            profilBenutzerId = uid;
+            patchState(store, { benutzerProfil });
+            if (benutzerProfil?.aktiv) {
+              await stammdatenStore.loadStammdaten(uid, benutzerProfil);
+            } else {
+              stammdatenStore.reset();
+            }
+          }
+          return benutzerProfil;
+        } catch (error: unknown) {
+          if (generation === profilGeneration) {
+            patchState(store, { error: getFirebaseErrorMessage(error) });
+          }
+          throw error;
+        } finally {
+          if (generation === profilGeneration) {
+            profilAuftrag = null;
+            patchState(store, { inProgress: false });
+          }
+        }
+      }
+
+      function resetBenutzerProfilCache(): void {
+        profilGeneration++;
+        profilBenutzerId = null;
+        profilAuftrag = null;
+      }
+
+      const unregisterSnapshot = storeSnapshotService.registerStoreSnapshot(
+        'BenutzerStore',
+        snapshot,
+      );
       destroyRef.onDestroy(unregisterSnapshot);
 
       return {
         initAuthState,
+        loadBenutzerProfil,
         login,
         logout,
         darfBereichNutzen,

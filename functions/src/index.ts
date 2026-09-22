@@ -60,7 +60,7 @@ export const createBenutzer = onCall<ICreateBenutzerData, Promise<ICreateBenutze
           });
         },
         logAnlageError: (uid, schritt, error) => {
-          logger.error('Benutzeranlage fehlgeschlagen; Konto und Profil pruefen.', {
+          logger.error('Benutzeranlage fehlgeschlagen; Konto und Profil prüfen.', {
             uid,
             schritt,
             error,

@@ -3,7 +3,7 @@
 import { TestBed } from '@angular/core/testing';
 
 import { IUnternehmerAnlage } from '../../commons/models/domain/unternehmer';
-import { UnternehmerService } from '../../services/firebase/unternehmer.service';
+import { UnternehmerService } from '../../services/domain/unternehmer.service';
 import { UnternehmerStore } from './unternehmer.store';
 
 describe('UnternehmerStore', () => {
@@ -123,7 +123,7 @@ describe('UnternehmerStore', () => {
     await expect(store.createUnternehmer(anlage)).rejects.toEqual({
       code: 'permission-denied',
     });
-    expect(store.error()).toBe('Du hast keine Berechtigung fuer diese Aktion.');
+    expect(store.error()).toBe('Du hast keine Berechtigung für diese Aktion.');
     expect(store.inProgress()).toBe(false);
 
     store.clearError();

@@ -1,10 +1,17 @@
-// pur-office/src/app/services/firebase/benutzer.service.ts
+// pur-office/src/app/services/domain/benutzer.service.ts
 
 import { Injectable, inject } from '@angular/core';
 
-import { FIRESTORE_DOCUMENT_PATHS } from '../../commons/constants/firebase.constants';
-import { IBenutzerProfilDokument, TBenutzerZugriffe } from '../../commons/models/domain/benutzer';
-import { FirestoreDbService } from './firestore-db.service';
+import {
+  FIRESTORE_COLLECTION_PATHS,
+  FIRESTORE_DOCUMENT_PATHS,
+} from '../../commons/constants/firebase.constants';
+import {
+  IBenutzerProfilDokument,
+  IBenutzerProfilEintrag,
+  TBenutzerZugriffe,
+} from '../../commons/models/domain/benutzer';
+import { FirestoreDbService } from '../firebase/firestore-db.service';
 
 @Injectable({
   providedIn: 'root',
@@ -14,10 +21,10 @@ export class BenutzerService {
 
   private readonly firestoreDbService = inject(FirestoreDbService);
 
-  // ===== Oeffentliche Aktionen =================
+  // ===== Öffentliche Aktionen =================
 
   /**
-   * Laedt das Benutzerprofil fuer die uebergebene Firebase-Auth-UID.
+   * Lädt das Benutzerprofil für die übergebene Firebase-Auth-UID.
    *
    * @param uid - UID des angemeldeten Firebase-Benutzers.
    * @returns Das normalisierte Benutzerprofil oder `null`, wenn kein Profil existiert.
@@ -32,18 +39,26 @@ export class BenutzerService {
       return null;
     }
 
-    const profil = dokument.daten;
+    return this.mapBenutzerProfil(dokument.daten);
+  }
 
-    return {
-      email: profil.email,
-      anzeigename: profil.anzeigename,
-      aktiv: profil.aktiv,
-      userRole: profil.userRole,
-      erlaubteBereiche: profil.erlaubteBereiche,
-      zugriffe: this.parseZugriffe(profil.zugriffe),
-      erstelltAm: profil.erstelltAm,
-      aktualisiertAm: profil.aktualisiertAm,
-    };
+  /**
+   * Lädt alle Benutzerprofile für die Systemverwaltung.
+   *
+   * @returns Die nach Anzeigename sortierten Profile einschließlich ihrer Dokument-ID als UID.
+   * @throws Gibt Fehler des Firestore-Zugriffs an die aufrufende Stelle weiter.
+   */
+  async loadBenutzerProfile(): Promise<IBenutzerProfilEintrag[]> {
+    const dokumente = await this.firestoreDbService.loadCollection<
+      Omit<IBenutzerProfilDokument, 'zugriffe'> & { zugriffe?: unknown }
+    >(FIRESTORE_COLLECTION_PATHS.benutzerprofile);
+
+    return dokumente
+      .map((dokument) => ({
+        uid: dokument.id,
+        ...this.mapBenutzerProfil(dokument.daten),
+      }))
+      .sort((a, b) => a.anzeigename.localeCompare(b.anzeigename, 'de'));
   }
 
   // ===== Interne Helfer =======================
@@ -73,5 +88,20 @@ export class BenutzerService {
     }
 
     return Object.fromEntries(zugriffe);
+  }
+
+  private mapBenutzerProfil(
+    profil: Omit<IBenutzerProfilDokument, 'zugriffe'> & { zugriffe?: unknown },
+  ): IBenutzerProfilDokument {
+    return {
+      email: profil.email,
+      anzeigename: profil.anzeigename,
+      aktiv: profil.aktiv,
+      userRole: profil.userRole,
+      erlaubteBereiche: profil.erlaubteBereiche,
+      zugriffe: this.parseZugriffe(profil.zugriffe),
+      erstelltAm: profil.erstelltAm,
+      aktualisiertAm: profil.aktualisiertAm,
+    };
   }
 }

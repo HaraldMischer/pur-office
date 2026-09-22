@@ -9,8 +9,9 @@ import {
   IFirmaEintrag,
 } from '../../commons/models/domain/firma';
 import { getFirebaseErrorMessage } from '../../commons/utils/errors/firebase-error-message';
-import { StoreDebugService } from '../../services/core/store-debug.service';
-import { FirmaService } from '../../services/firebase/firma.service';
+import { StoreSnapshotService } from '../../services/core/store-snapshot.service';
+import { FirmaService } from '../../services/domain/firma.service';
+import { StammdatenStore } from '../app/stammdaten.store';
 
 // ===== Top-Level Helper =====================
 
@@ -34,7 +35,7 @@ const initialState: TFirmaState = {
   error: null,
 };
 
-function sortFirmen(firmen: IFirmaEintrag[]): readonly IFirmaEintrag[] {
+function sortFirmen(firmen: readonly IFirmaEintrag[]): readonly IFirmaEintrag[] {
   return [...firmen].sort((a, b) => a.anzeigename.localeCompare(b.anzeigename, 'de'));
 }
 
@@ -49,16 +50,17 @@ export const FirmaStore = signalStore(
     (
       store,
       firmaService = inject(FirmaService),
+      stammdatenStore = inject(StammdatenStore),
       destroyRef = inject(DestroyRef),
-      storeDebugService = inject(StoreDebugService),
+      storeSnapshotService = inject(StoreSnapshotService),
     ) => {
       // ===== Methoden: Laden ======================
 
       /**
-       * Laedt die Firmen eines Unternehmers und aktualisiert die sortierte Firmenliste.
+       * Lädt die Firmen eines Unternehmers und aktualisiert die sortierte Firmenliste.
        *
-       * @param unternehmerId - Die Dokument-ID des ausgewaehlten Unternehmers.
-       * @returns Ein Promise, das nach dem vollstaendigen Laden abgeschlossen ist.
+       * @param unternehmerId - Die Dokument-ID des ausgewählten Unternehmers.
+       * @returns Ein Promise, das nach dem vollständigen Laden abgeschlossen ist.
        * @throws Gibt Fehler des Firestore-Zugriffs an die aufrufende Stelle weiter.
        */
       async function loadFirmen(unternehmerId: string): Promise<void> {
@@ -74,7 +76,9 @@ export const FirmaStore = signalStore(
           error: null,
         });
         try {
-          const firmen = await firmaService.loadFirmen(unternehmerId);
+          const firmen = stammdatenStore.isLoaded()
+            ? stammdatenStore.getFirmen(unternehmerId)
+            : await firmaService.loadFirmen(unternehmerId);
           if (store.unternehmerId() === unternehmerId) {
             patchState(store, { firmen: sortFirmen(firmen), isLoaded: true });
           }
@@ -95,10 +99,10 @@ export const FirmaStore = signalStore(
       /**
        * Legt eine Firma unter dem geladenen Unternehmer an und aktualisiert die Firmenliste.
        *
-       * @param unternehmerId - Die Dokument-ID des ausgewaehlten Unternehmers.
+       * @param unternehmerId - Die Dokument-ID des ausgewählten Unternehmers.
        * @param anlage - Die Daten der neu anzulegenden Firma.
        * @returns Das Anlageergebnis mit Dokument-ID, Nummer und Anzeigename.
-       * @throws Wenn die Firmenliste nicht passend geladen ist oder das Speichern fehlschlaegt.
+       * @throws Wenn die Firmenliste nicht passend geladen ist oder das Speichern fehlschlägt.
        */
       async function createFirma(
         unternehmerId: string,
@@ -112,6 +116,7 @@ export const FirmaStore = signalStore(
         try {
           const nummer = getNaechsteNummer(store.firmen());
           const ergebnis = await firmaService.createFirma(unternehmerId, anlage, nummer);
+          stammdatenStore.upsertFirma(unternehmerId, ergebnis);
           const firmen = store.firmen().filter((eintrag) => eintrag.id !== ergebnis.id);
           patchState(store, { firmen: sortFirmen([...firmen, ergebnis]) });
           return ergebnis;
@@ -126,7 +131,7 @@ export const FirmaStore = signalStore(
       // ===== Methoden: Sonstige Aktionen ==========
 
       /**
-       * Setzt die Firmenliste und ihren Unternehmerbezug zurueck.
+       * Setzt die Firmenliste und ihren Unternehmerbezug zurück.
        */
       function resetFirmen(): void {
         patchState(store, initialState);
@@ -142,7 +147,7 @@ export const FirmaStore = signalStore(
       /**
        * Liefert eine Momentaufnahme des aktuellen Firma-Store-Zustands.
        *
-       * @returns Vollstaendiger, nicht reaktiv verfolgter Store-Zustand.
+       * @returns Vollständiger, nicht reaktiv verfolgter Store-Zustand.
        */
       function snapshot(): TFirmaSnapshot {
         return untracked(() => ({
@@ -155,7 +160,7 @@ export const FirmaStore = signalStore(
         }));
       }
 
-      const unregisterSnapshot = storeDebugService.registerStoreSnapshot('FirmaStore', snapshot);
+      const unregisterSnapshot = storeSnapshotService.registerStoreSnapshot('FirmaStore', snapshot);
       destroyRef.onDestroy(unregisterSnapshot);
 
       return {

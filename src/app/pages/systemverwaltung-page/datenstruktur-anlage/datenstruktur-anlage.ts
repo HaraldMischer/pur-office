@@ -94,16 +94,16 @@ export class DatenstrukturAnlage implements OnInit {
   }
 
   /**
-   * Laedt beim Initialisieren die fuer die Auswahl verfuegbaren Unternehmer.
+   * Lädt beim Initialisieren die für die Auswahl verfügbaren Unternehmer.
    */
   ngOnInit(): void {
     void this.unternehmerStore.loadUnternehmer().catch(() => undefined);
   }
 
   /**
-   * Oeffnet den Unternehmerdialog und waehlt einen neu angelegten Unternehmer aus.
+   * Öffnet den Unternehmerdialog und wählt einen neu angelegten Unternehmer aus.
    *
-   * @returns Ein Promise, das nach dem Schliessen des Dialogs aufgeloest wird.
+   * @returns Ein Promise, das nach dem Schliessen des Dialogs aufgelöst wird.
    */
   async openUnternehmerDialog(): Promise<void> {
     this.unternehmerStore.clearError();
@@ -122,9 +122,9 @@ export class DatenstrukturAnlage implements OnInit {
   }
 
   /**
-   * Oeffnet den Firmendialog fuer den ausgewaehlten Unternehmer und uebernimmt das Ergebnis.
+   * Öffnet den Firmendialog für den ausgewählten Unternehmer und übernimmt das Ergebnis.
    *
-   * @returns Ein Promise, das nach dem Schliessen des Dialogs aufgeloest wird.
+   * @returns Ein Promise, das nach dem Schliessen des Dialogs aufgelöst wird.
    */
   async openFirmaDialog(): Promise<void> {
     const unternehmerId = this.unternehmerForm.controls.id.value;
@@ -147,9 +147,9 @@ export class DatenstrukturAnlage implements OnInit {
   }
 
   /**
-   * Oeffnet den Filialdialog fuer die ausgewaehlte Firma und uebernimmt das Ergebnis.
+   * Öffnet den Filialdialog für die ausgewählte Firma und übernimmt das Ergebnis.
    *
-   * @returns Ein Promise, das nach dem Schliessen des Dialogs aufgeloest wird.
+   * @returns Ein Promise, das nach dem Schliessen des Dialogs aufgelöst wird.
    */
   async openFilialeDialog(): Promise<void> {
     const unternehmerId = this.unternehmerForm.controls.id.value;
@@ -173,7 +173,7 @@ export class DatenstrukturAnlage implements OnInit {
   }
 
   /**
-   * Liefert den Anzeigenamen des ausgewaehlten Unternehmers.
+   * Liefert den Anzeigenamen des ausgewählten Unternehmers.
    *
    * @returns Anzeigename oder ein Hinweis auf die fehlende Auswahl.
    */
@@ -186,7 +186,7 @@ export class DatenstrukturAnlage implements OnInit {
   }
 
   /**
-   * Liefert den Anzeigenamen der ausgewaehlten Firma.
+   * Liefert den Anzeigenamen der ausgewählten Firma.
    *
    * @returns Anzeigename oder ein Hinweis auf die fehlende Auswahl.
    */

@@ -4,27 +4,27 @@
 
 ## Projektregeln
 
-- Jede Code-Aenderung erfordert vorher ein Okay vom Benutzer.
-- Beschreibe vor jeder Code-Aenderung zuerst kurz, was geaendert werden soll und in welchen Dateien; warte danach auf das ausdrueckliche Okay des Benutzers, bevor du die Aenderung umsetzt.
-- Ohne ausdrueckliches Okay des Benutzers werden keine Dateien angelegt, geaendert oder geloescht.
-- Jede neu angelegte Quelltext- oder Konfigurationsdatei beginnt, soweit der Dateityp Kommentare unterstuetzt, mit einem Kommentar, der den Projektpfad der Datei angibt.
+- Jede Code-Änderung erfordert vorher ein Okay vom Benutzer.
+- Beschreibe vor jeder Code-Änderung zuerst kurz, was geändert werden soll und in welchen Dateien; warte danach auf das ausdrückliche Okay des Benutzers, bevor du die Änderung umsetzt.
+- Ohne ausdrückliches Okay des Benutzers werden keine Dateien angelegt, geändert oder gelöscht.
+- Jede neu angelegte Quelltext- oder Konfigurationsdatei beginnt, soweit der Dateityp Kommentare unterstützt, mit einem Kommentar, der den Projektpfad der Datei angibt.
 - Commit-Kommentare werden in diesem Projekt auf Deutsch formuliert.
 
 ## Projektziel
 
 - Das fachliche und architektonische Zielbild steht in `docs/projekt-plan.md`.
 - Der aktuelle Umsetzungsstand steht in `docs/projekt-stand.md`.
-- Konkrete naechste Arbeitsschritte stehen in `docs/next_todo.md`.
+- Konkrete nächste Arbeitsschritte stehen in `docs/next_todo.md`.
 - Agents richten neue Umsetzung an diesen Dokumenten aus.
 
 ## Todo-Dokumentation
 
-- Offene Hauptaufgaben werden in `docs/next_todo.md` unter einem fachlichen Todo gebuendelt und mit fortlaufenden Unterpunkten wie `4.1`, `4.2` und `4.3` gegliedert.
+- Offene Hauptaufgaben werden in `docs/next_todo.md` unter einem fachlichen Todo gebündelt und mit fortlaufenden Unterpunkten wie `4.1`, `4.2` und `4.3` gegliedert.
 - Jeder Todo-Unterpunkt verwendet in dieser Reihenfolge die Bereiche `Ziel`, `Betroffene Dateien`, fachlich benannte und nummerierte Schritte, `Tests und Abschluss` sowie `Erledigt, wenn`.
-- Arbeitsschritte werden als `Schritt 1: ...`, `Schritt 2: ...` und so weiter bezeichnet. Zusammengehoerige Aufgaben stehen als Checkliste unter dem jeweiligen Schritt.
-- `Tests und Abschluss` enthaelt konkrete Pruef-, Build-, Dokumentations- und manuelle Abschlussarbeiten.
-- `Erledigt, wenn` bleibt ein eigener Bereich und beschreibt die fachlich pruefbaren Abnahmekriterien des Todo-Unterpunkts.
-- Beim Neuordnen von Todos bleiben vorhandene Erledigt-Markierungen erhalten. Inhaltlich gleiche Aufgaben werden zusammengefuehrt, ohne offene Arbeiten versehentlich als erledigt zu markieren.
+- Arbeitsschritte werden als `Schritt 1: ...`, `Schritt 2: ...` und so weiter bezeichnet. Zusammengehörige Aufgaben stehen als Checkliste unter dem jeweiligen Schritt.
+- `Tests und Abschluss` enthält konkrete Prüf-, Build-, Dokumentations- und manuelle Abschlussarbeiten.
+- `Erledigt, wenn` bleibt ein eigener Bereich und beschreibt die fachlich prüfbaren Abnahmekriterien des Todo-Unterpunkts.
+- Beim Neuordnen von Todos bleiben vorhandene Erledigt-Markierungen erhalten. Inhaltlich gleiche Aufgaben werden zusammengeführt, ohne offene Arbeiten versehentlich als erledigt zu markieren.
 
 ## Projektstruktur
 
@@ -37,32 +37,33 @@
 - Guards liegen unter `src/app/guards`.
 - Services liegen unter `src/app/services`.
 - Allgemeine technische Services liegen unter `src/app/services/core`.
-- Firebase-nahe Services liegen unter `src/app/services/firebase`.
+- Unmittelbare technische Anbindungen an Firebase liegen unter `src/app/services/firebase`.
+- Fachliche Services für konkrete Domänen liegen unter `src/app/services/domain`.
 - Stores liegen unter `src/app/stores`.
 - App-weite Stores liegen unter `src/app/stores/app`, z. B. `src/app/stores/app/benutzer.store.ts`.
 - Fachliche Domain-Stores liegen unter `src/app/stores/domain`.
 
 ## Template-Schreibweise
 
-- Groessere zusammenhaengende Template-Bereiche erhalten kurze HTML-Kommentare zur Orientierung, z. B. `<!-- Benutzerkarte -->` oder `<!-- Hauptnavigation -->`. Nur den Bereich benennen, keine ausfuehrlichen Erklaerungen und keine Kommentare fuer jedes einzelne Element.
+- Größere zusammenhängende Template-Bereiche erhalten kurze HTML-Kommentare zur Orientierung, z. B. `<!-- Benutzerkarte -->` oder `<!-- Hauptnavigation -->`. Nur den Bereich benennen, keine ausführlichen Erklärungen und keine Kommentare für jedes einzelne Element.
 - Einfache Seiten-Sections werden ohne `aria-labelledby` geschrieben.
-- Dafuer werden auch keine nur zu diesem Zweck angelegten `id`-Attribute auf Titeln verwendet.
+- Dafür werden auch keine nur zu diesem Zweck angelegten `id`-Attribute auf Titeln verwendet.
 - `pur-form` wird immer mit genau einem Layout-Modifier verwendet, z. B. `pur-form pur-form--grid` oder `pur-form pur-form--flex`.
-- Formular-Dialoge bestehen aus den direkten Dialogbereichen `mat-dialog-title`, `mat-dialog-content` und `mat-dialog-actions`. Das Formular liegt innerhalb von `mat-dialog-content`; die Aktionen liegen ausserhalb des Formulars in `mat-dialog-actions`.
+- Formular-Dialoge bestehen aus den direkten Dialogbereichen `mat-dialog-title`, `mat-dialog-content` und `mat-dialog-actions`. Das Formular liegt innerhalb von `mat-dialog-content`; die Aktionen liegen außerhalb des Formulars in `mat-dialog-actions`.
 - Reactive Forms verwenden in Dialogen `(ngSubmit)` statt eines manuell behandelten nativen `(submit)`-Ereignisses mit `$event.preventDefault()`.
-- Liegt der Submit-Button ausserhalb des Formulars, wird er mit `type="submit"` und `form="<formular-id>"` eindeutig dem Formular zugeordnet.
+- Liegt der Submit-Button außerhalb des Formulars, wird er mit `type="submit"` und `form="<formular-id>"` eindeutig dem Formular zugeordnet.
 
 ## Naming
 
-- Fachliche Projekt- und Domaenenbegriffe im UI, in Modellen und in Firestore-Pfaden werden auf Deutsch gehalten.
-- Technische Aktionen und uebliche Code-Verben bleiben auf Englisch, z. B. `load`, `get`, `set`, `subscribe`, `filter`, `map` und `handle`.
-- Kombiniere englische technische Verben mit deutschen Domaenenbegriffen, z. B. `loadMitarbeiter`, `getMitarbeiter`, `updateFilter` und `handleMitarbeiterSelect`.
-- Lademethoden heissen `load...`, Speichermethoden `save...`, reine Neuanlagen `create...` und Loeschmethoden `delete...`.
+- Fachliche Projekt- und Domänenbegriffe im UI, in Modellen und in Firestore-Pfaden werden auf Deutsch gehalten.
+- Technische Aktionen und übliche Code-Verben bleiben auf Englisch, z. B. `load`, `get`, `set`, `subscribe`, `filter`, `map` und `handle`.
+- Kombiniere englische technische Verben mit deutschen Domänenbegriffen, z. B. `loadMitarbeiter`, `getMitarbeiter`, `updateFilter` und `handleMitarbeiterSelect`.
+- Lademethoden heißen `load...`, Speichermethoden `save...`, reine Neuanlagen `create...` und Löschmethoden `delete...`.
 - In Stores kennzeichnet `download` einen laufenden Ladevorgang.
-- In Stores kennzeichnet `isLoaded`, dass Daten erfolgreich vollstaendig geladen wurden, wenn zwischen noch nicht geladenen und geladenen, aber leeren Daten unterschieden werden muss.
-- In Stores kennzeichnet `inProgress` laufende Schreiboperationen wie Anlegen, Speichern oder Loeschen.
+- In Stores kennzeichnet `isLoaded`, dass Daten erfolgreich vollständig geladen wurden, wenn zwischen noch nicht geladenen und geladenen, aber leeren Daten unterschieden werden muss.
+- In Stores kennzeichnet `inProgress` laufende Schreiboperationen wie Anlegen, Speichern oder Löschen.
 - Deutsche Aktionsnamen wie `laden`, `geladen`, `anlegen` oder `speichern` werden nicht als Store-State-Namen verwendet.
-- Auswahlzustaende werden mit `selected` und dem deutschen Domaenenbegriff benannt, z. B. `selectedFirma` oder `selectedUnternehmer`.
+- Auswahlzustände werden mit `selected` und dem deutschen Domänenbegriff benannt, z. B. `selectedFirma` oder `selectedUnternehmer`.
 - Fachliche Domain-Dateien werden ohne Suffix benannt, z. B. `mitarbeiter.ts` oder `filiale.ts`.
 - Technische oder lose Typ-Sammlungen verwenden `.types.ts`.
 - Konkrete Klassen oder Model-Implementierungen verwenden `.model.ts`.
@@ -75,26 +76,27 @@
 
 ## Code-Dokumentation
 
+- Deutsche Texte, Kommentare und JSDoc verwenden echte Umlaute und `ß`. Die Umschreibungen `ae`, `oe`, `ue` sowie `ss` anstelle von `ß` werden dort nicht verwendet. Technische Bezeichner, Dateinamen, Pfade, Firestore-Schlüssel und API-Werte bleiben unverändert.
 - JSDoc-Kommentare werden auf Deutsch geschrieben.
-- JSDoc wird immer mehrzeilig geschrieben; einzeilige Schreibweisen wie `/** Beschreibung. */` sind nicht zulaessig.
-- Auch kurze JSDoc-Beschreibungen verwenden das Format mit eigener Oeffnungszeile, Beschreibungszeile und Abschlusszeile.
-- Oeffentliche Methoden in Components, Services und Stores erhalten JSDoc.
-- Private Hilfsmethoden erhalten nur JSDoc, wenn ihre Logik nicht selbsterklaerend ist.
-- Neue oeffentliche Methoden werden direkt bei ihrer Erstellung dokumentiert.
+- JSDoc wird immer mehrzeilig geschrieben; einzeilige Schreibweisen wie `/** Beschreibung. */` sind nicht zulässig.
+- Auch kurze JSDoc-Beschreibungen verwenden das Format mit eigener Öffnungszeile, Beschreibungszeile und Abschlusszeile.
+- Öffentliche Methoden in Components, Services und Stores erhalten JSDoc.
+- Private Hilfsmethoden erhalten nur JSDoc, wenn ihre Logik nicht selbsterklärend ist.
+- Neue öffentliche Methoden werden direkt bei ihrer Erstellung dokumentiert.
 
 ## Coding-Stil
 
 - Imports werden nach Herkunft gruppiert, innerhalb der Importliste aber ohne Leerzeilen: Angular und Frameworks, Commons, Stores und Services, lokale relative Imports.
 - Gleichartige Deklarationen werden innerhalb eines Abschnitts kompakt ohne Leerzeilen gruppiert.
 - Leerzeilen trennen unterschiedliche Abschnitte oder klar unterschiedliche Arten von Logik.
-- Code in Components, Pages, Services und Stores wird nach den unten definierten Abschnittsbloecken geordnet.
-- Abschnittsbloecke werden nur angelegt, wenn der jeweilige Inhalt vorhanden ist; leere Abschnittsueberschriften werden weggelassen.
-- Arrow Functions werden grundsaetzlich mit Block-Body und explizitem `return` geschrieben; die kompakte Expression-Body-Schreibweise `() => wert` wird nicht verwendet.
+- Code in Components, Pages, Services und Stores wird nach den unten definierten Abschnittsblöcken geordnet.
+- Abschnittsblöcke werden nur angelegt, wenn der jeweilige Inhalt vorhanden ist; leere Abschnittsüberschriften werden weggelassen.
+- Arrow Functions werden grundsätzlich mit Block-Body und explizitem `return` geschrieben; die kompakte Expression-Body-Schreibweise `() => wert` wird nicht verwendet.
 - Callbacks von `computed()` werden immer mit Block-Body und explizitem `return` geschrieben; die kompakte Expression-Body-Schreibweise wie `computed(() => store.inProgress())` wird auch bei kurzen Berechnungen nicht verwendet.
-- Fuer kurze Array-Callbacks wie `map()`, `filter()`, `find()`, `some()`, `every()` und `sort()` bleibt die kompakte Expression-Body-Schreibweise erlaubt.
-- `withComputed()` verwendet immer einen Block-Body. Computed-Signale werden darin als lokale Konstanten definiert und ueber einen gemeinsamen expliziten `return` als oeffentliche Store-API zurueckgegeben.
-- `withMethods()` verwendet immer einen Block-Body. Methoden werden darin als benannte lokale Funktionsdeklarationen geschrieben und ueber einen gemeinsamen expliziten `return` als oeffentliche Store-API zurueckgegeben.
-- Lokale Funktionen in `withMethods()`, die nicht im abschliessenden Objekt zurueckgegeben werden, gelten als private Helfer des Stores.
+- Für kurze Array-Callbacks wie `map()`, `filter()`, `find()`, `some()`, `every()` und `sort()` bleibt die kompakte Expression-Body-Schreibweise erlaubt.
+- `withComputed()` verwendet immer einen Block-Body. Computed-Signale werden darin als lokale Konstanten definiert und über einen gemeinsamen expliziten `return` als öffentliche Store-API zurückgegeben.
+- `withMethods()` verwendet immer einen Block-Body. Methoden werden darin als benannte lokale Funktionsdeklarationen geschrieben und über einen gemeinsamen expliziten `return` als öffentliche Store-API zurückgegeben.
+- Lokale Funktionen in `withMethods()`, die nicht im abschließenden Objekt zurückgegeben werden, gelten als private Helfer des Stores.
 - Die direkten Objektliteral-Schreibweisen `withComputed(() => ({ ... }))` und `withMethods(() => ({ ... }))` werden nicht verwendet.
 
 ### Components und Pages
@@ -102,14 +104,14 @@
 1.  `// ===== Top-Level Helper =====================`
 2.  `// ===== Interne Dependency Injection =========`
 3.  `// ===== Konstanten & Typen ===================`
-4.  `// ===== Oeffentliche API ======================`
+4.  `// ===== Öffentliche API ======================`
 5.  `// ===== View Queries =========================`
 6.  `// ===== Interner State =======================`
 7.  `// ===== Interne Ableitungen ==================`
-8.  `// ===== Oeffentliche Werte ====================`
-9.  `// ===== Oeffentliche Ableitungen ==============`
+8.  `// ===== Öffentliche Werte ====================`
+9.  `// ===== Öffentliche Ableitungen ==============`
 10. `// ===== Lifecycle Hooks ======================`
-11. `// ===== Oeffentliche Aktionen =================`
+11. `// ===== Öffentliche Aktionen =================`
 12. `// ===== Interne Helfer =======================`
 
 ### Services
@@ -117,12 +119,12 @@
 1.  `// ===== Top-Level Helper =====================`
 2.  `// ===== Interne Dependency Injection =========`
 3.  `// ===== Konstanten & Typen ===================`
-4.  `// ===== Oeffentliche API ======================`
+4.  `// ===== Öffentliche API ======================`
 5.  `// ===== Interner State =======================`
 6.  `// ===== Interne Ableitungen ==================`
-7.  `// ===== Oeffentliche Werte ====================`
-8.  `// ===== Oeffentliche Ableitungen ==============`
-9.  `// ===== Oeffentliche Aktionen =================`
+7.  `// ===== Öffentliche Werte ====================`
+8.  `// ===== Öffentliche Ableitungen ==============`
+9.  `// ===== Öffentliche Aktionen =================`
 10. `// ===== Interne Helfer =======================`
 
 ### Stores
@@ -135,20 +137,20 @@
 ## Styles und UI
 
 - Nutze Angular Material/CDK als bestehendes UI-System.
-- Wiederverwendbare CSS-Klassen folgen BEM: `block__element` fuer Elemente und `block__element--modifier` fuer Varianten oder Zustaende. Zusammengesetzte Elementnamen verwenden einfache Bindestriche.
-- Formulargruppen verwenden `pur-form__group`; ihre Ueberschriften verwenden `pur-form__group-titel` (in SCSS unter `&__group` als `&-titel`). `titel` ist ein eigenes Element, kein Modifier.
-- Formulargruppen werden ohne `fieldset` und `legend` aufgebaut: `div`-Gruppen mit sichtbaren `h2`-Ueberschriften mit `pur-form__group-titel`. Diese Gruppen-Divs erhalten weder `role="group"` noch `aria-label` oder `aria-labelledby`. Beschriftungen fuer Bedienelemente wie reine Icon-Buttons bleiben davon unberuehrt.
+- Wiederverwendbare CSS-Klassen folgen BEM: `block__element` für Elemente und `block__element--modifier` für Varianten oder Zustände. Zusammengesetzte Elementnamen verwenden einfache Bindestriche.
+- Formulargruppen verwenden `pur-form__group`; ihre Überschriften verwenden `pur-form__group-titel` (in SCSS unter `&__group` als `&-titel`). `titel` ist ein eigenes Element, kein Modifier.
+- Formulargruppen werden ohne `fieldset` und `legend` aufgebaut: `div`-Gruppen mit sichtbaren `h2`-Überschriften mit `pur-form__group-titel`. Diese Gruppen-Divs erhalten weder `role="group"` noch `aria-label` oder `aria-labelledby`. Beschriftungen für Bedienelemente wie reine Icon-Buttons bleiben davon unberührt.
 - Komponentenbezogene Styles liegen in der jeweiligen Component-SCSS-Datei; bewusst wiederverwendbare Styles liegen unter `src/assets/scss`.
 - Lokale Component-SCSS-Dateien bleiben als eingebundene Platzhalter bestehen und werden auch dann nicht entfernt, wenn aktuell alle Styles durch globale Klassen abgedeckt sind.
 - Beachte die vorhandenen Prettier-Einstellungen aus `package.json`.
 
-## Arbeitsweise und Pruefungen
+## Arbeitsweise und Prüfungen
 
-- Halte Aenderungen auf die vereinbarte Aufgabe beschraenkt; keine unnoetigen Refactorings.
-- Erhalte bestehende Aenderungen des Benutzers. Dateien nur loeschen, wenn es zur vereinbarten Aufgabe gehoert; keine destruktiven Git-Aktionen ohne ausdruecklichen Auftrag.
+- Halte Änderungen auf die vereinbarte Aufgabe beschränkt; keine unnötigen Refactorings.
+- Erhalte bestehende Änderungen des Benutzers. Dateien nur löschen, wenn es zur vereinbarten Aufgabe gehört; keine destruktiven Git-Aktionen ohne ausdrücklichen Auftrag.
 - Verwende die vorhandenen npm-Skripte aus dem Projekt-Root. Der lokale Dev-Server startet mit `npm run start-web`.
-- Fuege Dependencies nur bei begruendetem Bedarf hinzu und aktualisiere `package.json` und `package-lock.json` gemeinsam.
-- Tests bleiben bei Vitest; keine Karma-/Jasmine-Pakete einfuehren.
-- Ergaenze oder aktualisiere passende `.spec.ts` Dateien bei Verhaltensaenderungen.
-- Fuehre vor Abschluss von Code-Aenderungen `npm test` ohne Watch-Modus aus.
-- Fuehre bei Build-, Template- oder groesseren UI-Aenderungen zusaetzlich `npm run build` aus.
+- Füge Dependencies nur bei begründetem Bedarf hinzu und aktualisiere `package.json` und `package-lock.json` gemeinsam.
+- Tests bleiben bei Vitest; keine Karma-/Jasmine-Pakete einführen.
+- Ergänze oder aktualisiere passende `.spec.ts` Dateien bei Verhaltensänderungen.
+- Führe vor Abschluss von Code-Änderungen `npm test` ohne Watch-Modus aus.
+- Führe bei Build-, Template- oder größeren UI-Änderungen zusätzlich `npm run build` aus.

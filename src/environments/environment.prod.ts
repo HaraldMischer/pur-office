@@ -4,5 +4,6 @@ import { firebaseConfig } from './firebase-config';
 
 export const environment = {
   production: true,
+  debugLog: false,
   firebase: firebaseConfig,
 };

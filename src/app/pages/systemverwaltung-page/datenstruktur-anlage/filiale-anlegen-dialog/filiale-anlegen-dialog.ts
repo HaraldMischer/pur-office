@@ -51,7 +51,7 @@ export class FilialeAnlegenDialog {
   private readonly dialogDaten = inject<IFilialeAnlegenDialogDaten>(MAT_DIALOG_DATA);
   readonly filialeStore = inject(FilialeStore);
 
-  // ===== Oeffentliche Werte ====================
+  // ===== Öffentliche Werte ====================
 
   readonly filialeForm = new FormGroup({
     anzeigename: new FormControl('', {
@@ -89,12 +89,12 @@ export class FilialeAnlegenDialog {
     }),
   });
 
-  // ===== Oeffentliche Aktionen =================
+  // ===== Öffentliche Aktionen =================
 
   /**
-   * Validiert das Formular, legt die Filiale an und schliesst den Dialog mit dem Ergebnis.
+   * Validiert das Formular, legt die Filiale an und schließt den Dialog mit dem Ergebnis.
    *
-   * @returns Ein Promise, das nach Abschluss des Anlageversuchs aufgeloest wird.
+   * @returns Ein Promise, das nach Abschluss des Anlageversuchs aufgelöst wird.
    */
   async onSubmit(): Promise<void> {
     const emailControl = this.filialeForm.controls.kontakt.controls.email;

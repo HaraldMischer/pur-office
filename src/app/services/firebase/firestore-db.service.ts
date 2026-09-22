@@ -34,64 +34,70 @@ export class FirestoreDbService {
   private readonly serverTimestamp = inject(FIRESTORE_SERVER_TIMESTAMP);
   private readonly setDoc = inject(FIRESTORE_SET_DOC);
 
-  // ===== Oeffentliche Aktionen =================
+  // ===== Interner State =======================
+
+  private readonly laufendeLeseauftraege = new Map<string, Promise<unknown>>();
+
+  // ===== Öffentliche Aktionen =================
 
   /**
-   * Laedt alle Dokumente einer Firestore-Collection.
+   * Lädt alle Dokumente einer Firestore-Collection.
    *
-   * @param collectionPath - Vollstaendiger Pfad der Collection.
-   * @returns Dokument-IDs und unveraenderte Firestore-Daten.
+   * @param collectionPath - Vollständiger Pfad der Collection.
+   * @returns Dokument-IDs und unveränderte Firestore-Daten.
    * @throws Gibt Fehler des Firestore-Zugriffs an die aufrufende Stelle weiter.
    */
-  async loadCollection<T extends DocumentData>(
-    collectionPath: string,
-  ): Promise<IFirestoreDokument<T>[]> {
-    return this.loadingService.trackLoad(async () => {
-      const snapshot = await this.runInContext(() => {
-        const collectionRef = this.collection(this.firestore, collectionPath);
-        return this.getDocs(collectionRef);
-      });
+  loadCollection<T extends DocumentData>(collectionPath: string): Promise<IFirestoreDokument<T>[]> {
+    return this.getOrCreateLeseauftrag(`collection:${collectionPath}`, () => {
+      return this.loadingService.trackLoad(async () => {
+        const snapshot = await this.runInContext(() => {
+          const collectionRef = this.collection(this.firestore, collectionPath);
+          return this.getDocs(collectionRef);
+        });
 
-      return snapshot.docs.map((dokument) => {
+        return snapshot.docs.map((dokument) => {
+          return {
+            id: dokument.id,
+            daten: dokument.data() as T,
+          };
+        });
+      });
+    });
+  }
+
+  /**
+   * Lädt ein einzelnes Firestore-Dokument.
+   *
+   * @param documentPath - Vollständiger Pfad des Dokuments.
+   * @returns Dokument-ID und Daten oder `null`, wenn das Dokument nicht existiert.
+   * @throws Gibt Fehler des Firestore-Zugriffs an die aufrufende Stelle weiter.
+   */
+  loadDocument<T extends DocumentData>(
+    documentPath: string,
+  ): Promise<IFirestoreDokument<T> | null> {
+    return this.getOrCreateLeseauftrag(`document:${documentPath}`, () => {
+      return this.loadingService.trackLoad(async () => {
+        const snapshot = await this.runInContext(() => {
+          const documentRef = this.doc(this.firestore, documentPath);
+          return this.getDoc(documentRef);
+        });
+
+        if (!snapshot.exists()) {
+          return null;
+        }
+
         return {
-          id: dokument.id,
-          daten: dokument.data() as T,
+          id: snapshot.id,
+          daten: snapshot.data() as T,
         };
       });
     });
   }
 
   /**
-   * Laedt ein einzelnes Firestore-Dokument.
-   *
-   * @param documentPath - Vollstaendiger Pfad des Dokuments.
-   * @returns Dokument-ID und Daten oder `null`, wenn das Dokument nicht existiert.
-   * @throws Gibt Fehler des Firestore-Zugriffs an die aufrufende Stelle weiter.
-   */
-  async loadDocument<T extends DocumentData>(
-    documentPath: string,
-  ): Promise<IFirestoreDokument<T> | null> {
-    return this.loadingService.trackLoad(async () => {
-      const snapshot = await this.runInContext(() => {
-        const documentRef = this.doc(this.firestore, documentPath);
-        return this.getDoc(documentRef);
-      });
-
-      if (!snapshot.exists()) {
-        return null;
-      }
-
-      return {
-        id: snapshot.id,
-        daten: snapshot.data() as T,
-      };
-    });
-  }
-
-  /**
    * Legt ein Dokument mit automatisch erzeugter Dokument-ID an.
    *
-   * @param collectionPath - Vollstaendiger Pfad der Ziel-Collection.
+   * @param collectionPath - Vollständiger Pfad der Ziel-Collection.
    * @param daten - Zu speichernde Dokumentdaten.
    * @returns Die von Firestore erzeugte Dokument-ID.
    * @throws Gibt Fehler des Firestore-Zugriffs an die aufrufende Stelle weiter.
@@ -106,11 +112,11 @@ export class FirestoreDbService {
   }
 
   /**
-   * Aktualisiert ein Dokument, ohne nicht uebergebene Felder zu entfernen.
+   * Aktualisiert ein Dokument, ohne nicht übergebene Felder zu entfernen.
    *
-   * @param documentPath - Vollstaendiger Pfad des Dokuments.
+   * @param documentPath - Vollständiger Pfad des Dokuments.
    * @param daten - Zu aktualisierende Dokumentfelder.
-   * @returns Ein Promise, das nach dem bestaetigten Schreibvorgang abgeschlossen ist.
+   * @returns Ein Promise, das nach dem bestätigten Schreibvorgang abgeschlossen ist.
    * @throws Gibt Fehler des Firestore-Zugriffs an die aufrufende Stelle weiter.
    */
   async updateDocument<T extends DocumentData>(documentPath: string, daten: T): Promise<void> {
@@ -121,15 +127,35 @@ export class FirestoreDbService {
   }
 
   /**
-   * Erzeugt einen serverseitig aufgeloesten Firestore-Zeitstempel.
+   * Erzeugt einen serverseitig aufgelösten Firestore-Zeitstempel.
    *
-   * @returns Platzhalter fuer den Firestore-Server-Zeitstempel.
+   * @returns Platzhalter für den Firestore-Server-Zeitstempel.
    */
   createServerTimestamp(): FieldValue {
     return this.serverTimestamp();
   }
 
   // ===== Interne Helfer =======================
+
+  /**
+   * Verwendet einen bereits laufenden Leseauftrag für denselben Schlüssel erneut.
+   *
+   * @param key - Eindeutiger Schlüssel aus Leseart und Firestore-Pfad.
+   * @param load - Erst bei fehlendem Auftrag auszuführende Ladefunktion.
+   * @returns Der vorhandene oder neu gestartete Leseauftrag.
+   */
+  private getOrCreateLeseauftrag<T>(key: string, load: () => Promise<T>): Promise<T> {
+    const laufenderAuftrag = this.laufendeLeseauftraege.get(key) as Promise<T> | undefined;
+    if (laufenderAuftrag) return laufenderAuftrag;
+
+    const auftrag = load().finally(() => {
+      if (this.laufendeLeseauftraege.get(key) === auftrag) {
+        this.laufendeLeseauftraege.delete(key);
+      }
+    });
+    this.laufendeLeseauftraege.set(key, auftrag);
+    return auftrag;
+  }
 
   private runInContext<T>(aktion: () => T): T {
     return runInInjectionContext(this.environmentInjector, aktion);

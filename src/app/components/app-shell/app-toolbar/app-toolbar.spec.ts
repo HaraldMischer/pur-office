@@ -4,7 +4,7 @@ import { signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { Router, provideRouter } from '@angular/router';
 import { LoadingService } from '../../../services/core/loading.service';
-import { StoreDebugService } from '../../../services/core/store-debug.service';
+import { StoreSnapshotService } from '../../../services/core/store-snapshot.service';
 import { ThemeService } from '../../../services/core/theme.service';
 import { BenutzerStore } from '../../../stores/app/benutzer.store';
 import { AppToolbar } from './app-toolbar';
@@ -17,7 +17,7 @@ describe('AppToolbar', () => {
     themeIcon: ReturnType<typeof vi.fn>;
     toggleThemeMode: ReturnType<typeof vi.fn>;
   };
-  let storeDebugServiceMock: {
+  let storeSnapshotServiceMock: {
     logStoreSnapshots: ReturnType<typeof vi.fn>;
   };
   const isLoading = signal(false);
@@ -30,7 +30,7 @@ describe('AppToolbar', () => {
       themeIcon: vi.fn().mockReturnValue('dark_mode'),
       toggleThemeMode: vi.fn(),
     };
-    storeDebugServiceMock = {
+    storeSnapshotServiceMock = {
       logStoreSnapshots: vi.fn(),
     };
     isLoading.set(false);
@@ -41,7 +41,7 @@ describe('AppToolbar', () => {
         provideRouter([]),
         { provide: BenutzerStore, useValue: benutzerStoreMock },
         { provide: LoadingService, useValue: { isLoading } },
-        { provide: StoreDebugService, useValue: storeDebugServiceMock },
+        { provide: StoreSnapshotService, useValue: storeSnapshotServiceMock },
         { provide: ThemeService, useValue: themeServiceMock },
       ],
     }).compileComponents();
@@ -187,6 +187,6 @@ describe('AppToolbar', () => {
       .querySelector<HTMLButtonElement>('[aria-label="Store-Snapshots protokollieren"]')
       ?.click();
 
-    expect(storeDebugServiceMock.logStoreSnapshots).toHaveBeenCalledOnce();
+    expect(storeSnapshotServiceMock.logStoreSnapshots).toHaveBeenCalledOnce();
   });
 });

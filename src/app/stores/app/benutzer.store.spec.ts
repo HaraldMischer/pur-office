@@ -4,9 +4,11 @@ import { TestBed } from '@angular/core/testing';
 import { UserCredential } from '@angular/fire/auth';
 
 import { IBenutzerProfilDokument } from '../../commons/models/domain/benutzer';
+import { DebugLogService } from '../../services/core/debug-log.service';
 import { AuthService } from '../../services/firebase/auth.service';
-import { BenutzerService } from '../../services/firebase/benutzer.service';
+import { BenutzerService } from '../../services/domain/benutzer.service';
 import { BenutzerStore } from './benutzer.store';
+import { StammdatenStore } from './stammdaten.store';
 
 describe('BenutzerStore', () => {
   let authServiceMock: {
@@ -16,6 +18,16 @@ describe('BenutzerStore', () => {
   };
   let benutzerServiceMock: {
     getBenutzerProfil: ReturnType<typeof vi.fn>;
+  };
+  let stammdatenStoreMock: {
+    isLoaded: ReturnType<typeof vi.fn>;
+    loadStammdaten: ReturnType<typeof vi.fn>;
+    reset: ReturnType<typeof vi.fn>;
+  };
+  let debugLogServiceMock: {
+    log: ReturnType<typeof vi.fn>;
+    logDatenflussTitel: ReturnType<typeof vi.fn>;
+    logDatenGeladen: ReturnType<typeof vi.fn>;
   };
   let profil: IBenutzerProfilDokument;
 
@@ -36,11 +48,23 @@ describe('BenutzerStore', () => {
     benutzerServiceMock = {
       getBenutzerProfil: vi.fn().mockResolvedValue(profil),
     };
+    stammdatenStoreMock = {
+      isLoaded: vi.fn().mockReturnValue(false),
+      loadStammdaten: vi.fn().mockResolvedValue(undefined),
+      reset: vi.fn(),
+    };
+    debugLogServiceMock = {
+      log: vi.fn(),
+      logDatenflussTitel: vi.fn(),
+      logDatenGeladen: vi.fn(),
+    };
 
     TestBed.configureTestingModule({
       providers: [
+        { provide: DebugLogService, useValue: debugLogServiceMock },
         { provide: AuthService, useValue: authServiceMock },
         { provide: BenutzerService, useValue: benutzerServiceMock },
+        { provide: StammdatenStore, useValue: stammdatenStoreMock },
       ],
     });
   });
@@ -88,6 +112,32 @@ describe('BenutzerStore', () => {
     expect(store.isAuthenticated()).toBe(true);
     expect(store.benutzerProfil()).toBe(profil);
     expect(store.isLoggedIn()).toBe(true);
+    expect(debugLogServiceMock.logDatenflussTitel).toHaveBeenCalledWith('1. BENUTZERPROFIL ');
+    expect(debugLogServiceMock.logDatenGeladen).toHaveBeenCalledWith('Benutzerprofil', 1, profil);
+    expect(stammdatenStoreMock.loadStammdaten).toHaveBeenCalledWith('benutzer-123', profil);
+  });
+
+  it('should share parallel profile loads and reuse the loaded profile', async () => {
+    let resolveProfil!: (value: IBenutzerProfilDokument) => void;
+    benutzerServiceMock.getBenutzerProfil.mockReturnValue(
+      new Promise<IBenutzerProfilDokument>((resolve) => {
+        resolveProfil = resolve;
+      }),
+    );
+    const store = TestBed.inject(BenutzerStore);
+
+    const ersterAuftrag = store.loadBenutzerProfil('benutzer-123');
+    const zweiterAuftrag = store.loadBenutzerProfil('benutzer-123');
+
+    expect(ersterAuftrag).toBe(zweiterAuftrag);
+    expect(benutzerServiceMock.getBenutzerProfil).toHaveBeenCalledOnce();
+
+    resolveProfil(profil);
+    await Promise.all([ersterAuftrag, zweiterAuftrag]);
+    await store.loadBenutzerProfil('benutzer-123');
+
+    expect(benutzerServiceMock.getBenutzerProfil).toHaveBeenCalledOnce();
+    expect(store.benutzerProfil()).toBe(profil);
   });
 
   it('should expose permission helpers for areas, companies and branches', () => {
@@ -114,6 +164,7 @@ describe('BenutzerStore', () => {
     await store.logout();
 
     expect(authServiceMock.logout).toHaveBeenCalledOnce();
+    expect(stammdatenStoreMock.reset).toHaveBeenCalled();
     expect(store.benutzerProfil()).toBeNull();
   });
 

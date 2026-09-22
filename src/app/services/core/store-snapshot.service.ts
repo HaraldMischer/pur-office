@@ -1,18 +1,24 @@
-// pur-office/src/app/services/core/store-debug.service.ts
+// pur-office/src/app/services/core/store-snapshot.service.ts
 
-import { Injectable, isDevMode } from '@angular/core';
+import { Injectable, inject, isDevMode } from '@angular/core';
+
+import { DebugLogService } from './debug-log.service';
 
 type TStoreSnapshotProvider = () => unknown;
 
 @Injectable({
   providedIn: 'root',
 })
-export class StoreDebugService {
+export class StoreSnapshotService {
+  // ===== Interne Dependency Injection =========
+
+  private readonly debugLogService = inject(DebugLogService);
+
   // ===== Interner State =======================
 
   private readonly _snapshotProvider = new Map<string, TStoreSnapshotProvider>();
 
-  // ===== Oeffentliche Aktionen =================
+  // ===== Öffentliche Aktionen =================
 
   /**
    * Registriert den Snapshot-Provider einer aktiven Store-Instanz.
@@ -49,6 +55,6 @@ export class StoreDebugService {
       }),
     );
 
-    console.log('[Store-Snapshots]', snapshots);
+    this.debugLogService.log('Store', 'Snapshots', snapshots);
   }
 }

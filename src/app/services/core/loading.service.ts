@@ -8,23 +8,23 @@ export class LoadingService {
 
   private readonly _aktiveLadevorgaenge = signal(0);
 
-  // ===== Oeffentliche Ableitungen ==============
+  // ===== Öffentliche Ableitungen ==============
 
   readonly isLoading = computed(() => {
     return this._aktiveLadevorgaenge() > 0;
   });
 
-  // ===== Oeffentliche Aktionen =================
+  // ===== Öffentliche Aktionen =================
 
   /**
-   * Registriert einen asynchronen Ladevorgang fuer den globalen Ladeindikator.
+   * Registriert einen asynchronen Ladevorgang für den globalen Ladeindikator.
    *
-   * Parallel laufende Aufrufe werden gezaehlt, damit der Ladeindikator erst nach Abschluss
+   * Parallel laufende Aufrufe werden gezählt, damit der Ladeindikator erst nach Abschluss
    * des letzten Aufrufs ausgeblendet wird.
    *
-   * @param load - Die auszufuehrende asynchrone Ladefunktion.
+   * @param load - Die auszuführende asynchrone Ladefunktion.
    * @returns Das Ergebnis der Ladefunktion.
-   * @throws Gibt Fehler der Ladefunktion unveraendert an die aufrufende Stelle weiter.
+   * @throws Gibt Fehler der Ladefunktion unverändert an die aufrufende Stelle weiter.
    */
   async trackLoad<T>(load: () => Promise<T>): Promise<T> {
     this._aktiveLadevorgaenge.update((anzahl) => anzahl + 1);

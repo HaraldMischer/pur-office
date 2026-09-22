@@ -12,18 +12,18 @@ describe('getFirebaseErrorMessage', () => {
   it('should return a friendly message for permission errors', () => {
     const message = getFirebaseErrorMessage({ code: 'permission-denied' });
 
-    expect(message).toBe('Du hast keine Berechtigung fuer diese Aktion.');
+    expect(message).toBe('Du hast keine Berechtigung für diese Aktion.');
   });
 
   it('should return the fallback message for unknown errors', () => {
     const message = getFirebaseErrorMessage({ code: 'unknown-error' });
 
-    expect(message).toBe('Die Aktion konnte nicht ausgefuehrt werden.');
+    expect(message).toBe('Die Aktion konnte nicht ausgeführt werden.');
   });
 
   it('should return the fallback message when the error is not Firebase-like', () => {
     const message = getFirebaseErrorMessage('kaputt');
 
-    expect(message).toBe('Die Aktion konnte nicht ausgefuehrt werden.');
+    expect(message).toBe('Die Aktion konnte nicht ausgeführt werden.');
   });
 });

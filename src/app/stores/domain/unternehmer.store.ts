@@ -8,8 +8,9 @@ import {
   IUnternehmerEintrag,
 } from '../../commons/models/domain/unternehmer';
 import { getFirebaseErrorMessage } from '../../commons/utils/errors/firebase-error-message';
-import { StoreDebugService } from '../../services/core/store-debug.service';
-import { UnternehmerService } from '../../services/firebase/unternehmer.service';
+import { StoreSnapshotService } from '../../services/core/store-snapshot.service';
+import { UnternehmerService } from '../../services/domain/unternehmer.service';
+import { StammdatenStore } from '../app/stammdaten.store';
 
 // ===== Top-Level Helper =====================
 
@@ -31,7 +32,9 @@ const initialState: TUnternehmerState = {
   error: null,
 };
 
-function sortUnternehmer(unternehmer: IUnternehmerEintrag[]): readonly IUnternehmerEintrag[] {
+function sortUnternehmer(
+  unternehmer: readonly IUnternehmerEintrag[],
+): readonly IUnternehmerEintrag[] {
   return [...unternehmer].sort((a, b) => a.anzeigename.localeCompare(b.anzeigename, 'de'));
 }
 
@@ -46,15 +49,16 @@ export const UnternehmerStore = signalStore(
     (
       store,
       unternehmerService = inject(UnternehmerService),
+      stammdatenStore = inject(StammdatenStore),
       destroyRef = inject(DestroyRef),
-      storeDebugService = inject(StoreDebugService),
+      storeSnapshotService = inject(StoreSnapshotService),
     ) => {
       // ===== Methoden: Laden ======================
 
       /**
-       * Laedt alle Unternehmer und aktualisiert die sortierte Unternehmerliste im Store.
+       * Lädt alle Unternehmer und aktualisiert die sortierte Unternehmerliste im Store.
        *
-       * @returns Ein Promise, das nach dem vollstaendigen Laden abgeschlossen ist.
+       * @returns Ein Promise, das nach dem vollständigen Laden abgeschlossen ist.
        * @throws Gibt Fehler des Firestore-Zugriffs an die aufrufende Stelle weiter.
        */
       async function loadUnternehmer(): Promise<void> {
@@ -62,7 +66,9 @@ export const UnternehmerStore = signalStore(
 
         patchState(store, { download: true, isLoaded: false, error: null });
         try {
-          const unternehmer = await unternehmerService.loadUnternehmer();
+          const unternehmer = stammdatenStore.isLoaded()
+            ? stammdatenStore.unternehmer()
+            : await unternehmerService.loadUnternehmer();
           patchState(store, { unternehmer: sortUnternehmer(unternehmer), isLoaded: true });
         } catch (error: unknown) {
           patchState(store, { error: getFirebaseErrorMessage(error) });
@@ -75,11 +81,11 @@ export const UnternehmerStore = signalStore(
       // ===== Methoden: Schreiben ==================
 
       /**
-       * Legt einen Unternehmer mit der naechsten freien Nummer an und aktualisiert die Liste.
+       * Legt einen Unternehmer mit der nächsten freien Nummer an und aktualisiert die Liste.
        *
        * @param anlage - Die Daten des neu anzulegenden Unternehmers.
        * @returns Das Anlageergebnis mit Dokument-ID, Nummer und Anzeigename.
-       * @throws Wenn die Unternehmerliste nicht vollstaendig geladen ist oder das Speichern fehlschlaegt.
+       * @throws Wenn die Unternehmerliste nicht vollständig geladen ist oder das Speichern fehlschlägt.
        */
       async function createUnternehmer(
         anlage: IUnternehmerAnlage,
@@ -92,6 +98,7 @@ export const UnternehmerStore = signalStore(
         try {
           const nummer = getNaechsteNummer(store.unternehmer());
           const ergebnis = await unternehmerService.createUnternehmer(anlage, nummer);
+          stammdatenStore.upsertUnternehmer(ergebnis);
           const unternehmer = store.unternehmer().filter((eintrag) => eintrag.id !== ergebnis.id);
           patchState(store, {
             unternehmer: sortUnternehmer([...unternehmer, ergebnis]),
@@ -110,7 +117,7 @@ export const UnternehmerStore = signalStore(
       /**
        * Liefert eine Momentaufnahme des aktuellen Unternehmer-Store-Zustands.
        *
-       * @returns Vollstaendiger, nicht reaktiv verfolgter Store-Zustand.
+       * @returns Vollständiger, nicht reaktiv verfolgter Store-Zustand.
        */
       function snapshot(): TUnternehmerSnapshot {
         return untracked(() => ({
@@ -129,7 +136,7 @@ export const UnternehmerStore = signalStore(
         patchState(store, { error: null });
       }
 
-      const unregisterSnapshot = storeDebugService.registerStoreSnapshot(
+      const unregisterSnapshot = storeSnapshotService.registerStoreSnapshot(
         'UnternehmerStore',
         snapshot,
       );

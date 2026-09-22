@@ -4,9 +4,9 @@ import { signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 
 import { IBenutzerProfilDokument } from '../../commons/models/domain/benutzer';
-import { FilialeService } from '../../services/firebase/filiale.service';
-import { FirmaService } from '../../services/firebase/firma.service';
-import { UnternehmerService } from '../../services/firebase/unternehmer.service';
+import { FilialeService } from '../../services/domain/filiale.service';
+import { FirmaService } from '../../services/domain/firma.service';
+import { UnternehmerService } from '../../services/domain/unternehmer.service';
 import { BenutzerStore } from '../app/benutzer.store';
 import { VerwaltungStore } from './verwaltung.store';
 

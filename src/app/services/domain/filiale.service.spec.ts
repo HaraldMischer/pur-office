@@ -1,10 +1,10 @@
-// pur-office/src/app/services/firebase/filiale.service.spec.ts
+// pur-office/src/app/services/domain/filiale.service.spec.ts
 
 import { TestBed } from '@angular/core/testing';
 
 import { IFilialeAnlage } from '../../commons/models/domain/filiale';
 import { FilialeService } from './filiale.service';
-import { FirestoreDbService } from './firestore-db.service';
+import { FirestoreDbService } from '../firebase/firestore-db.service';
 
 describe('FilialeService', () => {
   const firestoreDbServiceMock = {

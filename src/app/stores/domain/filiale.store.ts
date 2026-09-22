@@ -9,8 +9,9 @@ import {
   IFilialeEintrag,
 } from '../../commons/models/domain/filiale';
 import { getFirebaseErrorMessage } from '../../commons/utils/errors/firebase-error-message';
-import { StoreDebugService } from '../../services/core/store-debug.service';
-import { FilialeService } from '../../services/firebase/filiale.service';
+import { StoreSnapshotService } from '../../services/core/store-snapshot.service';
+import { FilialeService } from '../../services/domain/filiale.service';
+import { StammdatenStore } from '../app/stammdaten.store';
 
 // ===== Top-Level Helper =====================
 
@@ -36,7 +37,7 @@ const initialState: TFilialeState = {
   error: null,
 };
 
-function sortFilialen(filialen: IFilialeEintrag[]): readonly IFilialeEintrag[] {
+function sortFilialen(filialen: readonly IFilialeEintrag[]): readonly IFilialeEintrag[] {
   return [...filialen].sort((a, b) => a.anzeigename.localeCompare(b.anzeigename, 'de'));
 }
 
@@ -51,17 +52,18 @@ export const FilialeStore = signalStore(
     (
       store,
       filialeService = inject(FilialeService),
+      stammdatenStore = inject(StammdatenStore),
       destroyRef = inject(DestroyRef),
-      storeDebugService = inject(StoreDebugService),
+      storeSnapshotService = inject(StoreSnapshotService),
     ) => {
       // ===== Methoden: Laden ======================
 
       /**
-       * Laedt die Filialen einer Firma und aktualisiert die sortierte Filialliste.
+       * Lädt die Filialen einer Firma und aktualisiert die sortierte Filialliste.
        *
-       * @param unternehmerId - Die Dokument-ID des ausgewaehlten Unternehmers.
-       * @param firmaId - Die Dokument-ID der ausgewaehlten Firma.
-       * @returns Ein Promise, das nach dem vollstaendigen Laden abgeschlossen ist.
+       * @param unternehmerId - Die Dokument-ID des ausgewählten Unternehmers.
+       * @param firmaId - Die Dokument-ID der ausgewählten Firma.
+       * @returns Ein Promise, das nach dem vollständigen Laden abgeschlossen ist.
        * @throws Gibt Fehler des Firestore-Zugriffs an die aufrufende Stelle weiter.
        */
       async function loadFilialen(unternehmerId: string, firmaId: string): Promise<void> {
@@ -78,7 +80,9 @@ export const FilialeStore = signalStore(
           error: null,
         });
         try {
-          const filialen = await filialeService.loadFilialen(unternehmerId, firmaId);
+          const filialen = stammdatenStore.isLoaded()
+            ? stammdatenStore.getFilialen(unternehmerId, firmaId)
+            : await filialeService.loadFilialen(unternehmerId, firmaId);
           if (store.unternehmerId() === unternehmerId && store.firmaId() === firmaId) {
             patchState(store, { filialen: sortFilialen(filialen), isLoaded: true });
           }
@@ -99,11 +103,11 @@ export const FilialeStore = signalStore(
       /**
        * Legt eine Filiale unter der geladenen Firma an und aktualisiert die Filialliste.
        *
-       * @param unternehmerId - Die Dokument-ID des ausgewaehlten Unternehmers.
-       * @param firmaId - Die Dokument-ID der ausgewaehlten Firma.
+       * @param unternehmerId - Die Dokument-ID des ausgewählten Unternehmers.
+       * @param firmaId - Die Dokument-ID der ausgewählten Firma.
        * @param anlage - Die Daten der neu anzulegenden Filiale.
        * @returns Das Anlageergebnis mit Dokument-ID, Nummer und Anzeigename.
-       * @throws Wenn die Filialliste nicht passend geladen ist oder das Speichern fehlschlaegt.
+       * @throws Wenn die Filialliste nicht passend geladen ist oder das Speichern fehlschlägt.
        */
       async function createFiliale(
         unternehmerId: string,
@@ -127,6 +131,7 @@ export const FilialeStore = signalStore(
             anlage,
             nummer,
           );
+          stammdatenStore.upsertFiliale(unternehmerId, firmaId, ergebnis);
           const filialen = store.filialen().filter((eintrag) => eintrag.id !== ergebnis.id);
           patchState(store, { filialen: sortFilialen([...filialen, ergebnis]) });
           return ergebnis;
@@ -141,7 +146,7 @@ export const FilialeStore = signalStore(
       // ===== Methoden: Sonstige Aktionen ==========
 
       /**
-       * Setzt die Filialliste und ihren Hierarchiebezug zurueck.
+       * Setzt die Filialliste und ihren Hierarchiebezug zurück.
        */
       function resetFilialen(): void {
         patchState(store, initialState);
@@ -157,7 +162,7 @@ export const FilialeStore = signalStore(
       /**
        * Liefert eine Momentaufnahme des aktuellen Filiale-Store-Zustands.
        *
-       * @returns Vollstaendiger, nicht reaktiv verfolgter Store-Zustand.
+       * @returns Vollständiger, nicht reaktiv verfolgter Store-Zustand.
        */
       function snapshot(): TFilialeSnapshot {
         return untracked(() => ({
@@ -171,7 +176,10 @@ export const FilialeStore = signalStore(
         }));
       }
 
-      const unregisterSnapshot = storeDebugService.registerStoreSnapshot('FilialeStore', snapshot);
+      const unregisterSnapshot = storeSnapshotService.registerStoreSnapshot(
+        'FilialeStore',
+        snapshot,
+      );
       destroyRef.onDestroy(unregisterSnapshot);
 
       return {

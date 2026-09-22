@@ -3,7 +3,7 @@
 import { TestBed } from '@angular/core/testing';
 
 import { IFirmaAnlage } from '../../commons/models/domain/firma';
-import { FirmaService } from '../../services/firebase/firma.service';
+import { FirmaService } from '../../services/domain/firma.service';
 import { FirmaStore } from './firma.store';
 
 describe('FirmaStore', () => {

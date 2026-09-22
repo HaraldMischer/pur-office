@@ -6,11 +6,11 @@ import { firstValueFrom, take } from 'rxjs';
 
 import { TAppBereich } from '../commons/models/app/app-bereich';
 import { AuthService } from '../services/firebase/auth.service';
-import { BenutzerService } from '../services/firebase/benutzer.service';
+import { BenutzerStore } from '../stores/app/benutzer.store';
 
 export const bereichGuard: CanActivateFn = async (route) => {
   const authService = inject(AuthService);
-  const benutzerService = inject(BenutzerService);
+  const benutzerStore = inject(BenutzerStore);
   const router = inject(Router);
   const benutzer = await firstValueFrom(authService.getAuthState().pipe(take(1)));
 
@@ -18,7 +18,7 @@ export const bereichGuard: CanActivateFn = async (route) => {
     return router.createUrlTree(['/login']);
   }
 
-  const benutzerProfil = await benutzerService.getBenutzerProfil(benutzer.uid);
+  const benutzerProfil = await benutzerStore.loadBenutzerProfil(benutzer.uid);
   const bereich = route.data['bereich'] as TAppBereich | undefined;
 
   if (!benutzerProfil?.aktiv) {

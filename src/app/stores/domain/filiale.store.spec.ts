@@ -3,7 +3,7 @@
 import { TestBed } from '@angular/core/testing';
 
 import { IFilialeAnlage } from '../../commons/models/domain/filiale';
-import { FilialeService } from '../../services/firebase/filiale.service';
+import { FilialeService } from '../../services/domain/filiale.service';
 import { FilialeStore } from './filiale.store';
 
 describe('FilialeStore', () => {

@@ -50,7 +50,7 @@ export class FirmaAnlegenDialog {
   private readonly dialogDaten = inject<IFirmaAnlegenDialogDaten>(MAT_DIALOG_DATA);
   readonly firmaStore = inject(FirmaStore);
 
-  // ===== Oeffentliche Werte ====================
+  // ===== Öffentliche Werte ====================
 
   readonly firmaForm = new FormGroup({
     anzeigename: new FormControl('', {
@@ -88,12 +88,12 @@ export class FirmaAnlegenDialog {
     }),
   });
 
-  // ===== Oeffentliche Aktionen =================
+  // ===== Öffentliche Aktionen =================
 
   /**
-   * Validiert das Formular, legt die Firma an und schliesst den Dialog mit dem Ergebnis.
+   * Validiert das Formular, legt die Firma an und schließt den Dialog mit dem Ergebnis.
    *
-   * @returns Ein Promise, das nach Abschluss des Anlageversuchs aufgeloest wird.
+   * @returns Ein Promise, das nach Abschluss des Anlageversuchs aufgelöst wird.
    */
   async onSubmit(): Promise<void> {
     const emailControl = this.firmaForm.controls.kontakt.controls.email;

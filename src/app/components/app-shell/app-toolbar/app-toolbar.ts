@@ -14,7 +14,7 @@ import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { Router, RouterLink } from '@angular/router';
 import { LoadingService } from '../../../services/core/loading.service';
-import { StoreDebugService } from '../../../services/core/store-debug.service';
+import { StoreSnapshotService } from '../../../services/core/store-snapshot.service';
 import { ThemeService } from '../../../services/core/theme.service';
 import { BenutzerStore } from '../../../stores/app/benutzer.store';
 
@@ -29,7 +29,7 @@ export class AppToolbar {
   private readonly _benutzerStore = inject(BenutzerStore);
   private readonly _loadingService = inject(LoadingService);
   private readonly _router = inject(Router);
-  private readonly _storeDebugService = inject(StoreDebugService);
+  private readonly _storeSnapshotService = inject(StoreSnapshotService);
   private readonly _themeService = inject(ThemeService);
 
   readonly sidenavOpened = input(false);
@@ -54,7 +54,7 @@ export class AppToolbar {
    * Gibt die angebundenen Store-Snapshots in der Browser-Konsole aus.
    */
   logStoreSnapshots(): void {
-    this._storeDebugService.logStoreSnapshots();
+    this._storeSnapshotService.logStoreSnapshots();
   }
 
   async logout(): Promise<void> {

@@ -1,4 +1,4 @@
-// pur-office/src/app/services/firebase/filiale.service.ts
+// pur-office/src/app/services/domain/filiale.service.ts
 
 import { Injectable, inject } from '@angular/core';
 
@@ -11,7 +11,7 @@ import {
   IFilialeAnlageErgebnis,
   IFilialeEintrag,
 } from '../../commons/models/domain/filiale';
-import { FirestoreDbService } from './firestore-db.service';
+import { FirestoreDbService } from '../firebase/firestore-db.service';
 
 // ===== Top-Level Helper =====================
 
@@ -32,13 +32,13 @@ export class FilialeService {
 
   private readonly firestoreDbService = inject(FirestoreDbService);
 
-  // ===== Oeffentliche Aktionen =================
+  // ===== Öffentliche Aktionen =================
 
   /**
-   * Laedt alle Filialen einer Firma und bildet sie als sortierte Domaeneneintraege ab.
+   * Lädt alle Filialen einer Firma und bildet sie als sortierte Domäneneinträge ab.
    *
-   * @param unternehmerId - Die Dokument-ID des uebergeordneten Unternehmers.
-   * @param firmaId - Die Dokument-ID der uebergeordneten Firma.
+   * @param unternehmerId - Die Dokument-ID des übergeordneten Unternehmers.
+   * @param firmaId - Die Dokument-ID der übergeordneten Firma.
    * @returns Die nach Anzeigename sortierten Filialen.
    * @throws Gibt Fehler des Firestore-Zugriffs an die aufrufende Stelle weiter.
    */
@@ -53,10 +53,10 @@ export class FilialeService {
   }
 
   /**
-   * Laedt eine Filiale gezielt ueber ihren vollstaendigen Dokumentpfad.
+   * Lädt eine Filiale gezielt über ihren vollständigen Dokumentpfad.
    *
-   * @param unternehmerId - Die Dokument-ID des uebergeordneten Unternehmers.
-   * @param firmaId - Die Dokument-ID der uebergeordneten Firma.
+   * @param unternehmerId - Die Dokument-ID des übergeordneten Unternehmers.
+   * @param firmaId - Die Dokument-ID der übergeordneten Firma.
    * @param filialeId - Die Dokument-ID der Filiale.
    * @returns Der kompakte Filialeintrag oder `null`, wenn das Dokument nicht existiert.
    * @throws Gibt Fehler des Firestore-Zugriffs an die aufrufende Stelle weiter.
@@ -74,12 +74,12 @@ export class FilialeService {
   }
 
   /**
-   * Legt eine Filiale mit der uebergebenen fortlaufenden Nummer unter einer Firma an.
+   * Legt eine Filiale mit der übergebenen fortlaufenden Nummer unter einer Firma an.
    *
-   * @param unternehmerId - Die Dokument-ID des uebergeordneten Unternehmers.
-   * @param firmaId - Die Dokument-ID der uebergeordneten Firma.
+   * @param unternehmerId - Die Dokument-ID des übergeordneten Unternehmers.
+   * @param firmaId - Die Dokument-ID der übergeordneten Firma.
    * @param anlage - Die Anzeige-, Namens-, Adress- und Kontaktdaten der neuen Filiale.
-   * @param nummer - Die fuer die Filiale ermittelte fortlaufende Nummer.
+   * @param nummer - Die für die Filiale ermittelte fortlaufende Nummer.
    * @returns Das Anlageergebnis mit Dokument-ID, Nummer und Anzeigename.
    * @throws Gibt Fehler des Firestore-Zugriffs an die aufrufende Stelle weiter.
    */

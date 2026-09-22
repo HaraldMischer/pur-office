@@ -1,4 +1,4 @@
-// pur-office/src/app/services/firebase/firma.service.ts
+// pur-office/src/app/services/domain/firma.service.ts
 
 import { Injectable, inject } from '@angular/core';
 
@@ -11,7 +11,7 @@ import {
   IFirmaAnlageErgebnis,
   IFirmaEintrag,
 } from '../../commons/models/domain/firma';
-import { FirestoreDbService } from './firestore-db.service';
+import { FirestoreDbService } from '../firebase/firestore-db.service';
 
 // ===== Top-Level Helper =====================
 
@@ -32,12 +32,12 @@ export class FirmaService {
 
   private readonly firestoreDbService = inject(FirestoreDbService);
 
-  // ===== Oeffentliche Aktionen =================
+  // ===== Öffentliche Aktionen =================
 
   /**
-   * Laedt alle Firmen eines Unternehmers und bildet sie als sortierte Domaeneneintraege ab.
+   * Lädt alle Firmen eines Unternehmers und bildet sie als sortierte Domäneneinträge ab.
    *
-   * @param unternehmerId - Die Dokument-ID des uebergeordneten Unternehmers.
+   * @param unternehmerId - Die Dokument-ID des übergeordneten Unternehmers.
    * @returns Die nach Anzeigename sortierten Firmen.
    * @throws Gibt Fehler des Firestore-Zugriffs an die aufrufende Stelle weiter.
    */
@@ -52,9 +52,9 @@ export class FirmaService {
   }
 
   /**
-   * Laedt eine Firma gezielt ueber ihren vollstaendigen Dokumentpfad.
+   * Lädt eine Firma gezielt über ihren vollständigen Dokumentpfad.
    *
-   * @param unternehmerId - Die Dokument-ID des uebergeordneten Unternehmers.
+   * @param unternehmerId - Die Dokument-ID des übergeordneten Unternehmers.
    * @param firmaId - Die Dokument-ID der Firma.
    * @returns Der kompakte Firmeneintrag oder `null`, wenn das Dokument nicht existiert.
    * @throws Gibt Fehler des Firestore-Zugriffs an die aufrufende Stelle weiter.
@@ -68,11 +68,11 @@ export class FirmaService {
   }
 
   /**
-   * Legt eine Firma mit der uebergebenen fortlaufenden Nummer unter einem Unternehmer an.
+   * Legt eine Firma mit der übergebenen fortlaufenden Nummer unter einem Unternehmer an.
    *
-   * @param unternehmerId - Die Dokument-ID des uebergeordneten Unternehmers.
+   * @param unternehmerId - Die Dokument-ID des übergeordneten Unternehmers.
    * @param anlage - Die Anzeige-, Adress- und Kontaktdaten der neuen Firma.
-   * @param nummer - Die fuer die Firma ermittelte fortlaufende Nummer.
+   * @param nummer - Die für die Firma ermittelte fortlaufende Nummer.
    * @returns Das Anlageergebnis mit Dokument-ID, Nummer und Anzeigename.
    * @throws Gibt Fehler des Firestore-Zugriffs an die aufrufende Stelle weiter.
    */

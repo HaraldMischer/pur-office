@@ -60,9 +60,33 @@ describe('FirestoreDbService', () => {
     await expect(service.loadCollection('unternehmer')).resolves.toEqual([
       { id: 'dokument-1', daten: { anzeigename: 'Eintrag' } },
     ]);
-    expect(trackLoadMock).toHaveBeenCalledOnce();
+    expect(trackLoadMock).toHaveBeenCalledWith(expect.any(Function));
     expect(collectionMock).toHaveBeenCalledWith(firestoreMock, 'unternehmer');
     expect(getDocsMock).toHaveBeenCalledWith('collection-ref');
+  });
+
+  it('should share parallel collection loads for the same path', async () => {
+    let resolveSnapshot!: (value: { docs: [] }) => void;
+    getDocsMock.mockReturnValue(
+      new Promise<{ docs: [] }>((resolve) => {
+        resolveSnapshot = resolve;
+      }),
+    );
+    const service = TestBed.inject(FirestoreDbService);
+
+    const ersterAuftrag = service.loadCollection('unternehmer');
+    const zweiterAuftrag = service.loadCollection('unternehmer');
+
+    expect(ersterAuftrag).toBe(zweiterAuftrag);
+    expect(trackLoadMock).toHaveBeenCalledOnce();
+    expect(getDocsMock).toHaveBeenCalledOnce();
+
+    resolveSnapshot({ docs: [] });
+    await Promise.all([ersterAuftrag, zweiterAuftrag]);
+    await service.loadCollection('unternehmer');
+
+    expect(trackLoadMock).toHaveBeenCalledTimes(2);
+    expect(getDocsMock).toHaveBeenCalledTimes(2);
   });
 
   it('should load an existing document', async () => {
@@ -77,6 +101,7 @@ describe('FirestoreDbService', () => {
       id: 'dokument-1',
       daten: { anzeigename: 'Eintrag' },
     });
+    expect(trackLoadMock).toHaveBeenCalledWith(expect.any(Function));
     expect(docMock).toHaveBeenCalledWith(firestoreMock, 'unternehmer/dokument-1');
     expect(getDocMock).toHaveBeenCalledWith('document-ref');
   });
@@ -85,6 +110,29 @@ describe('FirestoreDbService', () => {
     const service = TestBed.inject(FirestoreDbService);
 
     await expect(service.loadDocument('unternehmer/unbekannt')).resolves.toBeNull();
+  });
+
+  it('should share parallel document loads for the same path', async () => {
+    let resolveSnapshot!: (value: { exists: () => false }) => void;
+    getDocMock.mockReturnValue(
+      new Promise<{ exists: () => false }>((resolve) => {
+        resolveSnapshot = resolve;
+      }),
+    );
+    const service = TestBed.inject(FirestoreDbService);
+
+    const ersterAuftrag = service.loadDocument('unternehmer/dokument-1');
+    const zweiterAuftrag = service.loadDocument('unternehmer/dokument-1');
+
+    expect(ersterAuftrag).toBe(zweiterAuftrag);
+    expect(trackLoadMock).toHaveBeenCalledOnce();
+    expect(getDocMock).toHaveBeenCalledOnce();
+
+    resolveSnapshot({ exists: () => false });
+    await Promise.all([ersterAuftrag, zweiterAuftrag]);
+
+    expect(trackLoadMock).toHaveBeenCalledOnce();
+    expect(getDocMock).toHaveBeenCalledOnce();
   });
 
   it('should create a document and return its id', async () => {

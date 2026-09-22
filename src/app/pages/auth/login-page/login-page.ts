@@ -79,7 +79,7 @@ export class LoginPage {
 
   patchLoginForm(): void {
     this.loginForm.patchValue({
-      email: 'pur-system-master@pur-software.de',
+      email: 'harry-master@pur-system.de',
       password: '',
     });
   }

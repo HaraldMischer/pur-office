@@ -1,10 +1,10 @@
-// pur-office/src/app/services/firebase/firma.service.spec.ts
+// pur-office/src/app/services/domain/firma.service.spec.ts
 
 import { TestBed } from '@angular/core/testing';
 
 import { IFirmaAnlage } from '../../commons/models/domain/firma';
 import { FirmaService } from './firma.service';
-import { FirestoreDbService } from './firestore-db.service';
+import { FirestoreDbService } from '../firebase/firestore-db.service';
 
 describe('FirmaService', () => {
   const firestoreDbServiceMock = {

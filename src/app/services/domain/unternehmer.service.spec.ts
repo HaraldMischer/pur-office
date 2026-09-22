@@ -1,9 +1,9 @@
-// pur-office/src/app/services/firebase/unternehmer.service.spec.ts
+// pur-office/src/app/services/domain/unternehmer.service.spec.ts
 
 import { TestBed } from '@angular/core/testing';
 
 import { IUnternehmerAnlage } from '../../commons/models/domain/unternehmer';
-import { FirestoreDbService } from './firestore-db.service';
+import { FirestoreDbService } from '../firebase/firestore-db.service';
 import { UnternehmerService } from './unternehmer.service';
 
 describe('UnternehmerService', () => {

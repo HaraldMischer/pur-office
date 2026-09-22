@@ -1,4 +1,4 @@
-// pur-office/src/app/services/firebase/unternehmer.service.ts
+// pur-office/src/app/services/domain/unternehmer.service.ts
 
 import { Injectable, inject } from '@angular/core';
 
@@ -11,7 +11,7 @@ import {
   IUnternehmerAnlageErgebnis,
   IUnternehmerEintrag,
 } from '../../commons/models/domain/unternehmer';
-import { FirestoreDbService } from './firestore-db.service';
+import { FirestoreDbService } from '../firebase/firestore-db.service';
 
 // ===== Top-Level Helper =====================
 
@@ -32,10 +32,10 @@ export class UnternehmerService {
 
   private readonly firestoreDbService = inject(FirestoreDbService);
 
-  // ===== Oeffentliche Aktionen =================
+  // ===== Öffentliche Aktionen =================
 
   /**
-   * Laedt alle Unternehmer und bildet sie als sortierte Domaeneneintraege ab.
+   * Lädt alle Unternehmer und bildet sie als sortierte Domäneneinträge ab.
    *
    * @returns Die nach Anzeigename sortierten Unternehmer.
    * @throws Gibt Fehler des Firestore-Zugriffs an die aufrufende Stelle weiter.
@@ -51,7 +51,7 @@ export class UnternehmerService {
   }
 
   /**
-   * Laedt einen Unternehmer gezielt ueber seine Dokument-ID.
+   * Lädt einen Unternehmer gezielt über seine Dokument-ID.
    *
    * @param unternehmerId - Die Dokument-ID des Unternehmers.
    * @returns Der kompakte Unternehmereintrag oder `null`, wenn das Dokument nicht existiert.
@@ -66,10 +66,10 @@ export class UnternehmerService {
   }
 
   /**
-   * Legt einen Unternehmer mit der uebergebenen fortlaufenden Nummer an.
+   * Legt einen Unternehmer mit der übergebenen fortlaufenden Nummer an.
    *
    * @param anlage - Die Person- und Anzeigedaten des neuen Unternehmers.
-   * @param nummer - Die fuer den Unternehmer ermittelte fortlaufende Nummer.
+   * @param nummer - Die für den Unternehmer ermittelte fortlaufende Nummer.
    * @returns Das Anlageergebnis mit Dokument-ID, Nummer und Anzeigename.
    * @throws Gibt Fehler des Firestore-Zugriffs an die aufrufende Stelle weiter.
    */

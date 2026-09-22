@@ -1,18 +1,20 @@
-// pur-office/src/app/services/firebase/benutzer.service.spec.ts
+// pur-office/src/app/services/domain/benutzer.service.spec.ts
 
 import { TestBed } from '@angular/core/testing';
 
 import { IBenutzerProfilDokument } from '../../commons/models/domain/benutzer';
 import { BenutzerService } from './benutzer.service';
-import { FirestoreDbService } from './firestore-db.service';
+import { FirestoreDbService } from '../firebase/firestore-db.service';
 
 describe('BenutzerService', () => {
   const firestoreDbServiceMock = {
+    loadCollection: vi.fn(),
     loadDocument: vi.fn(),
   };
 
   beforeEach(() => {
     vi.clearAllMocks();
+    firestoreDbServiceMock.loadCollection.mockResolvedValue([]);
     firestoreDbServiceMock.loadDocument.mockResolvedValue(null);
 
     TestBed.configureTestingModule({
@@ -86,5 +88,39 @@ describe('BenutzerService', () => {
     const result = await service.getBenutzerProfil('benutzer-123');
 
     expect(result).toBeNull();
+  });
+
+  it('should load, normalize and sort all user profiles', async () => {
+    firestoreDbServiceMock.loadCollection.mockResolvedValue([
+      {
+        id: 'z',
+        daten: {
+          email: 'z@example.com',
+          anzeigename: 'Zulu',
+          aktiv: true,
+          userRole: 'office',
+          erlaubteBereiche: ['dashboard'],
+          zugriffe: { u: { f: ['b'] } },
+        },
+      },
+      {
+        id: 'a',
+        daten: {
+          email: 'a@example.com',
+          anzeigename: 'Alpha',
+          aktiv: true,
+          userRole: 'filiale',
+          erlaubteBereiche: ['dashboard'],
+          zugriffe: [],
+        },
+      },
+    ]);
+    const service = TestBed.inject(BenutzerService);
+
+    await expect(service.loadBenutzerProfile()).resolves.toEqual([
+      expect.objectContaining({ uid: 'a', anzeigename: 'Alpha', zugriffe: {} }),
+      expect.objectContaining({ uid: 'z', anzeigename: 'Zulu', zugriffe: { u: { f: ['b'] } } }),
+    ]);
+    expect(firestoreDbServiceMock.loadCollection).toHaveBeenCalledWith('benutzerprofil');
   });
 });

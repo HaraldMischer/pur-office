@@ -6,15 +6,15 @@ import { ActivatedRouteSnapshot, Router, UrlTree } from '@angular/router';
 import { of } from 'rxjs';
 
 import { AuthService } from '../services/firebase/auth.service';
-import { BenutzerService } from '../services/firebase/benutzer.service';
+import { BenutzerStore } from '../stores/app/benutzer.store';
 import { bereichGuard } from './bereich.guard';
 
 describe('bereichGuard', () => {
   let authServiceMock: {
     getAuthState: ReturnType<typeof vi.fn>;
   };
-  let benutzerServiceMock: {
-    getBenutzerProfil: ReturnType<typeof vi.fn>;
+  let benutzerStoreMock: {
+    loadBenutzerProfil: ReturnType<typeof vi.fn>;
   };
   let routerMock: {
     createUrlTree: ReturnType<typeof vi.fn>;
@@ -24,8 +24,8 @@ describe('bereichGuard', () => {
     authServiceMock = {
       getAuthState: vi.fn(),
     };
-    benutzerServiceMock = {
-      getBenutzerProfil: vi.fn(),
+    benutzerStoreMock = {
+      loadBenutzerProfil: vi.fn(),
     };
     routerMock = {
       createUrlTree: vi.fn().mockReturnValue({} as UrlTree),
@@ -34,7 +34,7 @@ describe('bereichGuard', () => {
     TestBed.configureTestingModule({
       providers: [
         { provide: AuthService, useValue: authServiceMock },
-        { provide: BenutzerService, useValue: benutzerServiceMock },
+        { provide: BenutzerStore, useValue: benutzerStoreMock },
         { provide: Router, useValue: routerMock },
       ],
     });
@@ -42,7 +42,7 @@ describe('bereichGuard', () => {
 
   it('should allow access to an area listed in the user profile', async () => {
     authServiceMock.getAuthState.mockReturnValue(of({ uid: 'benutzer-123' } as User));
-    benutzerServiceMock.getBenutzerProfil.mockResolvedValue({
+    benutzerStoreMock.loadBenutzerProfil.mockResolvedValue({
       email: 'test@example.com',
       anzeigename: 'Test',
       aktiv: true,
@@ -59,12 +59,35 @@ describe('bereichGuard', () => {
     );
 
     expect(result).toBe(true);
+    expect(benutzerStoreMock.loadBenutzerProfil).toHaveBeenCalledWith('benutzer-123');
+  });
+
+  it('should request the profile through the user store', async () => {
+    authServiceMock.getAuthState.mockReturnValue(of({ uid: 'benutzer-123' } as User));
+    benutzerStoreMock.loadBenutzerProfil.mockResolvedValue({
+      email: 'test@example.com',
+      anzeigename: 'Test',
+      aktiv: true,
+      userRole: 'office',
+      erlaubteBereiche: ['dashboard'],
+      zugriffe: {},
+    });
+
+    const result = await TestBed.runInInjectionContext(() =>
+      bereichGuard(
+        { data: { bereich: 'dashboard' } } as unknown as ActivatedRouteSnapshot,
+        {} as never,
+      ),
+    );
+
+    expect(result).toBe(true);
+    expect(benutzerStoreMock.loadBenutzerProfil).toHaveBeenCalledOnce();
   });
 
   it('should redirect to dashboard when the area is not listed in the user profile', async () => {
     const dashboardUrlTree = {} as UrlTree;
     authServiceMock.getAuthState.mockReturnValue(of({ uid: 'benutzer-123' } as User));
-    benutzerServiceMock.getBenutzerProfil.mockResolvedValue({
+    benutzerStoreMock.loadBenutzerProfil.mockResolvedValue({
       email: 'test@example.com',
       anzeigename: 'Test',
       aktiv: true,
@@ -104,7 +127,7 @@ describe('bereichGuard', () => {
   it('should redirect to login when the user profile is inactive', async () => {
     const loginUrlTree = {} as UrlTree;
     authServiceMock.getAuthState.mockReturnValue(of({ uid: 'benutzer-123' } as User));
-    benutzerServiceMock.getBenutzerProfil.mockResolvedValue({
+    benutzerStoreMock.loadBenutzerProfil.mockResolvedValue({
       email: 'test@example.com',
       anzeigename: 'Test',
       aktiv: false,

@@ -12,9 +12,10 @@ import {
   IUnternehmerAuswahl,
 } from '../../commons/models/domain/datenzugriff';
 import { getFirebaseErrorMessage } from '../../commons/utils/errors/firebase-error-message';
-import { StoreDebugService } from '../../services/core/store-debug.service';
+import { StoreSnapshotService } from '../../services/core/store-snapshot.service';
 import { BenutzerVerwaltungService } from '../../services/firebase/benutzer-verwaltung.service';
-import { DatenzugriffService } from '../../services/firebase/datenzugriff.service';
+import { DatenzugriffService } from '../../services/domain/datenzugriff.service';
+import { StammdatenStore } from '../app/stammdaten.store';
 
 // ===== Top-Level Helper =====================
 
@@ -138,10 +139,11 @@ export const BenutzerVerwaltungStore = signalStore(
   withMethods(
     (
       store,
+      stammdatenStore = inject(StammdatenStore),
       datenService = inject(DatenzugriffService),
       service = inject(BenutzerVerwaltungService),
       destroyRef = inject(DestroyRef),
-      storeDebugService = inject(StoreDebugService),
+      storeSnapshotService = inject(StoreSnapshotService),
     ) => {
       let generation = 0;
       const laufend = new Map<string, Promise<void>>();
@@ -149,10 +151,10 @@ export const BenutzerVerwaltungStore = signalStore(
       // ===== Methoden: Laden ======================
 
       /**
-       * Laedt eine Zugriffsliste einmalig und verwirft Ergebnisse einer veralteten Store-Generation.
+       * Lädt eine Zugriffsliste einmalig und verwirft Ergebnisse einer veralteten Store-Generation.
        *
-       * @param key - Der eindeutige Schluessel der zu ladenden Liste.
-       * @param load - Die Ladefunktion fuer die angeforderte Liste.
+       * @param key - Der eindeutige Schlüssel der zu ladenden Liste.
+       * @param load - Die Ladefunktion für die angeforderte Liste.
        * @returns Ein Promise, das nach Abschluss des Ladevorgangs beendet ist.
        */
       async function loadListe(
@@ -190,20 +192,34 @@ export const BenutzerVerwaltungStore = signalStore(
       }
 
       /**
-       * Laedt die Unternehmer sowie alle von der aktuellen Auswahl abhaengigen Firmen und Filialen.
+       * Lädt die Unternehmer sowie alle von der aktuellen Auswahl abhängigen Firmen und Filialen.
        *
-       * @returns Ein Promise, das nach Abschluss aller erforderlichen Ladevorgaenge beendet ist.
+       * @returns Ein Promise, das nach Abschluss aller erforderlichen Ladevorgänge beendet ist.
        */
       async function loadAuswahl(): Promise<void> {
         const aktuell = generation;
         await loadListe(unternehmerKey, () => {
-          return datenService.loadUnternehmer();
+          return stammdatenStore.isLoaded()
+            ? Promise.resolve(
+                stammdatenStore.unternehmer().map((eintrag) => ({
+                  id: eintrag.id,
+                  anzeigename: eintrag.anzeigename,
+                })),
+              )
+            : datenService.loadUnternehmer();
         });
         if (aktuell !== generation) return;
         await Promise.all(
           store.unternehmerIds().map((id) =>
             loadListe(firmenKey(id), () => {
-              return datenService.loadFirmen(id);
+              return stammdatenStore.isLoaded()
+                ? Promise.resolve(
+                    stammdatenStore.getFirmen(id).map((eintrag) => ({
+                      id: eintrag.id,
+                      anzeigename: eintrag.anzeigename,
+                    })),
+                  )
+                : datenService.loadFirmen(id);
             }),
           ),
         );
@@ -211,7 +227,14 @@ export const BenutzerVerwaltungStore = signalStore(
         await Promise.all(
           store.ausgewaehlteFirmen().map((f) =>
             loadListe(filialenKey(f.unternehmerId, f.id), () => {
-              return datenService.loadFilialen(f.unternehmerId, f.id);
+              return stammdatenStore.isLoaded()
+                ? Promise.resolve(
+                    stammdatenStore.getFilialen(f.unternehmerId, f.id).map((eintrag) => ({
+                      id: eintrag.id,
+                      anzeigename: eintrag.anzeigename,
+                    })),
+                  )
+                : datenService.loadFilialen(f.unternehmerId, f.id);
             }),
           ),
         );
@@ -220,9 +243,9 @@ export const BenutzerVerwaltungStore = signalStore(
       // ===== Methoden: Schreiben ==================
 
       /**
-       * Legt einen Benutzer an und speichert das Ergebnis fuer die Rueckmeldung im Store.
+       * Legt einen Benutzer an und speichert das Ergebnis für die Rückmeldung im Store.
        *
-       * @param anlage - Die vollstaendigen Daten des neu anzulegenden Benutzers.
+       * @param anlage - Die vollständigen Daten des neu anzulegenden Benutzers.
        * @returns Das Anlageergebnis mit UID und E-Mail-Adresse.
        * @throws Gibt Fehler der Benutzeranlage an die aufrufende Stelle weiter.
        */
@@ -231,6 +254,15 @@ export const BenutzerVerwaltungStore = signalStore(
 
         try {
           const createdBenutzer = await service.createBenutzer(anlage);
+          stammdatenStore.upsertBenutzerprofil({
+            uid: createdBenutzer.uid,
+            email: anlage.email,
+            anzeigename: anlage.anzeigename,
+            userRole: anlage.userRole,
+            erlaubteBereiche: anlage.erlaubteBereiche,
+            zugriffe: anlage.zugriffe,
+            aktiv: true,
+          });
           patchState(store, { createdBenutzer });
           return createdBenutzer;
         } catch (error: unknown) {
@@ -244,9 +276,9 @@ export const BenutzerVerwaltungStore = signalStore(
       // ===== Methoden: Sonstige Aktionen ==========
 
       /**
-       * Uebernimmt gueltige Filialauswahlen fuer die aktuell ausgewaehlten Firmen.
+       * Übernimmt gültige Filialauswahlen für die aktuell ausgewählten Firmen.
        *
-       * @param auswahl - Die Filial-IDs, gruppiert nach dem Schluessel ihrer Firma.
+       * @param auswahl - Die Filial-IDs, gruppiert nach dem Schlüssel ihrer Firma.
        */
       function selectFilialen(auswahl: Readonly<Partial<Record<string, readonly string[]>>>): void {
         const filialen: Record<string, readonly string[]> = {};
@@ -260,9 +292,9 @@ export const BenutzerVerwaltungStore = signalStore(
       }
 
       /**
-       * Uebernimmt gueltige Firmenauswahlen und laedt die davon abhaengigen Filialen.
+       * Übernimmt gültige Firmenauswahlen und lädt die davon abhängigen Filialen.
        *
-       * @param ids - Die Schluessel der ausgewaehlten Firmen.
+       * @param ids - Die Schlüssel der ausgewählten Firmen.
        */
       function selectFirmen(ids: readonly string[]): void {
         const verfuegbar = store
@@ -275,9 +307,9 @@ export const BenutzerVerwaltungStore = signalStore(
       }
 
       /**
-       * Uebernimmt gueltige Unternehmerauswahlen und aktualisiert die abhaengigen Firmen.
+       * Übernimmt gültige Unternehmerauswahlen und aktualisiert die abhängigen Firmen.
        *
-       * @param ids - Die IDs der ausgewaehlten Unternehmer.
+       * @param ids - Die IDs der ausgewählten Unternehmer.
        */
       function selectUnternehmer(ids: readonly string[]): void {
         patchState(store, {
@@ -289,7 +321,7 @@ export const BenutzerVerwaltungStore = signalStore(
       }
 
       /**
-       * Setzt alle geladenen Listen und ausgewaehlten Datenzugriffe zurueck.
+       * Setzt alle geladenen Listen und ausgewählten Datenzugriffe zurück.
        */
       function resetDatenzugriff(): void {
         generation++;
@@ -298,14 +330,14 @@ export const BenutzerVerwaltungStore = signalStore(
       }
 
       /**
-       * Entfernt vorhandene Erfolgs- und Fehlerrueckmeldungen.
+       * Entfernt vorhandene Erfolgs- und Fehlerrückmeldungen.
        */
       function clearFeedback(): void {
         patchState(store, { error: null, createdBenutzer: null });
       }
 
       /**
-       * Setzt den vollstaendigen Benutzer-Verwaltungs-Store auf seinen Anfangszustand zurueck.
+       * Setzt den vollständigen Benutzer-Verwaltungs-Store auf seinen Anfangszustand zurück.
        */
       function reset(): void {
         resetDatenzugriff();
@@ -315,7 +347,7 @@ export const BenutzerVerwaltungStore = signalStore(
       /**
        * Liefert eine Momentaufnahme des aktuellen Benutzer-Verwaltungs-Store-Zustands.
        *
-       * @returns Vollstaendiger, nicht reaktiv verfolgter Store-Zustand.
+       * @returns Vollständiger, nicht reaktiv verfolgter Store-Zustand.
        */
       function snapshot(): TBenutzerVerwaltungSnapshot {
         return untracked(() => ({
@@ -329,7 +361,7 @@ export const BenutzerVerwaltungStore = signalStore(
         }));
       }
 
-      const unregisterSnapshot = storeDebugService.registerStoreSnapshot(
+      const unregisterSnapshot = storeSnapshotService.registerStoreSnapshot(
         'BenutzerVerwaltungStore',
         snapshot,
       );

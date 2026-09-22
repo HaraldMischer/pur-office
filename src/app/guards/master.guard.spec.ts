@@ -7,15 +7,15 @@ import { of } from 'rxjs';
 
 import { IBenutzerProfilDokument } from '../commons/models/domain/benutzer';
 import { AuthService } from '../services/firebase/auth.service';
-import { BenutzerService } from '../services/firebase/benutzer.service';
+import { BenutzerStore } from '../stores/app/benutzer.store';
 import { masterGuard } from './master.guard';
 
 describe('masterGuard', () => {
   let authServiceMock: {
     getAuthState: ReturnType<typeof vi.fn>;
   };
-  let benutzerServiceMock: {
-    getBenutzerProfil: ReturnType<typeof vi.fn>;
+  let benutzerStoreMock: {
+    loadBenutzerProfil: ReturnType<typeof vi.fn>;
   };
   let routerMock: {
     createUrlTree: ReturnType<typeof vi.fn>;
@@ -34,8 +34,8 @@ describe('masterGuard', () => {
     authServiceMock = {
       getAuthState: vi.fn().mockReturnValue(of({ uid: 'benutzer-123' } as User)),
     };
-    benutzerServiceMock = {
-      getBenutzerProfil: vi.fn().mockResolvedValue(profil),
+    benutzerStoreMock = {
+      loadBenutzerProfil: vi.fn().mockResolvedValue(profil),
     };
     routerMock = {
       createUrlTree: vi.fn().mockReturnValue({} as UrlTree),
@@ -44,7 +44,7 @@ describe('masterGuard', () => {
     TestBed.configureTestingModule({
       providers: [
         { provide: AuthService, useValue: authServiceMock },
-        { provide: BenutzerService, useValue: benutzerServiceMock },
+        { provide: BenutzerStore, useValue: benutzerStoreMock },
         { provide: Router, useValue: routerMock },
       ],
     });
@@ -58,7 +58,7 @@ describe('masterGuard', () => {
 
   it('should redirect a non-master to dashboard', async () => {
     const dashboardUrlTree = {} as UrlTree;
-    benutzerServiceMock.getBenutzerProfil.mockResolvedValue({
+    benutzerStoreMock.loadBenutzerProfil.mockResolvedValue({
       ...profil,
       userRole: 'office',
     });
@@ -83,7 +83,7 @@ describe('masterGuard', () => {
 
   it('should redirect an inactive master to login', async () => {
     const loginUrlTree = {} as UrlTree;
-    benutzerServiceMock.getBenutzerProfil.mockResolvedValue({
+    benutzerStoreMock.loadBenutzerProfil.mockResolvedValue({
       ...profil,
       aktiv: false,
     });

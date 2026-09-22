@@ -7,11 +7,12 @@ import { IFirmaEintrag } from '../../commons/models/domain/firma';
 import { IFilialeEintrag } from '../../commons/models/domain/filiale';
 import { IUnternehmerEintrag } from '../../commons/models/domain/unternehmer';
 import { getFirebaseErrorMessage } from '../../commons/utils/errors/firebase-error-message';
-import { StoreDebugService } from '../../services/core/store-debug.service';
-import { FilialeService } from '../../services/firebase/filiale.service';
-import { FirmaService } from '../../services/firebase/firma.service';
-import { UnternehmerService } from '../../services/firebase/unternehmer.service';
+import { StoreSnapshotService } from '../../services/core/store-snapshot.service';
+import { FilialeService } from '../../services/domain/filiale.service';
+import { FirmaService } from '../../services/domain/firma.service';
+import { UnternehmerService } from '../../services/domain/unternehmer.service';
 import { BenutzerStore } from '../app/benutzer.store';
+import { StammdatenStore } from '../app/stammdaten.store';
 
 // ===== Top-Level Helper =====================
 
@@ -77,12 +78,13 @@ export const VerwaltungStore = signalStore(
   withMethods(
     (
       store,
+      stammdatenStore = inject(StammdatenStore),
       benutzerStore = inject(BenutzerStore),
       unternehmerService = inject(UnternehmerService),
       firmaService = inject(FirmaService),
       filialeService = inject(FilialeService),
       destroyRef = inject(DestroyRef),
-      storeDebugService = inject(StoreDebugService),
+      storeSnapshotService = inject(StoreSnapshotService),
     ) => {
       let unternehmerGeneration = 0;
       let firmenGeneration = 0;
@@ -91,9 +93,9 @@ export const VerwaltungStore = signalStore(
       // ===== Methoden: Laden ======================
 
       /**
-       * Laedt die fuer das aktuelle Benutzerprofil erlaubten Unternehmer.
+       * Lädt die für das aktuelle Benutzerprofil erlaubten Unternehmer.
        *
-       * Master laden die vollstaendige Unternehmerliste. Andere Rollen laden ausschliesslich
+       * Master laden die vollständige Unternehmerliste. Andere Rollen laden ausschließlich
        * die in ihren Datenzugriffen enthaltenen Unternehmerdokumente.
        *
        * @returns Ein Promise, das nach Abschluss des Ladevorgangs beendet ist.
@@ -102,11 +104,11 @@ export const VerwaltungStore = signalStore(
         if (store.unternehmerListe().download || store.unternehmerListe().isLoaded) return;
 
         const profil = benutzerStore.benutzerProfil();
-        if (!profil?.aktiv) {
+        if (!stammdatenStore.isLoaded() && !profil?.aktiv) {
           patchState(store, {
             unternehmerListe: {
               ...createLeereListe<IUnternehmerEintrag>(),
-              error: 'Das aktive Benutzerprofil konnte nicht geladen werden.',
+              error: stammdatenStore.error() ?? 'Die Stammdaten konnten nicht geladen werden.',
             },
           });
           return;
@@ -121,12 +123,13 @@ export const VerwaltungStore = signalStore(
         });
 
         try {
-          const unternehmer =
-            profil.userRole === 'master'
+          const unternehmer = stammdatenStore.isLoaded()
+            ? stammdatenStore.unternehmer()
+            : profil?.userRole === 'master'
               ? await unternehmerService.loadUnternehmer()
               : (
                   await Promise.all(
-                    Object.keys(profil.zugriffe).map((unternehmerId) => {
+                    Object.keys(profil?.zugriffe ?? {}).map((unternehmerId) => {
                       return unternehmerService.loadUnternehmerEintrag(unternehmerId);
                     }),
                   )
@@ -153,14 +156,14 @@ export const VerwaltungStore = signalStore(
       }
 
       /**
-       * Laedt die fuer den ausgewaehlten Unternehmer erlaubten Firmen.
+       * Lädt die für den ausgewählten Unternehmer erlaubten Firmen.
        *
        * @returns Ein Promise, das nach Abschluss des Ladevorgangs beendet ist.
        */
       async function loadFirmen(): Promise<void> {
         const unternehmerId = store.selectedUnternehmerId();
         const profil = benutzerStore.benutzerProfil();
-        if (!unternehmerId || !profil?.aktiv) return;
+        if (!unternehmerId || (!stammdatenStore.isLoaded() && !profil?.aktiv)) return;
         if (store.firmenListe().download || store.firmenListe().isLoaded) return;
 
         const generation = ++firmenGeneration;
@@ -169,12 +172,13 @@ export const VerwaltungStore = signalStore(
         });
 
         try {
-          const firmen =
-            profil.userRole === 'master'
+          const firmen = stammdatenStore.isLoaded()
+            ? stammdatenStore.getFirmen(unternehmerId)
+            : profil?.userRole === 'master'
               ? await firmaService.loadFirmen(unternehmerId)
               : (
                   await Promise.all(
-                    Object.keys(profil.zugriffe[unternehmerId] ?? {}).map((firmaId) => {
+                    Object.keys(profil?.zugriffe[unternehmerId] ?? {}).map((firmaId) => {
                       return firmaService.loadFirmaEintrag(unternehmerId, firmaId);
                     }),
                   )
@@ -205,7 +209,7 @@ export const VerwaltungStore = signalStore(
       }
 
       /**
-       * Laedt die fuer die ausgewaehlte Firma erlaubten Filialen.
+       * Lädt die für die ausgewählte Firma erlaubten Filialen.
        *
        * @returns Ein Promise, das nach Abschluss des Ladevorgangs beendet ist.
        */
@@ -213,7 +217,7 @@ export const VerwaltungStore = signalStore(
         const unternehmerId = store.selectedUnternehmerId();
         const firmaId = store.selectedFirmaId();
         const profil = benutzerStore.benutzerProfil();
-        if (!unternehmerId || !firmaId || !profil?.aktiv) return;
+        if (!unternehmerId || !firmaId || (!stammdatenStore.isLoaded() && !profil?.aktiv)) return;
         if (store.filialenListe().download || store.filialenListe().isLoaded) return;
 
         const generation = ++filialenGeneration;
@@ -222,12 +226,13 @@ export const VerwaltungStore = signalStore(
         });
 
         try {
-          const filialen =
-            profil.userRole === 'master'
+          const filialen = stammdatenStore.isLoaded()
+            ? stammdatenStore.getFilialen(unternehmerId, firmaId)
+            : profil?.userRole === 'master'
               ? await filialeService.loadFilialen(unternehmerId, firmaId)
               : (
                   await Promise.all(
-                    (profil.zugriffe[unternehmerId]?.[firmaId] ?? []).map((filialeId) => {
+                    (profil?.zugriffe[unternehmerId]?.[firmaId] ?? []).map((filialeId) => {
                       return filialeService.loadFilialeEintrag(unternehmerId, firmaId, filialeId);
                     }),
                   )
@@ -268,9 +273,9 @@ export const VerwaltungStore = signalStore(
       // ===== Methoden: Sonstige Aktionen ==========
 
       /**
-       * Waehlt einen geladenen Unternehmer aus und laedt dessen erlaubte Firmen.
+       * Wählt einen geladenen Unternehmer aus und lädt dessen erlaubte Firmen.
        *
-       * @param unternehmerId - Die Unternehmer-ID oder `null` zum Zuruecksetzen.
+       * @param unternehmerId - Die Unternehmer-ID oder `null` zum Zurücksetzen.
        * @returns Ein Promise, das nach dem Laden der Firmen beendet ist.
        */
       async function selectUnternehmer(unternehmerId: string | null): Promise<void> {
@@ -293,9 +298,9 @@ export const VerwaltungStore = signalStore(
       }
 
       /**
-       * Waehlt eine geladene Firma aus und laedt deren erlaubte Filialen.
+       * Wählt eine geladene Firma aus und lädt deren erlaubte Filialen.
        *
-       * @param firmaId - Die Firma-ID oder `null` zum Zuruecksetzen.
+       * @param firmaId - Die Firma-ID oder `null` zum Zurücksetzen.
        * @returns Ein Promise, das nach dem Laden der Filialen beendet ist.
        */
       async function selectFirma(firmaId: string | null): Promise<void> {
@@ -313,9 +318,9 @@ export const VerwaltungStore = signalStore(
       }
 
       /**
-       * Waehlt eine geladene Filiale aus.
+       * Wählt eine geladene Filiale aus.
        *
-       * @param filialeId - Die Filiale-ID oder `null` zum Zuruecksetzen.
+       * @param filialeId - Die Filiale-ID oder `null` zum Zurücksetzen.
        */
       function selectFiliale(filialeId: string | null): void {
         const selectedFilialeId = store.filialen().some((eintrag) => eintrag.id === filialeId)
@@ -327,7 +332,7 @@ export const VerwaltungStore = signalStore(
       /**
        * Liefert eine Momentaufnahme des Verwaltungs-Store-Zustands.
        *
-       * @returns Vollstaendiger, nicht reaktiv verfolgter Store-Zustand.
+       * @returns Vollständiger, nicht reaktiv verfolgter Store-Zustand.
        */
       function snapshot(): TVerwaltungSnapshot {
         return untracked(() => ({
@@ -340,7 +345,7 @@ export const VerwaltungStore = signalStore(
         }));
       }
 
-      const unregisterSnapshot = storeDebugService.registerStoreSnapshot(
+      const unregisterSnapshot = storeSnapshotService.registerStoreSnapshot(
         'VerwaltungStore',
         snapshot,
       );
