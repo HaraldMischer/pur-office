@@ -130,7 +130,7 @@ Stand: 22.09.2026. Dieses Dokument beschreibt den aktuellen Umsetzungsstand im C
 
 - Die vereinfachte Function ohne Zugriffsindex ist deployed (Benutzerbestaetigung). Die sichere Kontoaktivierung bleibt erhalten.
 - Lokal umgesetzt, im Emulator geprueft und laut Benutzer deployed: Aktive Master lesen und schreiben alle Collections und Untercollections inklusive aller Benutzerprofile, sowohl mit `zugriffe: {}` als auch mit der alten leeren Liste.
-- Aktive Office-/Filialprofile lesen nur zugeordnete Unternehmer-/Firmendokumente sowie freigegebene Filialen und deren Untercollections. Das eigene Profil bleibt auch fuer inaktive Konten lesbar. Office- und Filialkonten besitzen noch keine weiteren Client-Schreibrechte.
+- Aktive Office-/Filialprofile lesen nur zugeordnete Unternehmer-/Firmendokumente sowie freigegebene Filialen und deren Untercollections. Das eigene Profil bleibt auch fuer inaktive Konten lesbar. Aktive Office-Konten duerfen zugeordnete Firmen- und Filialdokumente vollstaendig aktualisieren, aber weder anlegen noch loeschen und keine Filial-Untercollections beschreiben. Filialkonten bleiben vorerst rein lesend. Die aktualisierten Rules mit diesen Office-Schreibrechten wurden am 22.09.2026 erfolgreich in `pur-system` deployed.
 - Benutzeranlage speichert ausschliesslich die validierte Zugriffs-Map. Die Rules pruefen Unternehmer-ID, Firma-ID und Filial-ID direkt in dieser Struktur; ein separater `zugriffsIndex` ist nicht mehr erforderlich.
 - Altanwendung nutzt laut Benutzer ausschliesslich Konten ohne `benutzerprofil`-Dokument. Diese behalten den bisherigen Lese-/Schreibzugriff ausserhalb von `benutzerprofil` und `unternehmer`; Emulator-Tests sichern das ab. Fehlgeschlagene Kontoanlage darf kein nutzbares Auth-Konto ohne Profil hinterlassen (lokal durch deaktivierte Anlage abgesichert).
 - Office-/Filialqueries muessen erlaubte Dokument-IDs eingrenzen; unbeschraenkte Listen werden abgelehnt. Die aktuellen unbeschraenkten Auswahllisten sind fuer die Master-Verwaltung vorgesehen.
@@ -142,13 +142,13 @@ Stand: 22.09.2026. Dieses Dokument beschreibt den aktuellen Umsetzungsstand im C
 Am 22.09.2026 fuer den aktuellen Frontend-Stand erfolgreich geprueft:
 
 - 186 Frontend-Tests einschliesslich Store-Snapshots, Unternehmer-, Firmen- und Filialdialog, Datenstruktur-Stepper und Dummy zur Verwaltung bestehender Benutzer.
-- Der Produktions-Build ist nach der Filialanbindung erfolgreich. Alle 21 Rules-Tests sind erfolgreich: Ein aktiver Master darf verschachtelte Filialen schreiben, waehrend Altkonten weder auf die neue Hierarchie noch auf `benutzer` und `benutzerprofil` zugreifen duerfen. Das anschliessende Rules-Deployment wurde vom Benutzer bestaetigt.
+- Der Produktions-Build ist nach der Filialanbindung erfolgreich. Alle 22 Rules-Tests sind erfolgreich: Ein aktiver Master darf verschachtelte Filialen schreiben, Office darf zugeordnete Firmen und Filialen aktualisieren, und Altkonten duerfen weder auf die neue Hierarchie noch auf `benutzer` und `benutzerprofil` zugreifen.
 - Frontend-Produktionsbuild erfolgreich.
 
 Die folgenden Backend- und Rules-Pruefungen stammen aus dem dokumentierten Stand vom 19.09.2026:
 
 - 36 Functions-Tests, darunter fehlende Hierarchie-Dokumente, manipulierte IDs, doppelte Zuordnungen und Abbruch vor der Auth-Anlage.
-- 21 Firestore-Emulator-Tests fuer Rollen, neue Hierarchie, Untercollections, eingeschraenkte Queries, Schreibschutz sowie die Trennung vom Legacy-Zugriff auf `purCustomers`.
+- 22 Firestore-Emulator-Tests fuer Rollen, neue Hierarchie, Untercollections, eingeschraenkte Queries, Office-Aktualisierungen, Schreibschutz sowie die Trennung vom Legacy-Zugriff auf `purCustomers`.
 - Functions-Build erfolgreich.
 
 Die Tests belegen noch keinen durchgaengigen Office-/Filialablauf mit realen Daten fuer die neue Auswahl. Die Firebase-Anbindung wird durch Service-, Store- und Seitenintegrationstests mit Testdaten geprueft; das Laden der Unternehmer wurde vom Benutzer bestaetigt. Firmen-/Filialauswahl und die Kontoanlage mit einer vollstaendigen realen Hierarchie sind noch manuell zu pruefen.
@@ -158,7 +158,7 @@ Die Tests belegen noch keinen durchgaengigen Office-/Filialablauf mit realen Dat
 - Filialkonten werden genau einer Filiale zugeordnet. Einfachauswahl im UI sowie Seiten- und Backendvalidierung sind umgesetzt; mehrere Firmen oder Filialen werden fuer diese Rolle abgelehnt. Die neue serverseitige Begrenzung wurde laut Benutzer erfolgreich deployed.
 - Office-Konten bleiben auf ausgewaehlte Firmen/Filialen beschraenkt; sie erhalten keinen globalen Lesezugriff. Ob eine Firmenfreigabe alle aktuellen und zukuenftigen Filialen umfasst, ist noch offen. Aktuell werden Filialen explizit gespeichert.
 - Master benoetigen keine Datenzuordnung und besitzen globalen Lese- und Schreibzugriff. Die Datenzuordnung ist im Formular fuer Master ausgeblendet; das Formular sendet fuer Master eine leere Zugriffs-Map.
-- Daten in der eigenen Filiale erzeugen sowie bestimmte Office-Schreibaktionen (z. B. Mitarbeiteranlage) sind als Ziel festgehalten. Konkrete Datenarten und Aktionen sind noch zu klaeren. Die derzeitigen Rules erlauben Office- und Filialkonten keine direkten Client-Schreibzugriffe; diese neuen Schreibrechte sind noch nicht umgesetzt.
+- Office-Konten duerfen zugeordnete Firmen- und Filialdokumente aktualisieren, jedoch nicht anlegen oder loeschen. Schreibrechte fuer Filial-Untercollections sowie eigene Schreibrechte von Filialkonten werden erst zusammen mit den jeweiligen fachlichen Funktionen festgelegt und umgesetzt.
 
 ## Naechste sinnvolle Schritte
 

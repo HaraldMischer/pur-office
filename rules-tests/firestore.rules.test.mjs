@@ -218,22 +218,52 @@ test('active master can write business data, profiles and nested data', async ()
   await assertSucceeds(deleteDoc(doc(db, 'benutzerprofil/scoped')));
 });
 
-for (const role of ['office', 'filiale']) {
-  test(`${role} cannot write business data, own profile or other profiles`, async () => {
-    const db = await seedProfile(role);
-    for (const path of [
-      filialePath,
-      'purUser/old',
-      'other/doc',
-      'benutzerprofil/scoped',
-      'benutzerprofil/other',
-    ]) {
-      await assertFails(setDoc(doc(db, path), { aktiv: true }, { merge: true }));
-      await assertFails(deleteDoc(doc(db, path)));
-    }
-    await assertFails(setDoc(doc(db, `${filialePath}/mitarbeiter/new`), { name: 'new' }));
-  });
-}
+test('active office can update assigned companies and branches without creating or deleting', async () => {
+  const db = await seedProfile('office');
+
+  await assertSucceeds(setDoc(doc(db, firmaPath), { name: 'Firma aktualisiert' }, { merge: true }));
+  await assertSucceeds(
+    setDoc(doc(db, filialePath), { name: 'Filiale aktualisiert' }, { merge: true }),
+  );
+  await assertFails(
+    setDoc(doc(db, `${firmaPath}/filiale/b-2`), { name: 'Nicht zugeordnet' }, { merge: true }),
+  );
+  await assertFails(setDoc(doc(db, 'unternehmer/u-1/firma/f-2'), { name: 'Neue Firma' }));
+  await assertFails(setDoc(doc(db, `${firmaPath}/filiale/b-3`), { name: 'Neue Filiale' }));
+  await assertFails(setDoc(doc(db, `${filialePath}/mitarbeiter/new`), { name: 'Neu' }));
+  await assertFails(deleteDoc(doc(db, firmaPath)));
+  await assertFails(deleteDoc(doc(db, filialePath)));
+});
+
+test('active office cannot write entrepreneurs, legacy data or profiles', async () => {
+  const db = await seedProfile('office');
+  for (const path of [
+    unternehmerPath,
+    'purUser/old',
+    'other/doc',
+    'benutzerprofil/scoped',
+    'benutzerprofil/other',
+  ]) {
+    await assertFails(setDoc(doc(db, path), { aktiv: true }, { merge: true }));
+    await assertFails(deleteDoc(doc(db, path)));
+  }
+});
+
+test('active branch users cannot write business data, own profile or other profiles', async () => {
+  const db = await seedProfile('filiale');
+  for (const path of [
+    firmaPath,
+    filialePath,
+    'purUser/old',
+    'other/doc',
+    'benutzerprofil/scoped',
+    'benutzerprofil/other',
+  ]) {
+    await assertFails(setDoc(doc(db, path), { aktiv: true }, { merge: true }));
+    await assertFails(deleteDoc(doc(db, path)));
+  }
+  await assertFails(setDoc(doc(db, `${filialePath}/mitarbeiter/new`), { name: 'new' }));
+});
 
 test('legacy array scopes and unknown roles fail closed', async () => {
   let db = await seedProfile('office', {

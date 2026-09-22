@@ -143,7 +143,7 @@ erhalten.
 - [x] Im gemeinsamen Auswahlmodell und in den Firestore-Dokumenten durchgehend `anzeigename` verwenden.
 - [x] Ausgewaehlte Zugriffe in Formularvalidierung und Anlage-Payload uebernehmen.
 - [x] Firmen- und Filialzuordnungen im Backend gegen die Firestore-Hierarchie pruefen.
-- [ ] Office-Firmenfreigabe abschliessend klaeren: alle aktuellen und zukuenftigen Filialen einer Firma oder weiterhin explizite Filialauswahl.
+- [x] Office-Firmenfreigabe festlegen: Firmen und Filialen werden explizit zugeordnet; neue Filialen werden nicht automatisch freigegeben.
 
 #### Schritt 3: Konto und Profil sicher anlegen
 
@@ -161,7 +161,9 @@ erhalten.
 - [x] Office- und Filialprofile lesend auf zugeordnete Hierarchien samt Untercollections begrenzen.
 - [x] Direkten Filial-Lesetest ausfuehren: eigene Filiale erlaubt, andere Filiale derselben Firma gesperrt.
 - [x] Lesen und Schreiben der Altanwendung nach dem Rules-Deployment bestaetigen.
-- [ ] Schreibrechte fuer Filial- und Office-Konten fachlich festlegen und gezielt durch Rules beziehungsweise Backend absichern.
+- [x] Office-Konten das Aktualisieren zugeordneter Firmen- und Filialdokumente erlauben; Anlegen, Loeschen und Schreiben in Untercollections weiterhin sperren.
+- [x] Filialkonten vorerst ausschliesslich lesend auf ihre zugeordnete Hierarchie begrenzen.
+- [x] Aktualisierte Firestore Rules mit den Office-Schreibrechten erfolgreich deployen.
 - [ ] Office-Zugriffe und Unterdokumente mit realen Testkonten pruefen.
 
 #### Tests und Abschluss
@@ -170,13 +172,13 @@ erhalten.
 - [x] Fehlerfaelle einschliesslich fehlgeschlagener Rueckabwicklung durch Backend-Tests pruefen und manuelle Nachbearbeitung dokumentieren.
 - [x] Erfolgreiche Benutzeranlage, Anmeldung, Bereichsfreigabe, Verwaltungssperre, Passwortwechsel und erneute Anmeldung vom Benutzer bestaetigen.
 - [ ] Den aktuellen Gesamtablauf mit echten Unternehmer-, Firmen- und Filialzuordnungen pruefen.
-- [ ] Vereinbarte Office- und Filial-Schreibrechte testen.
+- [x] Vereinbarte Office- und Filial-Schreibrechte mit Firestore-Emulator-Tests pruefen.
 - [ ] `projekt-stand.md` nach Abschluss aktualisieren.
-- [ ] `npm test`, `npm run test:rules` und `npm run build` abschliessend erfolgreich ausfuehren.
+- [x] `npm test`, `npm run test:rules` und `npm run build` abschliessend erfolgreich ausfuehren.
 
 #### Erledigt, wenn
 
-- [ ] Das Rollenmodell ist vollstaendig umgesetzt und die vereinbarten Schreibrechte sind abgesichert.
+- [x] Das Rollenmodell ist vollstaendig umgesetzt und die vereinbarten Schreibrechte sind abgesichert.
 - [ ] Der Master kann einen Benutzer mit echten Unternehmer-, Firmen- und Filialzuordnungen anlegen.
 - [ ] Die Zuordnungen werden vollstaendig gespeichert und serverseitig geprueft.
 - [x] Benutzer koennen `userRole`, `erlaubteBereiche` und `zugriffe` nicht selbst ueber den Client veraendern.

@@ -22,6 +22,10 @@ service cloud.firestore {
       return hasProfil() && profil().aktiv == true && profil().userRole == 'master';
     }
 
+    function isOffice() {
+      return hasProfil() && profil().aktiv == true && profil().userRole == 'office';
+    }
+
     function isScopedUser() {
       return hasProfil() && profil().aktiv == true && profil().userRole in ['office', 'filiale'];
     }
@@ -63,6 +67,11 @@ service cloud.firestore {
 
       match /firma/{firmaId} {
         allow read: if darfFirmaLesen(unternehmerId, firmaId);
+        allow update: if isOffice() && darfFirmaLesen(unternehmerId, firmaId);
+
+        match /filiale/{filialId} {
+          allow update: if isOffice() && darfFilialeLesen(unternehmerId, firmaId, filialId);
+        }
 
         match /filiale/{filialId}/{document=**} {
           allow read: if darfFilialeLesen(unternehmerId, firmaId, filialId);
