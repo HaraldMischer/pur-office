@@ -82,11 +82,11 @@ describe('BenutzerVerwaltungStore', () => {
   function prepareDaten() {
     const daten = TestBed.inject(DatenzugriffService);
     vi.mocked(daten.loadUnternehmer).mockResolvedValue([
-      { id: 'a', name: 'A', nummer: 1 },
-      { id: 'b', name: 'B', nummer: 2 },
+      { id: 'a', anzeigename: 'A' },
+      { id: 'b', anzeigename: 'B' },
     ]);
-    vi.mocked(daten.loadFirmen).mockResolvedValue([{ id: 'f', name: 'Firma' }]);
-    vi.mocked(daten.loadFilialen).mockResolvedValue([{ id: 'z', name: 'Filiale' }]);
+    vi.mocked(daten.loadFirmen).mockResolvedValue([{ id: 'f', anzeigename: 'Firma' }]);
+    vi.mocked(daten.loadFilialen).mockResolvedValue([{ id: 'z', anzeigename: 'Filiale' }]);
     return { daten, store: TestBed.inject(BenutzerVerwaltungStore) };
   }
 
@@ -140,7 +140,7 @@ describe('BenutzerVerwaltungStore', () => {
 
   it('should cache late responses without restoring deselected parents', async () => {
     const { daten, store } = prepareDaten();
-    let resolve!: (data: { id: string; name: string }[]) => void;
+    let resolve!: (data: { id: string; anzeigename: string }[]) => void;
     vi.mocked(daten.loadFirmen).mockImplementation((id) =>
       id === 'a'
         ? new Promise((done) => {
@@ -155,7 +155,7 @@ describe('BenutzerVerwaltungStore', () => {
     store.selectUnternehmer(['b']);
     await store.loadAuswahl();
     await vi.waitFor(() => expect(resolve).toBeTypeOf('function'));
-    resolve([{ id: 'f', name: 'Spaete Firma' }]);
+    resolve([{ id: 'f', anzeigename: 'Spaete Firma' }]);
     await pending;
     expect(store.unternehmerIds()).toEqual(['b']);
     expect(store.firmaIds()).toEqual([]);
@@ -167,7 +167,7 @@ describe('BenutzerVerwaltungStore', () => {
 
   it('should ignore pending data after reset', async () => {
     const { daten, store } = prepareDaten();
-    let resolve!: (data: { id: string; name: string; nummer: number }[]) => void;
+    let resolve!: (data: { id: string; anzeigename: string }[]) => void;
     vi.mocked(daten.loadUnternehmer).mockImplementation(
       () =>
         new Promise((done) => {
@@ -178,7 +178,7 @@ describe('BenutzerVerwaltungStore', () => {
     await Promise.resolve();
     expect(store.datenStatus()[0].download).toBe(true);
     store.reset();
-    resolve([{ id: 'old', name: 'Alt', nummer: 1 }]);
+    resolve([{ id: 'old', anzeigename: 'Alt' }]);
     await pending;
     expect(store.unternehmer()).toEqual([]);
     expect(store.listen()).toEqual({});

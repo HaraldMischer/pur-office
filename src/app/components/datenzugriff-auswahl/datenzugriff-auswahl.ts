@@ -39,14 +39,14 @@ export class DatenzugriffAuswahl {
         firmaId: firma.id,
         id: this.getFirmaSchluessel(unternehmer.id, firma.id),
         unternehmerId: unternehmer.id,
-        unternehmerName: unternehmer.name,
+        unternehmerAnzeigename: unternehmer.anzeigename,
       })),
     ),
   );
   readonly firmengruppen = computed(() =>
     this.ausgewaehlteUnternehmer().map((unternehmer) => ({
       id: unternehmer.id,
-      name: unternehmer.name,
+      anzeigename: unternehmer.anzeigename,
       firmen: this.firmen().filter((firma) => firma.unternehmerId === unternehmer.id),
     })),
   );

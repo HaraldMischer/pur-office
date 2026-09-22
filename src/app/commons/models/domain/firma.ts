@@ -1,28 +1,34 @@
-// pur-office/src/app/commons/models/domain/unternehmer.ts
+// pur-office/src/app/commons/models/domain/firma.ts
 
 import { Timestamp } from 'firebase/firestore';
-import { IPerson } from './person';
+
+import { IAdresse } from './adresse';
+import { IKontakt } from './kontakt';
 
 // ===== Anwendungs-Typen ====================
-export interface IUnternehmerAnlage {
+
+export interface IFirmaAnlage {
   anzeigename: string;
-  person: IPerson;
+  firmenname: string;
+  adresse: IAdresse;
+  kontakt: IKontakt;
 }
 
-export interface IUnternehmerAnlageErgebnis {
+export interface IFirmaAnlageErgebnis {
   id: string;
   nummer: number;
   anzeigename: string;
 }
 
-export interface IUnternehmerEintrag {
+export interface IFirmaEintrag {
   id: string;
   nummer: number;
   anzeigename: string;
 }
 
 // ===== Firestore-Dokumente ==================
-export interface IUnternehmerDokument extends IUnternehmerAnlage {
+
+export interface IFirmaDokument extends IFirmaAnlage {
   nummer: number;
   aktiv: boolean;
   erstelltAm?: Timestamp;

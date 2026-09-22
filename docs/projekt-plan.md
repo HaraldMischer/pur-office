@@ -74,7 +74,7 @@ Die Altanwendung verwendet weiterhin unveraendert `purCustomers/{unternehmerId}/
 
 Die Verwaltungsseite erzeugt fuer Filiale und Office getrennte Auswahlkomponenten mit festen Mehrfachauswahl-Einstellungen; bei Master entfaellt die Auswahl. Ein Rollenwechsel setzt die bisherige Zuordnung zurueck. Die Auswahlkomponente selbst schaltet ihre Modi nicht dynamisch um.
 
-Die Auswahl erfolgt abhaengig voneinander: zuerst Unternehmer, danach dessen Firmen, danach deren Filialen. Unternehmer verwenden `name`; fuer die noch nicht migrierten Firmen- und Filialdokumente werden derzeit `companyName` und `branchName` gelesen. Die Zuordnung verwendet die jeweiligen Dokument-IDs.
+Die Auswahl erfolgt abhaengig voneinander: zuerst Unternehmer, danach dessen Firmen, danach deren Filialen. Das gemeinsame Auswahlmodell und die Firestore-Dokumente verwenden fuer alle Ebenen einheitlich `anzeigename`. Die Zuordnung verwendet die jeweiligen Dokument-IDs.
 
 Die wiederverwendbare Component `datenzugriff-auswahl` stellt drei Material-Selects bereit. Die Mehrfachauswahl ist je Ebene konfigurierbar und standardmaessig deaktiviert; damit verwenden alle drei Selects standardmaessig Einfachauswahl. Firmen werden nur bei aktivierter Unternehmer-Mehrfachauswahl und mehr als einem ausgewaehlten Unternehmer gruppiert; Filialen entsprechend bei Firmen-Mehrfachauswahl und mehr als einer ausgewaehlten Firma. Beim Abwaehlen eines uebergeordneten Eintrags entfaellt dessen abhaengige Auswahl.
 

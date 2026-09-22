@@ -92,10 +92,10 @@ export const BenutzerVerwaltungStore = signalStore(
         { key: unternehmerKey, name: 'Unternehmer' },
         ...unternehmer()
           .filter((u) => store.unternehmerIds().includes(u.id))
-          .map((u) => ({ key: firmenKey(u.id), name: `Firmen von ${u.name}` })),
+          .map((u) => ({ key: firmenKey(u.id), name: `Firmen von ${u.anzeigename}` })),
         ...ausgewaehlteFirmen().map((f) => ({
           key: filialenKey(f.unternehmerId, f.id),
-          name: `Filialen von ${f.name}`,
+          name: `Filialen von ${f.anzeigename}`,
         })),
       ].map((eintrag) => ({ ...eintrag, ...(store.listen()[eintrag.key] ?? leer) }));
     });

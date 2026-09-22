@@ -10,6 +10,8 @@ import { TestBed } from '@angular/core/testing';
 import { DatenzugriffService } from '../../services/firebase/datenzugriff.service';
 import { BenutzerVerwaltungService } from '../../services/firebase/benutzer-verwaltung.service';
 import { BenutzerVerwaltungStore } from '../../stores/domain/benutzer-verwaltung.store';
+import { FirmaStore } from '../../stores/domain/firma.store';
+import { FilialeStore } from '../../stores/domain/filiale.store';
 import { UnternehmerStore } from '../../stores/domain/unternehmer.store';
 import { BenutzerAnlage } from './benutzer-anlage/benutzer-anlage';
 import { VerwaltungPage } from './verwaltung-page';
@@ -21,6 +23,18 @@ describe('VerwaltungPage', () => {
       providers: [
         BenutzerVerwaltungStore,
         {
+          provide: FirmaStore,
+          useValue: {
+            firmen: signal([]),
+            download: signal(false),
+            isLoaded: signal(false),
+            error: signal(null),
+            loadFirmen: vi.fn().mockResolvedValue(undefined),
+            resetFirmen: vi.fn(),
+            clearError: vi.fn(),
+          },
+        },
+        {
           provide: UnternehmerStore,
           useValue: {
             unternehmer: signal([]),
@@ -28,6 +42,18 @@ describe('VerwaltungPage', () => {
             isLoaded: signal(true),
             error: signal(null),
             loadUnternehmer: vi.fn().mockResolvedValue(undefined),
+            clearError: vi.fn(),
+          },
+        },
+        {
+          provide: FilialeStore,
+          useValue: {
+            filialen: signal([]),
+            download: signal(false),
+            isLoaded: signal(false),
+            error: signal(null),
+            loadFilialen: vi.fn().mockResolvedValue(undefined),
+            resetFilialen: vi.fn(),
             clearError: vi.fn(),
           },
         },
@@ -237,11 +263,9 @@ describe('VerwaltungPage', () => {
   });
   it('should submit the selected hierarchy only after the selection is complete', async () => {
     const daten = TestBed.inject(DatenzugriffService);
-    vi.mocked(daten.loadUnternehmer).mockResolvedValue([
-      { id: 'u', name: 'Unternehmer', nummer: 1 },
-    ]);
-    vi.mocked(daten.loadFirmen).mockResolvedValue([{ id: 'f', name: 'Firma' }]);
-    vi.mocked(daten.loadFilialen).mockResolvedValue([{ id: 'b', name: 'Filiale' }]);
+    vi.mocked(daten.loadUnternehmer).mockResolvedValue([{ id: 'u', anzeigename: 'Unternehmer' }]);
+    vi.mocked(daten.loadFirmen).mockResolvedValue([{ id: 'f', anzeigename: 'Firma' }]);
+    vi.mocked(daten.loadFilialen).mockResolvedValue([{ id: 'b', anzeigename: 'Filiale' }]);
     const fixture = TestBed.createComponent(BenutzerAnlage);
     async function render() {
       fixture.detectChanges();
@@ -345,13 +369,11 @@ describe('VerwaltungPage', () => {
   );
   it('recreates fixed selection modes and clears assignments when changing roles', async () => {
     const daten = TestBed.inject(DatenzugriffService);
-    vi.mocked(daten.loadUnternehmer).mockResolvedValue([
-      { id: 'u', name: 'Unternehmer', nummer: 1 },
-    ]);
-    vi.mocked(daten.loadFirmen).mockResolvedValue([{ id: 'f', name: 'Firma' }]);
+    vi.mocked(daten.loadUnternehmer).mockResolvedValue([{ id: 'u', anzeigename: 'Unternehmer' }]);
+    vi.mocked(daten.loadFirmen).mockResolvedValue([{ id: 'f', anzeigename: 'Firma' }]);
     vi.mocked(daten.loadFilialen).mockResolvedValue([
-      { id: 'b1', name: 'Filiale 1' },
-      { id: 'b2', name: 'Filiale 2' },
+      { id: 'b1', anzeigename: 'Filiale 1' },
+      { id: 'b2', anzeigename: 'Filiale 2' },
     ]);
     const fixture = TestBed.createComponent(BenutzerAnlage);
     const page = fixture.componentInstance;

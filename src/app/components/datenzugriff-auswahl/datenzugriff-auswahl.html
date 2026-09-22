@@ -22,7 +22,7 @@
         >
       }
       @for (eintrag of unternehmer(); track eintrag.id) {
-        <mat-option [value]="eintrag.id">{{ eintrag.name }}</mat-option>
+        <mat-option [value]="eintrag.id">{{ eintrag.anzeigename }}</mat-option>
       }
     </mat-select>
   </mat-form-field>
@@ -41,9 +41,9 @@
       }
       @if (unternehmerMehrfach() && ausgewaehlteUnternehmer().length > 1) {
         @for (gruppe of firmengruppen(); track gruppe.id) {
-          <mat-optgroup [label]="gruppe.name">
+          <mat-optgroup [label]="gruppe.anzeigename">
             @for (firma of gruppe.firmen; track firma.id) {
-              <mat-option [value]="firma.id">{{ firma.name }}</mat-option>
+              <mat-option [value]="firma.id">{{ firma.anzeigename }}</mat-option>
             } @empty {
               <mat-option disabled>Keine Firmen vorhanden.</mat-option>
             }
@@ -51,7 +51,7 @@
         }
       } @else {
         @for (firma of firmen(); track firma.id) {
-          <mat-option [value]="firma.id">{{ firma.name }}</mat-option>
+          <mat-option [value]="firma.id">{{ firma.anzeigename }}</mat-option>
         }
       }
     </mat-select>
@@ -80,13 +80,13 @@
           <mat-optgroup
             [label]="
               ausgewaehlteUnternehmer().length > 1
-                ? firma.unternehmerName + ' / ' + firma.name
-                : firma.name
+                ? firma.unternehmerAnzeigename + ' / ' + firma.anzeigename
+                : firma.anzeigename
             "
           >
             @for (filiale of firma.filialen; track filiale.id) {
               <mat-option [value]="getFilialSchluessel(firma.id, filiale.id)">{{
-                filiale.name
+                filiale.anzeigename
               }}</mat-option>
             } @empty {
               <mat-option disabled>Keine Filialen vorhanden.</mat-option>
@@ -97,7 +97,7 @@
         @for (firma of ausgewaehlteFirmen(); track firma.id) {
           @for (filiale of firma.filialen; track filiale.id) {
             <mat-option [value]="getFilialSchluessel(firma.id, filiale.id)">{{
-              filiale.name
+              filiale.anzeigename
             }}</mat-option>
           }
         }

@@ -9,7 +9,6 @@ import {
 } from '../../commons/models/domain/unternehmer';
 import { getFirebaseErrorMessage } from '../../commons/utils/errors/firebase-error-message';
 import { StoreDebugService } from '../../services/core/store-debug.service';
-import { DatenzugriffService } from '../../services/firebase/datenzugriff.service';
 import { UnternehmerService } from '../../services/firebase/unternehmer.service';
 
 // ===== Top-Level Helper =====================
@@ -33,7 +32,7 @@ const initialState: TUnternehmerState = {
 };
 
 function sortUnternehmer(unternehmer: IUnternehmerEintrag[]): readonly IUnternehmerEintrag[] {
-  return [...unternehmer].sort((a, b) => a.name.localeCompare(b.name, 'de'));
+  return [...unternehmer].sort((a, b) => a.anzeigename.localeCompare(b.anzeigename, 'de'));
 }
 
 function getNaechsteNummer(unternehmer: readonly IUnternehmerEintrag[]): number {
@@ -46,7 +45,6 @@ export const UnternehmerStore = signalStore(
   withMethods(
     (
       store,
-      datenService = inject(DatenzugriffService),
       unternehmerService = inject(UnternehmerService),
       destroyRef = inject(DestroyRef),
       storeDebugService = inject(StoreDebugService),
@@ -64,7 +62,7 @@ export const UnternehmerStore = signalStore(
 
         patchState(store, { download: true, isLoaded: false, error: null });
         try {
-          const unternehmer = await datenService.loadUnternehmer();
+          const unternehmer = await unternehmerService.loadUnternehmer();
           patchState(store, { unternehmer: sortUnternehmer(unternehmer), isLoaded: true });
         } catch (error: unknown) {
           patchState(store, { error: getFirebaseErrorMessage(error) });
@@ -80,7 +78,7 @@ export const UnternehmerStore = signalStore(
        * Legt einen Unternehmer mit der naechsten freien Nummer an und aktualisiert die Liste.
        *
        * @param anlage - Die Daten des neu anzulegenden Unternehmers.
-       * @returns Das Anlageergebnis mit Dokument-ID, Nummer und Name.
+       * @returns Das Anlageergebnis mit Dokument-ID, Nummer und Anzeigename.
        * @throws Wenn die Unternehmerliste nicht vollstaendig geladen ist oder das Speichern fehlschlaegt.
        */
       async function createUnternehmer(

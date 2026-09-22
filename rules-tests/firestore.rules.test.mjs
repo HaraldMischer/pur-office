@@ -202,7 +202,13 @@ for (const role of ['master', 'office', 'filiale']) {
 test('active master can write business data, profiles and nested data', async () => {
   const db = await seedProfile('master');
 
-  await assertSucceeds(setDoc(doc(db, 'unternehmer/new'), { name: 'new' }));
+  await assertSucceeds(setDoc(doc(db, 'unternehmer/new'), { anzeigename: 'Unternehmer Neu' }));
+  await assertSucceeds(setDoc(doc(db, 'unternehmer/new/firma/new'), { anzeigename: 'Firma Neu' }));
+  await assertSucceeds(
+    setDoc(doc(db, 'unternehmer/new/firma/new/filiale/new'), {
+      anzeigename: 'Filiale Neu',
+    }),
+  );
   await assertSucceeds(setDoc(doc(db, filialePath), { name: 'updated' }, { merge: true }));
   await assertSucceeds(setDoc(doc(db, `${filialePath}/mitarbeiter/new`), { name: 'new' }));
   await assertSucceeds(

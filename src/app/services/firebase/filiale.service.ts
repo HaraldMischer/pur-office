@@ -1,13 +1,13 @@
-// pur-office/src/app/services/firebase/unternehmer.service.ts
+// pur-office/src/app/services/firebase/filiale.service.ts
 
 import { Injectable, Injector, inject, runInInjectionContext } from '@angular/core';
 import { Firestore } from '@angular/fire/firestore';
 
 import {
-  IUnternehmerAnlage,
-  IUnternehmerAnlageErgebnis,
-  IUnternehmerEintrag,
-} from '../../commons/models/domain/unternehmer';
+  IFilialeAnlage,
+  IFilialeAnlageErgebnis,
+  IFilialeEintrag,
+} from '../../commons/models/domain/filiale';
 import {
   FIRESTORE_ADD_DOC,
   FIRESTORE_COLLECTION,
@@ -16,7 +16,9 @@ import {
 } from '../../commons/tokens/firebase.tokens';
 
 @Injectable({ providedIn: 'root' })
-export class UnternehmerService {
+export class FilialeService {
+  // ===== Interne Dependency Injection =========
+
   private readonly injector = inject(Injector);
   private readonly firestore = inject(Firestore);
   private readonly addDoc = inject(FIRESTORE_ADD_DOC);
@@ -24,15 +26,21 @@ export class UnternehmerService {
   private readonly getDocs = inject(FIRESTORE_GET_DOCS);
   private readonly serverTimestamp = inject(FIRESTORE_SERVER_TIMESTAMP);
 
+  // ===== Oeffentliche Aktionen =================
+
   /**
-   * Laedt alle Unternehmer und bildet sie als sortierte Domaeneneintraege ab.
+   * Laedt alle Filialen einer Firma und bildet sie als sortierte Domaeneneintraege ab.
    *
-   * @returns Die nach Anzeigename sortierten Unternehmer.
+   * @param unternehmerId - Die Dokument-ID des uebergeordneten Unternehmers.
+   * @param firmaId - Die Dokument-ID der uebergeordneten Firma.
+   * @returns Die nach Anzeigename sortierten Filialen.
    * @throws Gibt Fehler des Firestore-Zugriffs an die aufrufende Stelle weiter.
    */
-  async loadUnternehmer(): Promise<IUnternehmerEintrag[]> {
+  async loadFilialen(unternehmerId: string, firmaId: string): Promise<IFilialeEintrag[]> {
     const snapshot = await runInInjectionContext(this.injector, () =>
-      this.getDocs(this.collection(this.firestore, 'unternehmer')),
+      this.getDocs(
+        this.collection(this.firestore, 'unternehmer', unternehmerId, 'firma', firmaId, 'filiale'),
+      ),
     );
 
     return snapshot.docs
@@ -53,30 +61,37 @@ export class UnternehmerService {
   }
 
   /**
-   * Legt einen Unternehmer mit der uebergebenen fortlaufenden Nummer an.
+   * Legt eine Filiale mit der uebergebenen fortlaufenden Nummer unter einer Firma an.
    *
-   * @param anlage - Die Person- und Anzeigedaten des neuen Unternehmers.
-   * @param nummer - Die fuer den Unternehmer ermittelte fortlaufende Nummer.
+   * @param unternehmerId - Die Dokument-ID des uebergeordneten Unternehmers.
+   * @param firmaId - Die Dokument-ID der uebergeordneten Firma.
+   * @param anlage - Die Anzeige-, Namens-, Adress- und Kontaktdaten der neuen Filiale.
+   * @param nummer - Die fuer die Filiale ermittelte fortlaufende Nummer.
    * @returns Das Anlageergebnis mit Dokument-ID, Nummer und Anzeigename.
    * @throws Gibt Fehler des Firestore-Zugriffs an die aufrufende Stelle weiter.
    */
-  async createUnternehmer(
-    anlage: IUnternehmerAnlage,
+  async createFiliale(
+    unternehmerId: string,
+    firmaId: string,
+    anlage: IFilialeAnlage,
     nummer: number,
-  ): Promise<IUnternehmerAnlageErgebnis> {
+  ): Promise<IFilialeAnlageErgebnis> {
     const zeitstempel = this.serverTimestamp();
-    const unternehmerRef = await runInInjectionContext(this.injector, () =>
-      this.addDoc(this.collection(this.firestore, 'unternehmer'), {
-        ...anlage,
-        nummer,
-        aktiv: true,
-        erstelltAm: zeitstempel,
-        aktualisiertAm: zeitstempel,
-      }),
+    const filialeRef = await runInInjectionContext(this.injector, () =>
+      this.addDoc(
+        this.collection(this.firestore, 'unternehmer', unternehmerId, 'firma', firmaId, 'filiale'),
+        {
+          ...anlage,
+          nummer,
+          aktiv: true,
+          erstelltAm: zeitstempel,
+          aktualisiertAm: zeitstempel,
+        },
+      ),
     );
 
     return {
-      id: unternehmerRef.id,
+      id: filialeRef.id,
       nummer,
       anzeigename: anlage.anzeigename,
     };

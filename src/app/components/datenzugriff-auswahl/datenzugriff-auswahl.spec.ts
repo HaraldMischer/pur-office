@@ -9,26 +9,30 @@ import { DatenzugriffAuswahl } from './datenzugriff-auswahl';
 const DATENZUGRIFF_MOCK = [
   {
     id: 'demo-unternehmer-west',
-    name: 'West',
+    anzeigename: 'West',
     firmen: [
       {
         id: 'demo-firma-ruhr',
-        name: 'Ruhr',
+        anzeigename: 'Ruhr',
         filialen: [
-          { id: 'demo-bochum', name: 'Bochum' },
-          { id: 'demo-herne', name: 'Herne' },
-          { id: 'demo-essen', name: 'Essen' },
+          { id: 'demo-bochum', anzeigename: 'Bochum' },
+          { id: 'demo-herne', anzeigename: 'Herne' },
+          { id: 'demo-essen', anzeigename: 'Essen' },
         ],
       },
-      { id: 'demo-firma-rhein', name: 'Rhein', filialen: [{ id: 'demo-koeln', name: 'Köln' }] },
+      {
+        id: 'demo-firma-rhein',
+        anzeigename: 'Rhein',
+        filialen: [{ id: 'demo-koeln', anzeigename: 'Köln' }],
+      },
     ],
   },
   {
     id: 'demo-unternehmer-nord',
-    name: 'Nord',
+    anzeigename: 'Nord',
     firmen: [
-      { id: 'demo-firma-hanse', name: 'Hanse', filialen: [] },
-      { id: 'demo-firma-kueste', name: 'Küste', filialen: [] },
+      { id: 'demo-firma-hanse', anzeigename: 'Hanse', filialen: [] },
+      { id: 'demo-firma-kueste', anzeigename: 'Küste', filialen: [] },
     ],
   },
 ];
@@ -281,8 +285,14 @@ describe('DatenzugriffAuswahl', () => {
       'unternehmer',
       ['a', 'b'].map((id) => ({
         id,
-        name: id,
-        firmen: [{ id: 'same', name: 'Firma', filialen: [{ id: 'same', name: 'Filiale' }] }],
+        anzeigename: id,
+        firmen: [
+          {
+            id: 'same',
+            anzeigename: 'Firma',
+            filialen: [{ id: 'same', anzeigename: 'Filiale' }],
+          },
+        ],
       })),
     );
     fixture.detectChanges();

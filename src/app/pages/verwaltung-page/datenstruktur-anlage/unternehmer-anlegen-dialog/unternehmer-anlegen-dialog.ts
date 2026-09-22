@@ -21,8 +21,9 @@ import {
 } from '../../../../commons/models/domain/unternehmer';
 import { UnternehmerStore } from '../../../../stores/domain/unternehmer.store';
 
-const nichtLeerValidator: ValidatorFn = (control: AbstractControl): ValidationErrors | null =>
-  String(control.value).trim() ? null : { required: true };
+const nichtLeerValidator: ValidatorFn = (control: AbstractControl): ValidationErrors | null => {
+  return String(control.value).trim() ? null : { required: true };
+};
 
 @Component({
   selector: 'app-unternehmer-anlegen-dialog',
@@ -44,39 +45,49 @@ export class UnternehmerAnlegenDialog {
   readonly unternehmerStore = inject(UnternehmerStore);
 
   readonly unternehmerForm = new FormGroup({
-    name: new FormControl('', {
+    anzeigename: new FormControl('', {
       nonNullable: true,
       validators: [Validators.required, nichtLeerValidator],
     }),
-    adresse: new FormGroup({
-      strasse: new FormControl('', {
+    person: new FormGroup({
+      vorname: new FormControl('', {
         nonNullable: true,
         validators: [Validators.required, nichtLeerValidator],
       }),
-      hausnummer: new FormControl('', {
+      nachname: new FormControl('', {
         nonNullable: true,
         validators: [Validators.required, nichtLeerValidator],
       }),
-      postleitzahl: new FormControl('', {
-        nonNullable: true,
-        validators: [Validators.required, nichtLeerValidator],
+      adresse: new FormGroup({
+        strasse: new FormControl('', {
+          nonNullable: true,
+          validators: [Validators.required, nichtLeerValidator],
+        }),
+        hausnummer: new FormControl('', {
+          nonNullable: true,
+          validators: [Validators.required, nichtLeerValidator],
+        }),
+        postleitzahl: new FormControl('', {
+          nonNullable: true,
+          validators: [Validators.required, nichtLeerValidator],
+        }),
+        ort: new FormControl('', {
+          nonNullable: true,
+          validators: [Validators.required, nichtLeerValidator],
+        }),
       }),
-      ort: new FormControl('', {
-        nonNullable: true,
-        validators: [Validators.required, nichtLeerValidator],
+      kontakt: new FormGroup({
+        email: new FormControl('', {
+          nonNullable: true,
+          validators: [Validators.email],
+        }),
+        telefon: new FormControl('', { nonNullable: true }),
       }),
-    }),
-    kontakt: new FormGroup({
-      email: new FormControl('', {
-        nonNullable: true,
-        validators: [Validators.email],
-      }),
-      telefon: new FormControl('', { nonNullable: true }),
     }),
   });
 
   async onSubmit(): Promise<void> {
-    const emailControl = this.unternehmerForm.controls.kontakt.controls.email;
+    const emailControl = this.unternehmerForm.controls.person.controls.kontakt.controls.email;
     emailControl.setValue(emailControl.getRawValue().trim().toLowerCase());
     this.unternehmerForm.updateValueAndValidity();
 
@@ -98,21 +109,25 @@ export class UnternehmerAnlegenDialog {
 
   private getUnternehmerAnlage(): IUnternehmerAnlage {
     const value = this.unternehmerForm.getRawValue();
-    const email = value.kontakt.email.trim().toLowerCase();
-    const telefon = value.kontakt.telefon.trim();
+    const email = value.person.kontakt.email.trim().toLowerCase();
+    const telefon = value.person.kontakt.telefon.trim();
 
     return {
-      name: value.name.trim(),
-      adresse: {
-        strasse: value.adresse.strasse.trim(),
-        hausnummer: value.adresse.hausnummer.trim(),
-        postleitzahl: value.adresse.postleitzahl.trim(),
-        ort: value.adresse.ort.trim(),
-        land: 'Deutschland',
-      },
-      kontakt: {
-        ...(email ? { email } : {}),
-        ...(telefon ? { telefon } : {}),
+      anzeigename: value.anzeigename.trim(),
+      person: {
+        vorname: value.person.vorname.trim(),
+        nachname: value.person.nachname.trim(),
+        adresse: {
+          strasse: value.person.adresse.strasse.trim(),
+          hausnummer: value.person.adresse.hausnummer.trim(),
+          postleitzahl: value.person.adresse.postleitzahl.trim(),
+          ort: value.person.adresse.ort.trim(),
+          land: 'Deutschland',
+        },
+        kontakt: {
+          ...(email ? { email } : {}),
+          ...(telefon ? { telefon } : {}),
+        },
       },
     };
   }

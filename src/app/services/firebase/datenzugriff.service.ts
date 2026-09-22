@@ -1,60 +1,59 @@
 // pur-office/src/app/services/firebase/datenzugriff.service.ts
 
-import { Injectable, Injector, inject, runInInjectionContext } from '@angular/core';
-import { Firestore } from '@angular/fire/firestore';
-import { FIRESTORE_COLLECTION, FIRESTORE_GET_DOCS } from '../../commons/tokens/firebase.tokens';
+import { Injectable, inject } from '@angular/core';
 import { IDatenzugriffEintrag } from '../../commons/models/domain/datenzugriff';
-import { IUnternehmerEintrag } from '../../commons/models/domain/unternehmer';
+import { FilialeService } from './filiale.service';
+import { FirmaService } from './firma.service';
+import { UnternehmerService } from './unternehmer.service';
 
 @Injectable({ providedIn: 'root' })
 export class DatenzugriffService {
-  private readonly injector = inject(Injector);
-  private readonly firestore = inject(Firestore);
-  private readonly collection = inject(FIRESTORE_COLLECTION);
-  private readonly getDocs = inject(FIRESTORE_GET_DOCS);
+  private readonly filialeService = inject(FilialeService);
+  private readonly firmaService = inject(FirmaService);
+  private readonly unternehmerService = inject(UnternehmerService);
 
-  async loadUnternehmer(): Promise<IUnternehmerEintrag[]> {
-    const snapshot = await runInInjectionContext(this.injector, () =>
-      this.getDocs(this.collection(this.firestore, 'unternehmer')),
-    );
-
-    return snapshot.docs
-      .map((dokument) => {
-        const daten = dokument.data();
-        const name: unknown = daten['name'];
-        const nummer: unknown = daten['nummer'];
-        return {
-          id: dokument.id,
-          name: typeof name === 'string' && name.trim() ? name.trim() : dokument.id,
-          nummer: Number.isInteger(nummer) && Number(nummer) > 0 ? Number(nummer) : 0,
-        };
-      })
-      .sort((a, b) => a.name.localeCompare(b.name, 'de'));
+  /**
+   * Laedt Unternehmer als kompakte Eintraege fuer die Datenzugriffsauswahl.
+   *
+   * @returns Die IDs und Anzeigenamen der Unternehmer.
+   * @throws Gibt Fehler des Unternehmer-Service an die aufrufende Stelle weiter.
+   */
+  async loadUnternehmer(): Promise<IDatenzugriffEintrag[]> {
+    const unternehmer = await this.unternehmerService.loadUnternehmer();
+    return unternehmer.map((eintrag) => ({
+      id: eintrag.id,
+      anzeigename: eintrag.anzeigename,
+    }));
   }
 
-  loadFirmen(unternehmerId: string): Promise<IDatenzugriffEintrag[]> {
-    return this.loadListe(['unternehmer', unternehmerId, 'firma'], 'companyName');
+  /**
+   * Laedt die Firmen eines Unternehmers fuer die Datenzugriffsauswahl.
+   *
+   * @param unternehmerId - Die Dokument-ID des uebergeordneten Unternehmers.
+   * @returns Die IDs und Anzeigenamen der Firmen.
+   * @throws Gibt Fehler des Firestore-Zugriffs an die aufrufende Stelle weiter.
+   */
+  async loadFirmen(unternehmerId: string): Promise<IDatenzugriffEintrag[]> {
+    const firmen = await this.firmaService.loadFirmen(unternehmerId);
+    return firmen.map((eintrag) => ({
+      id: eintrag.id,
+      anzeigename: eintrag.anzeigename,
+    }));
   }
 
-  loadFilialen(unternehmerId: string, firmaId: string): Promise<IDatenzugriffEintrag[]> {
-    return this.loadListe(
-      ['unternehmer', unternehmerId, 'firma', firmaId, 'filiale'],
-      'branchName',
-    );
-  }
-
-  private async loadListe(pfad: string[], namensfeld: string): Promise<IDatenzugriffEintrag[]> {
-    const snapshot = await runInInjectionContext(this.injector, () =>
-      this.getDocs(this.collection(this.firestore, pfad[0], ...pfad.slice(1))),
-    );
-    return snapshot.docs
-      .map((dokument) => {
-        const name: unknown = dokument.data()[namensfeld];
-        return {
-          id: dokument.id,
-          name: typeof name === 'string' && name.trim() ? name.trim() : dokument.id,
-        };
-      })
-      .sort((a, b) => a.name.localeCompare(b.name, 'de'));
+  /**
+   * Laedt die Filialen einer Firma fuer die Datenzugriffsauswahl.
+   *
+   * @param unternehmerId - Die Dokument-ID des uebergeordneten Unternehmers.
+   * @param firmaId - Die Dokument-ID der uebergeordneten Firma.
+   * @returns Die IDs und Anzeigenamen der Filialen.
+   * @throws Gibt Fehler des Firestore-Zugriffs an die aufrufende Stelle weiter.
+   */
+  async loadFilialen(unternehmerId: string, firmaId: string): Promise<IDatenzugriffEintrag[]> {
+    const filialen = await this.filialeService.loadFilialen(unternehmerId, firmaId);
+    return filialen.map((eintrag) => ({
+      id: eintrag.id,
+      anzeigename: eintrag.anzeigename,
+    }));
   }
 }

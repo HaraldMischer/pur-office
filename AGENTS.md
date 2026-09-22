@@ -17,6 +17,15 @@
 - Konkrete naechste Arbeitsschritte stehen in `docs/next_todo.md`.
 - Agents richten neue Umsetzung an diesen Dokumenten aus.
 
+## Todo-Dokumentation
+
+- Offene Hauptaufgaben werden in `docs/next_todo.md` unter einem fachlichen Todo gebuendelt und mit fortlaufenden Unterpunkten wie `4.1`, `4.2` und `4.3` gegliedert.
+- Jeder Todo-Unterpunkt verwendet in dieser Reihenfolge die Bereiche `Ziel`, `Betroffene Dateien`, fachlich benannte und nummerierte Schritte, `Tests und Abschluss` sowie `Erledigt, wenn`.
+- Arbeitsschritte werden als `Schritt 1: ...`, `Schritt 2: ...` und so weiter bezeichnet. Zusammengehoerige Aufgaben stehen als Checkliste unter dem jeweiligen Schritt.
+- `Tests und Abschluss` enthaelt konkrete Pruef-, Build-, Dokumentations- und manuelle Abschlussarbeiten.
+- `Erledigt, wenn` bleibt ein eigener Bereich und beschreibt die fachlich pruefbaren Abnahmekriterien des Todo-Unterpunkts.
+- Beim Neuordnen von Todos bleiben vorhandene Erledigt-Markierungen erhalten. Inhaltlich gleiche Aufgaben werden zusammengefuehrt, ohne offene Arbeiten versehentlich als erledigt zu markieren.
+
 ## Projektstruktur
 
 - Echte Seiten liegen unter `src/app/pages`.
@@ -90,38 +99,38 @@
 
 ### Components und Pages
 
-01. `// ===== Top-Level Helper =====================`
-02. `// ===== Interne Dependency Injection =========`
-03. `// ===== Konstanten & Typen ===================`
-04. `// ===== Oeffentliche API ======================`
-05. `// ===== View Queries =========================`
-06. `// ===== Interner State =======================`
-07. `// ===== Interne Ableitungen ==================`
-08. `// ===== Oeffentliche Werte ====================`
-09. `// ===== Oeffentliche Ableitungen ==============`
+1.  `// ===== Top-Level Helper =====================`
+2.  `// ===== Interne Dependency Injection =========`
+3.  `// ===== Konstanten & Typen ===================`
+4.  `// ===== Oeffentliche API ======================`
+5.  `// ===== View Queries =========================`
+6.  `// ===== Interner State =======================`
+7.  `// ===== Interne Ableitungen ==================`
+8.  `// ===== Oeffentliche Werte ====================`
+9.  `// ===== Oeffentliche Ableitungen ==============`
 10. `// ===== Lifecycle Hooks ======================`
 11. `// ===== Oeffentliche Aktionen =================`
 12. `// ===== Interne Helfer =======================`
 
 ### Services
 
-01. `// ===== Top-Level Helper =====================`
-02. `// ===== Interne Dependency Injection =========`
-03. `// ===== Konstanten & Typen ===================`
-04. `// ===== Oeffentliche API ======================`
-05. `// ===== Interner State =======================`
-06. `// ===== Interne Ableitungen ==================`
-07. `// ===== Oeffentliche Werte ====================`
-08. `// ===== Oeffentliche Ableitungen ==============`
-09. `// ===== Oeffentliche Aktionen =================`
+1.  `// ===== Top-Level Helper =====================`
+2.  `// ===== Interne Dependency Injection =========`
+3.  `// ===== Konstanten & Typen ===================`
+4.  `// ===== Oeffentliche API ======================`
+5.  `// ===== Interner State =======================`
+6.  `// ===== Interne Ableitungen ==================`
+7.  `// ===== Oeffentliche Werte ====================`
+8.  `// ===== Oeffentliche Ableitungen ==============`
+9.  `// ===== Oeffentliche Aktionen =================`
 10. `// ===== Interne Helfer =======================`
 
 ### Stores
 
-01. `// ===== Top-Level Helper =====================`
-02. `// ===== Methoden: Laden ======================`
-03. `// ===== Methoden: Schreiben ==================`
-04. `// ===== Methoden: Sonstige Aktionen ==========`
+1.  `// ===== Top-Level Helper =====================`
+2.  `// ===== Methoden: Laden ======================`
+3.  `// ===== Methoden: Schreiben ==================`
+4.  `// ===== Methoden: Sonstige Aktionen ==========`
 
 ## Styles und UI
 

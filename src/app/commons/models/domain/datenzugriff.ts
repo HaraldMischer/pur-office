@@ -2,25 +2,25 @@
 
 export interface IDatenzugriffEintrag {
   id: string;
-  name: string;
+  anzeigename: string;
 }
 
 // Unternehmer-Auswahl
 export interface IUnternehmerAuswahl {
   id: string;
-  name: string;
+  anzeigename: string;
   firmen: readonly IFirmaAuswahl[];
 }
 
 // Firmen-Auswahl
 export interface IFirmaAuswahl {
   id: string;
-  name: string;
+  anzeigename: string;
   filialen: readonly IFilialeAuswahl[];
 }
 
 // Filial-Auswahl
 export interface IFilialeAuswahl {
   id: string;
-  name: string;
+  anzeigename: string;
 }

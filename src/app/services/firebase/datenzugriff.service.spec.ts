@@ -1,73 +1,70 @@
 // pur-office/src/app/services/firebase/datenzugriff.service.spec.ts
 import { TestBed } from '@angular/core/testing';
-import { Firestore } from '@angular/fire/firestore';
-import { FIRESTORE_COLLECTION, FIRESTORE_GET_DOCS } from '../../commons/tokens/firebase.tokens';
 import { DatenzugriffService } from './datenzugriff.service';
+import { FilialeService } from './filiale.service';
+import { FirmaService } from './firma.service';
+import { UnternehmerService } from './unternehmer.service';
 
 describe('DatenzugriffService', () => {
-  const collection = vi.fn().mockReturnValue('ref');
-  const getDocs = vi.fn();
+  const loadFilialen = vi.fn();
+  const loadFirmen = vi.fn();
+  const loadUnternehmer = vi.fn();
   beforeEach(() => {
     vi.clearAllMocks();
+    loadFilialen.mockResolvedValue([]);
+    loadFirmen.mockResolvedValue([]);
+    loadUnternehmer.mockResolvedValue([]);
     TestBed.configureTestingModule({
       providers: [
-        { provide: Firestore, useValue: {} },
-        { provide: FIRESTORE_COLLECTION, useValue: collection },
-        { provide: FIRESTORE_GET_DOCS, useValue: getDocs },
+        { provide: FilialeService, useValue: { loadFilialen } },
+        { provide: FirmaService, useValue: { loadFirmen } },
+        { provide: UnternehmerService, useValue: { loadUnternehmer } },
       ],
     });
   });
-  it('should use document IDs, map names and sort each level', async () => {
+  it('should use document IDs, map display names and sort entrepreneurs', async () => {
     const service = TestBed.inject(DatenzugriffService);
-    for (const [field, load, path, mitNummer] of [
-      ['name', () => service.loadUnternehmer(), ['unternehmer'], true],
-      ['companyName', () => service.loadFirmen('u'), ['unternehmer', 'u', 'firma'], false],
-      [
-        'branchName',
-        () => service.loadFilialen('u', 'f'),
-        ['unternehmer', 'u', 'firma', 'f', 'filiale'],
-        false,
-      ],
-    ] as const) {
-      getDocs.mockResolvedValue({
-        docs: [
-          { id: 'b', data: () => ({ [field]: ' Beta ', nummer: 2, company_ID: 'wrong' }) },
-          { id: 'a', data: () => ({ [field]: 'Alpha', nummer: 1 }) },
-          { id: 'z', data: () => ({ [field]: 42 }) },
-        ],
-      });
-      const nummern = mitNummer ? [{ nummer: 1 }, { nummer: 2 }, { nummer: 0 }] : [{}, {}, {}];
-      expect(await load()).toEqual([
-        { id: 'a', name: 'Alpha', ...nummern[0] },
-        { id: 'b', name: 'Beta', ...nummern[1] },
-        { id: 'z', name: 'z', ...nummern[2] },
-      ]);
-      expect(collection).toHaveBeenLastCalledWith(TestBed.inject(Firestore), ...path);
-      expect(getDocs).toHaveBeenLastCalledWith('ref');
-    }
-  });
-  it('should not use legacy customer names for the new entrepreneur collection', async () => {
-    const service = TestBed.inject(DatenzugriffService);
-    getDocs.mockResolvedValue({
-      docs: [
-        {
-          id: 'neu',
-          data: () => ({ name: 'Neuer Unternehmer', nummer: 7, customerName: 'Alt' }),
-        },
-        { id: 'ohne-name', data: () => ({ customerName: 'Alter Name' }) },
-      ],
-    });
+    loadUnternehmer.mockResolvedValue([
+      { id: 'a', anzeigename: 'Alpha', nummer: 1 },
+      { id: 'b', anzeigename: 'Beta', nummer: 2 },
+    ]);
 
     expect(await service.loadUnternehmer()).toEqual([
-      { id: 'neu', name: 'Neuer Unternehmer', nummer: 7 },
-      { id: 'ohne-name', name: 'ohne-name', nummer: 0 },
+      { id: 'a', anzeigename: 'Alpha' },
+      { id: 'b', anzeigename: 'Beta' },
     ]);
+    expect(loadUnternehmer).toHaveBeenCalledOnce();
+  });
+  it('should map company entries without exposing their numbers', async () => {
+    const service = TestBed.inject(DatenzugriffService);
+    loadFirmen.mockResolvedValue([
+      { id: 'a', anzeigename: 'Alpha', nummer: 1 },
+      { id: 'b', anzeigename: 'Beta', nummer: 2 },
+    ]);
+
+    expect(await service.loadFirmen('u')).toEqual([
+      { id: 'a', anzeigename: 'Alpha' },
+      { id: 'b', anzeigename: 'Beta' },
+    ]);
+    expect(loadFirmen).toHaveBeenCalledWith('u');
+  });
+  it('should map branch entries without exposing their numbers', async () => {
+    const service = TestBed.inject(DatenzugriffService);
+    loadFilialen.mockResolvedValue([
+      { id: 'a', anzeigename: 'Alpha', nummer: 1 },
+      { id: 'b', anzeigename: 'Beta', nummer: 2 },
+    ]);
+
+    expect(await service.loadFilialen('u', 'f')).toEqual([
+      { id: 'a', anzeigename: 'Alpha' },
+      { id: 'b', anzeigename: 'Beta' },
+    ]);
+    expect(loadFilialen).toHaveBeenCalledWith('u', 'f');
   });
   it('should return an empty list and propagate read errors', async () => {
     const service = TestBed.inject(DatenzugriffService);
-    getDocs.mockResolvedValue({ docs: [] });
     expect(await service.loadUnternehmer()).toEqual([]);
-    getDocs.mockRejectedValue({ code: 'permission-denied' });
+    loadUnternehmer.mockRejectedValue({ code: 'permission-denied' });
     await expect(service.loadUnternehmer()).rejects.toEqual({ code: 'permission-denied' });
   });
 });

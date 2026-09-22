@@ -23,7 +23,7 @@ describe('UnternehmerAnlegenDialog', () => {
     createUnternehmerMock = vi.fn().mockResolvedValue({
       id: 'unternehmer-123',
       nummer: 1,
-      name: 'Unternehmer Nord',
+      anzeigename: 'Unternehmer Nord',
     });
     dialogRefMock = { close: closeMock, disableClose: false };
     unternehmerStoreMock = {
@@ -69,46 +69,56 @@ describe('UnternehmerAnlegenDialog', () => {
     expect(dialogContent?.classList).toContain('pur-dialog__content');
     expect(form?.contains(dialogActions)).toBe(false);
     expect(submitButton?.getAttribute('form')).toBe('unternehmer-anlegen-form');
-    expect(compiled.querySelectorAll('.pur-form__row')).toHaveLength(3);
+    expect(compiled.querySelectorAll('.pur-form__row')).toHaveLength(4);
     expect(compiled.querySelector('[class*="unternehmer-anlegen-dialog__"]')).toBeNull();
   });
 
   it('should reject an invalid email address', () => {
     const component = TestBed.createComponent(UnternehmerAnlegenDialog).componentInstance;
 
-    component.unternehmerForm.controls.kontakt.controls.email.setValue('ungueltig');
+    component.unternehmerForm.controls.person.controls.kontakt.controls.email.setValue('ungueltig');
 
-    expect(component.unternehmerForm.controls.kontakt.controls.email.hasError('email')).toBe(true);
+    expect(
+      component.unternehmerForm.controls.person.controls.kontakt.controls.email.hasError('email'),
+    ).toBe(true);
   });
 
   it('should create the entrepreneur without optional contact data', async () => {
     const component = TestBed.createComponent(UnternehmerAnlegenDialog).componentInstance;
     component.unternehmerForm.setValue({
-      name: 'Unternehmer Nord',
-      adresse: {
-        strasse: 'Hauptstraße',
-        hausnummer: '1',
-        postleitzahl: '20095',
-        ort: 'Hamburg',
-      },
-      kontakt: {
-        email: '',
-        telefon: '',
+      anzeigename: 'Unternehmer Nord',
+      person: {
+        vorname: 'Max',
+        nachname: 'Mustermann',
+        adresse: {
+          strasse: 'Hauptstraße',
+          hausnummer: '1',
+          postleitzahl: '20095',
+          ort: 'Hamburg',
+        },
+        kontakt: {
+          email: '',
+          telefon: '',
+        },
       },
     });
 
     await component.onSubmit();
 
     expect(createUnternehmerMock).toHaveBeenCalledWith({
-      name: 'Unternehmer Nord',
-      adresse: {
-        strasse: 'Hauptstraße',
-        hausnummer: '1',
-        postleitzahl: '20095',
-        ort: 'Hamburg',
-        land: 'Deutschland',
+      anzeigename: 'Unternehmer Nord',
+      person: {
+        vorname: 'Max',
+        nachname: 'Mustermann',
+        adresse: {
+          strasse: 'Hauptstraße',
+          hausnummer: '1',
+          postleitzahl: '20095',
+          ort: 'Hamburg',
+          land: 'Deutschland',
+        },
+        kontakt: {},
       },
-      kontakt: {},
     });
   });
 
@@ -116,39 +126,47 @@ describe('UnternehmerAnlegenDialog', () => {
     const component = TestBed.createComponent(UnternehmerAnlegenDialog).componentInstance;
 
     component.unternehmerForm.setValue({
-      name: ' Unternehmer Nord ',
-      adresse: {
-        strasse: ' Hauptstraße ',
-        hausnummer: ' 1 ',
-        postleitzahl: ' 20095 ',
-        ort: ' Hamburg ',
-      },
-      kontakt: {
-        email: ' INFO@EXAMPLE.COM ',
-        telefon: ' 040 123456 ',
+      anzeigename: ' Unternehmer Nord ',
+      person: {
+        vorname: ' Max ',
+        nachname: ' Mustermann ',
+        adresse: {
+          strasse: ' Hauptstraße ',
+          hausnummer: ' 1 ',
+          postleitzahl: ' 20095 ',
+          ort: ' Hamburg ',
+        },
+        kontakt: {
+          email: ' INFO@EXAMPLE.COM ',
+          telefon: ' 040 123456 ',
+        },
       },
     });
 
     await component.onSubmit();
 
     expect(createUnternehmerMock).toHaveBeenCalledWith({
-      name: 'Unternehmer Nord',
-      adresse: {
-        strasse: 'Hauptstraße',
-        hausnummer: '1',
-        postleitzahl: '20095',
-        ort: 'Hamburg',
-        land: 'Deutschland',
-      },
-      kontakt: {
-        email: 'info@example.com',
-        telefon: '040 123456',
+      anzeigename: 'Unternehmer Nord',
+      person: {
+        vorname: 'Max',
+        nachname: 'Mustermann',
+        adresse: {
+          strasse: 'Hauptstraße',
+          hausnummer: '1',
+          postleitzahl: '20095',
+          ort: 'Hamburg',
+          land: 'Deutschland',
+        },
+        kontakt: {
+          email: 'info@example.com',
+          telefon: '040 123456',
+        },
       },
     });
     expect(closeMock).toHaveBeenCalledWith({
       id: 'unternehmer-123',
       nummer: 1,
-      name: 'Unternehmer Nord',
+      anzeigename: 'Unternehmer Nord',
     });
     expect(dialogRefMock.disableClose).toBe(false);
   });
@@ -157,16 +175,20 @@ describe('UnternehmerAnlegenDialog', () => {
     createUnternehmerMock.mockRejectedValue({ code: 'permission-denied' });
     const component = TestBed.createComponent(UnternehmerAnlegenDialog).componentInstance;
     component.unternehmerForm.setValue({
-      name: 'Unternehmer Nord',
-      adresse: {
-        strasse: 'Hauptstraße',
-        hausnummer: '1',
-        postleitzahl: '20095',
-        ort: 'Hamburg',
-      },
-      kontakt: {
-        email: 'info@example.com',
-        telefon: '040 123456',
+      anzeigename: 'Unternehmer Nord',
+      person: {
+        vorname: 'Max',
+        nachname: 'Mustermann',
+        adresse: {
+          strasse: 'Hauptstraße',
+          hausnummer: '1',
+          postleitzahl: '20095',
+          ort: 'Hamburg',
+        },
+        kontakt: {
+          email: 'info@example.com',
+          telefon: '040 123456',
+        },
       },
     });
 

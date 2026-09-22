@@ -74,13 +74,18 @@ Stand: 21.09.2026. Dieses Dokument beschreibt den aktuellen Umsetzungsstand im C
 
 - Die Verwaltungsseite enthaelt einen linearen Angular-Material-Stepper fuer die hierarchische Anlage von Unternehmer, Firma und Filiale.
 - Schritt 1 laedt alle Unternehmer aus `unternehmer`, erlaubt die Auswahl eines vorhandenen Eintrags und oeffnet fuer die Neuanlage einen Material-Dialog.
-- Der Unternehmerdialog erfasst Name, Adresse sowie optionale E-Mail-Adresse und Telefonnummer. Die fortlaufende Unternehmernummer wird aus der vollstaendig geladenen Store-Liste mit `max(nummer) + 1` bestimmt.
+- Der Unternehmerdialog erfasst einen Anzeigenamen sowie die eingebettete Person mit Vorname, Nachname, Adresse und optionalen Kontaktdaten. Die fortlaufende Unternehmernummer wird aus der vollstaendig geladenen Store-Liste mit `max(nummer) + 1` bestimmt.
 - Neue Unternehmer werden durch einen aktiven Master direkt unter `unternehmer/{unternehmerId}` in Firestore gespeichert, in die sortierte Store-Liste uebernommen und anschliessend im Stepper ausgewaehlt.
-- Firma und Filiale sind weiterhin als UI-Dummy vorbereitet und noch nicht an lesende beziehungsweise schreibende Firestore-Zugriffe angebunden.
-- Pflichtfelder steuern die Zurueck-/Weiter-Navigation. Der dritte Schritt erfasst die Filiale und zeigt die vorbereitete Hierarchie zusammenfassend an.
+- Schritt 2 laedt die Firmen des ausgewaehlten Unternehmers, erlaubt die Auswahl eines vorhandenen Eintrags und oeffnet fuer die Neuanlage einen Material-Dialog.
+- Der Firmendialog erfasst getrennt den kurzen `anzeigename` fuer Auswahlen und den vollstaendigen `firmenname` sowie die Adresse und optionale Kontaktdaten. Die fortlaufende Firmennummer wird innerhalb des Unternehmers aus der vollstaendig geladenen Store-Liste mit `max(nummer) + 1` bestimmt.
+- Neue Firmen werden direkt unter `unternehmer/{unternehmerId}/firma/{firmaId}` gespeichert, in die sortierte Firmenliste uebernommen und anschliessend im Stepper ausgewaehlt. Ein Unternehmerwechsel setzt Firma und Filiale zurueck und laedt den passenden Firmenbestand.
+- Schritt 3 laedt die Filialen der ausgewaehlten Firma und oeffnet fuer die Neuanlage einen Material-Dialog. Eine Auswahl bereits vorhandener Filialen ist in diesem reinen Anlageschritt bewusst nicht vorgesehen.
+- Der Filialdialog erfasst getrennt den kurzen `anzeigename` fuer Auswahlen und den vollstaendigen `filialname` sowie die Adresse und optionale Kontaktdaten. Die fortlaufende Filialnummer wird innerhalb der Firma aus der vollstaendig geladenen Store-Liste mit `max(nummer) + 1` bestimmt.
+- Neue Filialen werden direkt unter `unternehmer/{unternehmerId}/firma/{firmaId}/filiale/{filialeId}` gespeichert, in die sortierte Filialliste uebernommen und in der Hierarchie-Zusammenfassung angezeigt. Ein Unternehmer- oder Firmenwechsel setzt die abhaengige Filiale zurueck und laedt den passenden Filialbestand.
+- Pflichtfelder und vollstaendig geladene Listen steuern die Zurueck-/Weiter-Navigation sowie die Freigabe der jeweiligen Anlagedialoge.
 - Bis 720 Pixel wechselt der Stepper in die vertikale Ausrichtung.
-- Die abschliessende Anlage der gesamten Hierarchie ist deaktiviert und die noch fehlende Firmen-/Filialanbindung wird sichtbar erklaert.
-- Die manuelle Sichtpruefung des Stepper-Dummys wurde vom Benutzer bestaetigt. Die Unternehmeranlage gegen echtes Firestore bleibt separat zu pruefen.
+- Unternehmer, Firma und Filiale werden schrittweise direkt gespeichert; ein zusaetzlicher abschliessender Sammel-Speicherbutton ist deshalb nicht erforderlich.
+- Der vollstaendige Anlageablauf wurde vom Benutzer am 22.09.2026 gegen echtes Firestore bestaetigt: Unternehmer, Firma und Filiale wurden unter dem vorgesehenen verschachtelten Pfad gespeichert, im UI korrekt zusammengefasst und nach einem Anwendungsneustart erneut geladen.
 
 ## Bestehende Benutzer verwalten
 
@@ -88,12 +93,12 @@ Stand: 21.09.2026. Dieses Dokument beschreibt den aktuellen Umsetzungsstand im C
 - Der Bereich zeigt ein Benutzer-Select, einen erst nach Auswahl aktivierbaren Bearbeiten-Button und einen sichtbaren Hinweis auf die noch fehlende Datenanbindung.
 - Es werden keine produktiven Mockprofile verwendet und noch keine Benutzerprofile fuer diesen Bereich geladen oder aktualisiert.
 - `IBenutzerProfilEintrag` bildet ein geladenes Profil mit seiner Dokument-ID als `uid` ab. `IBenutzerProfilAktualisierung` begrenzt die vorbereiteten Aenderungen auf Anzeigename, Aktivstatus, Rolle, erlaubte Bereiche und Datenzugriffe; E-Mail-Adresse und Passwort sind ausgeschlossen.
-- Die weitere Umsetzung mit Laden, Bearbeitungsdialog, Selbstschutz und Speichern ist in Todo 4.2 beschrieben.
+- Die weitere Umsetzung mit Laden, Bearbeitungsdialog, Selbstschutz und Speichern ist in Todo 4.3 beschrieben.
 
 ## Datenzugriff-Auswahl mit Firebase
 
 - Die wiederverwendbare Component liegt unter `src/app/components/datenzugriff-auswahl`; ihre Auswahlmodelle liegen in `src/app/commons/models/domain/datenzugriff.ts`.
-- Die Verwaltungsseite laedt Unternehmer aus `unternehmer`, Firmen aus `firma` und Filialen aus `filiale`. Die produktiven Mock-Daten wurden entfernt. `DatenzugriffService` kapselt die Abfragen und ordnet Dokument-IDs sowie `name` fuer Unternehmer, `companyName` fuer Firmen und `branchName` fuer Filialen dem Auswahlmodell zu. Fehlende Namen werden durch die Dokument-ID ersetzt.
+- Die Verwaltungsseite laedt Unternehmer aus `unternehmer`, Firmen aus `firma` und Filialen aus `filiale`. Die produktiven Mock-Daten wurden entfernt. `UnternehmerService`, `FirmaService` und `FilialeService` kapseln Laden und Anlegen ihrer vollstaendigen Domaeneneintraege. Das gemeinsame Datenzugriff-Auswahlmodell und die Firestore-Dokumente verwenden auf allen Ebenen einheitlich `anzeigename`; `DatenzugriffService` bildet alle drei Domaeneneintraege auf kompakte Auswahleintraege ab. Fehlende Anzeigenamen werden durch die Dokument-ID ersetzt.
 - Die Gruppe Datenzugriff verwendet einen `div` mit sichtbarer Ueberschrift statt eines `fieldset`: In der Browser-Nachstellung kollabierte ein darin verschachtelter Groessencontainer beim Einblenden von Meldungen. Die Container-Abfrage der wiederverwendbaren Component bleibt erhalten; die Korrektur wurde ein- und dreispaltig geprueft.
 - Drei Material-Selects bilden Unternehmer -> Firmen -> Filialen ab. Ohne passende uebergeordnete Auswahl beziehungsweise verfuegbare Optionen sind nachgelagerte Selects deaktiviert.
 - Die Inputs `unternehmerMehrfach`, `firmenMehrfach` und `filialenMehrfach` sind standardmaessig alle `false`. Die Verwaltungsseite erzeugt je Rolle eigene Komponenteninstanzen mit festen Modi: Filiale `false`, `false`, `false`; Office `false`, `true`, `true`; Master ohne Auswahlkomponente. Rollenwechsel setzt die Zuordnungen zurueck, ohne den Auswahlmodus einer bestehenden Instanz zu aendern.
@@ -136,7 +141,8 @@ Stand: 21.09.2026. Dieses Dokument beschreibt den aktuellen Umsetzungsstand im C
 
 Am 21.09.2026 fuer den aktuellen Frontend-Stand erfolgreich geprueft:
 
-- 152 Frontend-Tests einschliesslich Store-Snapshots, Unternehmerdialog, Datenstruktur-Stepper und Dummy zur Verwaltung bestehender Benutzer.
+- 186 Frontend-Tests einschliesslich Store-Snapshots, Unternehmer-, Firmen- und Filialdialog, Datenstruktur-Stepper und Dummy zur Verwaltung bestehender Benutzer.
+- Der Produktions-Build ist nach der Filialanbindung erfolgreich. Der neue Rules-Test fuer das Schreiben einer verschachtelten Filiale durch einen aktiven Master ist erfolgreich; die gesamte Rules-Suite steht weiterhin bei 20 von 21 Tests, weil der bestehende Legacy-Test `benutzer/legacy` eine Sperre erwartet, die aktuelle Catch-all-Regel jedoch erlaubt.
 - Frontend-Produktionsbuild erfolgreich.
 
 Die folgenden Backend- und Rules-Pruefungen stammen aus dem dokumentierten Stand vom 19.09.2026:

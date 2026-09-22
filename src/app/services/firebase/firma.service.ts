@@ -1,13 +1,13 @@
-// pur-office/src/app/services/firebase/unternehmer.service.ts
+// pur-office/src/app/services/firebase/firma.service.ts
 
 import { Injectable, Injector, inject, runInInjectionContext } from '@angular/core';
 import { Firestore } from '@angular/fire/firestore';
 
 import {
-  IUnternehmerAnlage,
-  IUnternehmerAnlageErgebnis,
-  IUnternehmerEintrag,
-} from '../../commons/models/domain/unternehmer';
+  IFirmaAnlage,
+  IFirmaAnlageErgebnis,
+  IFirmaEintrag,
+} from '../../commons/models/domain/firma';
 import {
   FIRESTORE_ADD_DOC,
   FIRESTORE_COLLECTION,
@@ -16,7 +16,9 @@ import {
 } from '../../commons/tokens/firebase.tokens';
 
 @Injectable({ providedIn: 'root' })
-export class UnternehmerService {
+export class FirmaService {
+  // ===== Interne Dependency Injection =========
+
   private readonly injector = inject(Injector);
   private readonly firestore = inject(Firestore);
   private readonly addDoc = inject(FIRESTORE_ADD_DOC);
@@ -24,15 +26,18 @@ export class UnternehmerService {
   private readonly getDocs = inject(FIRESTORE_GET_DOCS);
   private readonly serverTimestamp = inject(FIRESTORE_SERVER_TIMESTAMP);
 
+  // ===== Oeffentliche Aktionen =================
+
   /**
-   * Laedt alle Unternehmer und bildet sie als sortierte Domaeneneintraege ab.
+   * Laedt alle Firmen eines Unternehmers und bildet sie als sortierte Domaeneneintraege ab.
    *
-   * @returns Die nach Anzeigename sortierten Unternehmer.
+   * @param unternehmerId - Die Dokument-ID des uebergeordneten Unternehmers.
+   * @returns Die nach Anzeigename sortierten Firmen.
    * @throws Gibt Fehler des Firestore-Zugriffs an die aufrufende Stelle weiter.
    */
-  async loadUnternehmer(): Promise<IUnternehmerEintrag[]> {
+  async loadFirmen(unternehmerId: string): Promise<IFirmaEintrag[]> {
     const snapshot = await runInInjectionContext(this.injector, () =>
-      this.getDocs(this.collection(this.firestore, 'unternehmer')),
+      this.getDocs(this.collection(this.firestore, 'unternehmer', unternehmerId, 'firma')),
     );
 
     return snapshot.docs
@@ -53,20 +58,22 @@ export class UnternehmerService {
   }
 
   /**
-   * Legt einen Unternehmer mit der uebergebenen fortlaufenden Nummer an.
+   * Legt eine Firma mit der uebergebenen fortlaufenden Nummer unter einem Unternehmer an.
    *
-   * @param anlage - Die Person- und Anzeigedaten des neuen Unternehmers.
-   * @param nummer - Die fuer den Unternehmer ermittelte fortlaufende Nummer.
+   * @param unternehmerId - Die Dokument-ID des uebergeordneten Unternehmers.
+   * @param anlage - Die Anzeige-, Adress- und Kontaktdaten der neuen Firma.
+   * @param nummer - Die fuer die Firma ermittelte fortlaufende Nummer.
    * @returns Das Anlageergebnis mit Dokument-ID, Nummer und Anzeigename.
    * @throws Gibt Fehler des Firestore-Zugriffs an die aufrufende Stelle weiter.
    */
-  async createUnternehmer(
-    anlage: IUnternehmerAnlage,
+  async createFirma(
+    unternehmerId: string,
+    anlage: IFirmaAnlage,
     nummer: number,
-  ): Promise<IUnternehmerAnlageErgebnis> {
+  ): Promise<IFirmaAnlageErgebnis> {
     const zeitstempel = this.serverTimestamp();
-    const unternehmerRef = await runInInjectionContext(this.injector, () =>
-      this.addDoc(this.collection(this.firestore, 'unternehmer'), {
+    const firmaRef = await runInInjectionContext(this.injector, () =>
+      this.addDoc(this.collection(this.firestore, 'unternehmer', unternehmerId, 'firma'), {
         ...anlage,
         nummer,
         aktiv: true,
@@ -76,7 +83,7 @@ export class UnternehmerService {
     );
 
     return {
-      id: unternehmerRef.id,
+      id: firmaRef.id,
       nummer,
       anzeigename: anlage.anzeigename,
     };

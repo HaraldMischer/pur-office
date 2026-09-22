@@ -3,47 +3,49 @@
 import { TestBed } from '@angular/core/testing';
 
 import { IUnternehmerAnlage } from '../../commons/models/domain/unternehmer';
-import { DatenzugriffService } from '../../services/firebase/datenzugriff.service';
 import { UnternehmerService } from '../../services/firebase/unternehmer.service';
 import { UnternehmerStore } from './unternehmer.store';
 
 describe('UnternehmerStore', () => {
   const anlage: IUnternehmerAnlage = {
-    name: 'Unternehmer Nord',
-    adresse: {
-      strasse: 'Hauptstraße',
-      hausnummer: '1',
-      postleitzahl: '20095',
-      ort: 'Hamburg',
-      land: 'Deutschland',
-    },
-    kontakt: {
-      email: 'info@example.com',
-      telefon: '040 123456',
+    anzeigename: 'Unternehmer Nord',
+    person: {
+      vorname: 'Max',
+      nachname: 'Mustermann',
+      adresse: {
+        strasse: 'Hauptstraße',
+        hausnummer: '1',
+        postleitzahl: '20095',
+        ort: 'Hamburg',
+        land: 'Deutschland',
+      },
+      kontakt: {
+        email: 'info@example.com',
+        telefon: '040 123456',
+      },
     },
   };
-  let datenServiceMock: { loadUnternehmer: ReturnType<typeof vi.fn> };
-  let unternehmerServiceMock: { createUnternehmer: ReturnType<typeof vi.fn> };
+  let unternehmerServiceMock: {
+    loadUnternehmer: ReturnType<typeof vi.fn>;
+    createUnternehmer: ReturnType<typeof vi.fn>;
+  };
 
   beforeEach(() => {
-    datenServiceMock = {
-      loadUnternehmer: vi.fn().mockResolvedValue([
-        { id: 'z', name: 'Zulu', nummer: 4 },
-        { id: 'a', name: 'Alpha', nummer: 2 },
-      ]),
-    };
     unternehmerServiceMock = {
+      loadUnternehmer: vi.fn().mockResolvedValue([
+        { id: 'z', anzeigename: 'Zulu', nummer: 4 },
+        { id: 'a', anzeigename: 'Alpha', nummer: 2 },
+      ]),
       createUnternehmer: vi.fn().mockResolvedValue({
         id: 'n',
         nummer: 5,
-        name: anlage.name,
+        anzeigename: anlage.anzeigename,
       }),
     };
 
     TestBed.configureTestingModule({
       providers: [
         UnternehmerStore,
-        { provide: DatenzugriffService, useValue: datenServiceMock },
         { provide: UnternehmerService, useValue: unternehmerServiceMock },
       ],
     });
@@ -55,8 +57,8 @@ describe('UnternehmerStore', () => {
     await store.loadUnternehmer();
 
     expect(store.unternehmer()).toEqual([
-      { id: 'a', name: 'Alpha', nummer: 2 },
-      { id: 'z', name: 'Zulu', nummer: 4 },
+      { id: 'a', anzeigename: 'Alpha', nummer: 2 },
+      { id: 'z', anzeigename: 'Zulu', nummer: 4 },
     ]);
     expect(store.download()).toBe(false);
     expect(store.isLoaded()).toBe(true);
@@ -78,8 +80,8 @@ describe('UnternehmerStore', () => {
 
     expect(store.snapshot()).toEqual({
       unternehmer: [
-        { id: 'a', name: 'Alpha', nummer: 2 },
-        { id: 'z', name: 'Zulu', nummer: 4 },
+        { id: 'a', anzeigename: 'Alpha', nummer: 2 },
+        { id: 'z', anzeigename: 'Zulu', nummer: 4 },
       ],
       download: false,
       isLoaded: true,
@@ -95,27 +97,27 @@ describe('UnternehmerStore', () => {
     await expect(store.createUnternehmer(anlage)).resolves.toEqual({
       id: 'n',
       nummer: 5,
-      name: 'Unternehmer Nord',
+      anzeigename: 'Unternehmer Nord',
     });
     expect(unternehmerServiceMock.createUnternehmer).toHaveBeenCalledWith(anlage, 5);
     expect(store.unternehmer()).toEqual([
-      { id: 'a', name: 'Alpha', nummer: 2 },
-      { id: 'n', name: 'Unternehmer Nord', nummer: 5 },
-      { id: 'z', name: 'Zulu', nummer: 4 },
+      { id: 'a', anzeigename: 'Alpha', nummer: 2 },
+      { id: 'n', anzeigename: 'Unternehmer Nord', nummer: 5 },
+      { id: 'z', anzeigename: 'Zulu', nummer: 4 },
     ]);
     expect(store.inProgress()).toBe(false);
   });
 
   it('should expose friendly load and creation errors', async () => {
     const store = TestBed.inject(UnternehmerStore);
-    datenServiceMock.loadUnternehmer.mockRejectedValue({ code: 'unavailable' });
+    unternehmerServiceMock.loadUnternehmer.mockRejectedValue({ code: 'unavailable' });
 
     await expect(store.loadUnternehmer()).rejects.toEqual({ code: 'unavailable' });
     expect(store.error()).toBe('Die Daten sind gerade nicht erreichbar. Bitte versuche es erneut.');
     expect(store.download()).toBe(false);
     expect(store.isLoaded()).toBe(false);
 
-    datenServiceMock.loadUnternehmer.mockResolvedValue([]);
+    unternehmerServiceMock.loadUnternehmer.mockResolvedValue([]);
     await store.loadUnternehmer();
     unternehmerServiceMock.createUnternehmer.mockRejectedValue({ code: 'permission-denied' });
     await expect(store.createUnternehmer(anlage)).rejects.toEqual({
