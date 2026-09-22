@@ -1,15 +1,5 @@
 // pur-office/src/app/pages/verwaltung-page/datenstruktur-anlage/datenstruktur-anlage.scss
 
-.mat-stepper-vertical,
-.mat-stepper-horizontal {
-  margin-left: -24px;
-  margin-right: -24px;
-}
-
 .pur-page-section__summary > div {
   grid-template-columns: minmax(6rem, 1fr) minmax(0, 9fr);
 }
-
-
-
-

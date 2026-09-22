@@ -1,0 +1,18 @@
+// pur-office/src/assets/scss/modules/_stepper.scss
+
+.pur-stepper--flush {
+  &.mat-stepper-vertical {
+    margin-inline: -24px;
+
+    .mat-vertical-content {
+      padding-block-start: 0.5rem;
+    }
+  }
+
+  &.mat-stepper-horizontal {
+    .mat-horizontal-content-container {
+      padding: 0;
+      padding-block-start: 0.5rem;
+    }
+  }
+}

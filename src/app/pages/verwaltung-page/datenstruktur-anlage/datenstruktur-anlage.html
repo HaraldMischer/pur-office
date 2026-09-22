@@ -5,7 +5,11 @@
     <h2 class="pur-page-section__title">Datenstruktur anlegen</h2>
   </header>
 
-  <mat-stepper [linear]="true" [orientation]="stepperOrientation()">
+  <mat-stepper
+    class="pur-stepper pur-stepper--flush"
+    [linear]="true"
+    [orientation]="stepperOrientation()"
+  >
     <!-- Unternehmer -->
     <mat-step [stepControl]="unternehmerForm" label="Unternehmer">
       <form class="pur-form pur-form--grid" [formGroup]="unternehmerForm">
