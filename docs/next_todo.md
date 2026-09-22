@@ -6,9 +6,10 @@
 
 > **Status am 22.09.2026:**
 > Die Verwaltungsseite enthaelt die Bereiche Datenstruktur anlegen, Benutzer
-> anlegen und Benutzer verwalten. Die Unternehmer-, Firmen- und Filialanlage sind
-> technisch umgesetzt und die vollstaendige Hierarchie wurde erfolgreich gegen
-> Firestore geprueft. Die Bearbeitung bestehender Benutzerprofile ist noch offen.
+> anlegen und Benutzer verwalten. Todo 4.1 Datenstruktur anlegen ist abgeschlossen:
+> Die Unternehmer-, Firmen- und Filialanlage sind technisch umgesetzt und die
+> vollstaendige Hierarchie wurde erfolgreich gegen Firestore geprueft. Die
+> Bearbeitung bestehender Benutzerprofile ist noch offen.
 > Die Benutzeranlage ist weitgehend umgesetzt und muss mit der neuen Datenhierarchie
 > abschliessend geprueft werden.
 
@@ -88,7 +89,7 @@ Store uebernommen und fuer den naechsten Schritt ausgewaehlt.
 - [x] Service-, Store-, Dialog- und Stepper-Tests fuer die Filialanlage ergaenzen.
 - [x] Vollstaendige Datenstruktur-Anlage manuell gegen Firestore pruefen.
 - [x] `projekt-stand.md` um den technischen Stand der Filialanlage aktualisieren.
-- [ ] `npm test`, `npm run test:rules` und `npm run build` fuer den Gesamtablauf erfolgreich ausfuehren.
+- [x] `npm test`, `npm run test:rules` und `npm run build` fuer den Gesamtablauf erfolgreich ausfuehren.
 
 #### Erledigt, wenn
 
@@ -97,7 +98,7 @@ Store uebernommen und fuer den naechsten Schritt ausgewaehlt.
 - [x] Eine Firma kann fuer den ausgewaehlten Unternehmer ausgewaehlt oder neu angelegt werden.
 - [x] Eine Filiale kann technisch fuer die ausgewaehlte Firma angelegt werden.
 - [x] Die vollstaendige Hierarchie wird korrekt in Firestore gespeichert, im UI zusammengefasst und nach einem Anwendungsneustart erneut geladen.
-- [ ] Der reale Gesamtablauf sowie Tests, Rules-Tests und Build sind erfolgreich.
+- [x] Der reale Gesamtablauf sowie Tests, Rules-Tests und Build sind erfolgreich.
 
 ### 4.2 Benutzer anlegen
 

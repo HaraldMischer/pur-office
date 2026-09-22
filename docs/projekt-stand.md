@@ -2,7 +2,7 @@
 
 # Projekt-Stand: Pur Office
 
-Stand: 21.09.2026. Dieses Dokument beschreibt den aktuellen Umsetzungsstand im Code. Das fachliche Zielbild steht separat im [Projekt-Plan](./projekt-plan.md).
+Stand: 22.09.2026. Dieses Dokument beschreibt den aktuellen Umsetzungsstand im Code. Das fachliche Zielbild steht separat im [Projekt-Plan](./projekt-plan.md).
 
 ## Projektbasis
 
@@ -139,10 +139,10 @@ Stand: 21.09.2026. Dieses Dokument beschreibt den aktuellen Umsetzungsstand im C
 
 ## Tests und Build
 
-Am 21.09.2026 fuer den aktuellen Frontend-Stand erfolgreich geprueft:
+Am 22.09.2026 fuer den aktuellen Frontend-Stand erfolgreich geprueft:
 
 - 186 Frontend-Tests einschliesslich Store-Snapshots, Unternehmer-, Firmen- und Filialdialog, Datenstruktur-Stepper und Dummy zur Verwaltung bestehender Benutzer.
-- Der Produktions-Build ist nach der Filialanbindung erfolgreich. Der neue Rules-Test fuer das Schreiben einer verschachtelten Filiale durch einen aktiven Master ist erfolgreich; die gesamte Rules-Suite steht weiterhin bei 20 von 21 Tests, weil der bestehende Legacy-Test `benutzer/legacy` eine Sperre erwartet, die aktuelle Catch-all-Regel jedoch erlaubt.
+- Der Produktions-Build ist nach der Filialanbindung erfolgreich. Alle 21 Rules-Tests sind erfolgreich: Ein aktiver Master darf verschachtelte Filialen schreiben, waehrend Altkonten weder auf die neue Hierarchie noch auf `benutzer` und `benutzerprofil` zugreifen duerfen. Das anschliessende Rules-Deployment wurde vom Benutzer bestaetigt.
 - Frontend-Produktionsbuild erfolgreich.
 
 Die folgenden Backend- und Rules-Pruefungen stammen aus dem dokumentierten Stand vom 19.09.2026:
