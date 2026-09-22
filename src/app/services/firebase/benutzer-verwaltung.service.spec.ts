@@ -1,5 +1,6 @@
 // pur-office/src/app/services/firebase/benutzer-verwaltung.service.spec.ts
 
+import { assertInInjectionContext } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { Functions } from '@angular/fire/functions';
 
@@ -21,13 +22,21 @@ describe('BenutzerVerwaltungService', () => {
   let httpsCallableMock: ReturnType<typeof vi.fn>;
 
   beforeEach(() => {
-    callableMock = vi.fn().mockResolvedValue({
-      data: {
-        uid: 'neu-123',
-        email: anlage.email,
-      },
+    callableMock = vi.fn().mockImplementation(() => {
+      assertInInjectionContext(BenutzerVerwaltungService);
+
+      return Promise.resolve({
+        data: {
+          uid: 'neu-123',
+          email: anlage.email,
+        },
+      });
     });
-    httpsCallableMock = vi.fn().mockReturnValue(callableMock);
+    httpsCallableMock = vi.fn().mockImplementation(() => {
+      assertInInjectionContext(BenutzerVerwaltungService);
+
+      return callableMock;
+    });
     TestBed.configureTestingModule({
       providers: [
         BenutzerVerwaltungService,

@@ -10,8 +10,9 @@
 > Die Unternehmer-, Firmen- und Filialanlage sind technisch umgesetzt und die
 > vollstaendige Hierarchie wurde erfolgreich gegen Firestore geprueft. Die
 > Bearbeitung bestehender Benutzerprofile ist noch offen.
-> Die Benutzeranlage ist weitgehend umgesetzt und muss mit der neuen Datenhierarchie
-> abschliessend geprueft werden.
+> Die Benutzeranlage wurde mit der neuen Datenhierarchie fuer reale Office- und
+> Filialkonten erfolgreich geprueft. Offen bleiben der reale Schreibtest fuer
+> Office-Datenrechte und der abschliessende Deployment-Nachweis.
 
 ### 4.1 Datenstruktur anlegen
 
@@ -171,7 +172,7 @@ erhalten.
 - [x] Service-, Store-, Function-, Rules- und Formulartests fuer die umgesetzte Benutzeranlage ergaenzen.
 - [x] Fehlerfaelle einschliesslich fehlgeschlagener Rueckabwicklung durch Backend-Tests pruefen und manuelle Nachbearbeitung dokumentieren.
 - [x] Erfolgreiche Benutzeranlage, Anmeldung, Bereichsfreigabe, Verwaltungssperre, Passwortwechsel und erneute Anmeldung vom Benutzer bestaetigen.
-- [ ] Den aktuellen Gesamtablauf mit echten Unternehmer-, Firmen- und Filialzuordnungen pruefen.
+- [x] Den aktuellen Gesamtablauf mit echten Unternehmer-, Firmen- und Filialzuordnungen pruefen.
 - [x] Vereinbarte Office- und Filial-Schreibrechte mit Firestore-Emulator-Tests pruefen.
 - [ ] `projekt-stand.md` nach Abschluss aktualisieren.
 - [x] `npm test`, `npm run test:rules` und `npm run build` abschliessend erfolgreich ausfuehren.
@@ -179,8 +180,8 @@ erhalten.
 #### Erledigt, wenn
 
 - [x] Das Rollenmodell ist vollstaendig umgesetzt und die vereinbarten Schreibrechte sind abgesichert.
-- [ ] Der Master kann einen Benutzer mit echten Unternehmer-, Firmen- und Filialzuordnungen anlegen.
-- [ ] Die Zuordnungen werden vollstaendig gespeichert und serverseitig geprueft.
+- [x] Der Master kann einen Benutzer mit echten Unternehmer-, Firmen- und Filialzuordnungen anlegen.
+- [x] Die Zuordnungen werden vollstaendig gespeichert und serverseitig geprueft.
 - [x] Benutzer koennen `userRole`, `erlaubteBereiche` und `zugriffe` nicht selbst ueber den Client veraendern.
 - [x] Es gibt keine oeffentliche Selbstregistrierung.
 - [ ] Der aktuelle Gesamtablauf ist deployed und mit realen Daten erfolgreich geprueft.

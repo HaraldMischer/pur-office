@@ -115,6 +115,7 @@ Stand: 22.09.2026. Dieses Dokument beschreibt den aktuellen Umsetzungsstand im C
 ## Backend und Passwortaenderung
 
 - Store und Service uebergeben den erweiterten Anlage-Payload an die Callable Function `createBenutzer`. Eine gueltige Benutzeranlage kann direkt ueber das Formular gestartet werden; waehrend eines laufenden Aufrufs werden weitere Aufrufe verhindert.
+- Der `BenutzerVerwaltungService` erzeugt und startet die Callable Function innerhalb von `runInInjectionContext`, damit AngularFire-Aufrufe korrekt im Angular-Injection-Kontext ausgefuehrt werden.
 - Die Function prueft Anmeldung, aktives Profil und `userRole: master` serverseitig und legt per Admin SDK Auth-Benutzer und `benutzerprofil/{uid}` an. Die Sitzung des Masters bleibt erhalten.
 - Das Backend verlangt fuer jeden Zugriff eine Unternehmer-ID und prueft vor der Auth-Anlage die Existenz von Unternehmer, Firma und Filialen unter ihren vollstaendigen Pfaden. Fehlende Dokumente, ungueltige IDs oder fehlgeschlagene Pruefabfragen brechen die Anlage ab. Doppelte Firmenzugriffe werden nur innerhalb desselben Unternehmers zusammengefuehrt.
 - Das Anfangspasswort wird an Firebase Authentication uebermittelt und nicht in Firestore gespeichert.
@@ -126,7 +127,7 @@ Stand: 22.09.2026. Dieses Dokument beschreibt den aktuellen Umsetzungsstand im C
 
 ## Rules und Deployment
 
-- Functions-Deployment fuer die rollenabhaengige Validierung (Office mindestens eine, Filiale genau eine vollstaendige Zuordnung) wurde vom Benutzer bestaetigt. Benutzeranlage, Anmeldung, Bereichsfreigabe, Verwaltungssperre, Passwortwechsel und erneute Anmeldung wurden anschliessend bestaetigt. Der vollstaendige Office-/Filialablauf mit realer neuer Hierarchie bleibt separat zu pruefen.
+- Functions-Deployment fuer die rollenabhaengige Validierung (Office mindestens eine, Filiale genau eine vollstaendige Zuordnung) wurde vom Benutzer bestaetigt. Benutzeranlage, Anmeldung, Bereichsfreigabe, Verwaltungssperre, Passwortwechsel und erneute Anmeldung wurden anschliessend bestaetigt. Am 22.09.2026 wurden zusaetzlich reale Office- und Filialkonten mit der neuen Unternehmer-/Firma-/Filiale-Hierarchie angelegt, ihre gespeicherten Profile geprueft und Anmeldung, erlaubte Bereiche sowie die Umleitung von `/verwaltung` erfolgreich bestaetigt.
 
 - Die vereinfachte Function ohne Zugriffsindex ist deployed (Benutzerbestaetigung). Die sichere Kontoaktivierung bleibt erhalten.
 - Lokal umgesetzt, im Emulator geprueft und laut Benutzer deployed: Aktive Master lesen und schreiben alle Collections und Untercollections inklusive aller Benutzerprofile, sowohl mit `zugriffe: {}` als auch mit der alten leeren Liste.
@@ -134,7 +135,7 @@ Stand: 22.09.2026. Dieses Dokument beschreibt den aktuellen Umsetzungsstand im C
 - Benutzeranlage speichert ausschliesslich die validierte Zugriffs-Map. Die Rules pruefen Unternehmer-ID, Firma-ID und Filial-ID direkt in dieser Struktur; ein separater `zugriffsIndex` ist nicht mehr erforderlich.
 - Altanwendung nutzt laut Benutzer ausschliesslich Konten ohne `benutzerprofil`-Dokument. Diese behalten den bisherigen Lese-/Schreibzugriff ausserhalb von `benutzerprofil` und `unternehmer`; Emulator-Tests sichern das ab. Fehlgeschlagene Kontoanlage darf kein nutzbares Auth-Konto ohne Profil hinterlassen (lokal durch deaktivierte Anlage abgesichert).
 - Office-/Filialqueries muessen erlaubte Dokument-IDs eingrenzen; unbeschraenkte Listen werden abgelehnt. Die aktuellen unbeschraenkten Auswahllisten sind fuer die Master-Verwaltung vorgesehen.
-- Neue Rules sind laut Benutzer produktiv; Lesen und Schreiben in der Altanwendung funktionieren weiterhin. Die sichere Kontoaktivierung ist ebenfalls deployed und die Formularsperre wurde entfernt. Der vollstaendige Office-/Filialablauf mit realer neuer Hierarchie bleibt zu pruefen.
+- Neue Rules sind laut Benutzer produktiv; Lesen und Schreiben in der Altanwendung funktionieren weiterhin. Die sichere Kontoaktivierung ist ebenfalls deployed und die Formularsperre wurde entfernt. Reale Schreibversuche eines Office-Kontos auf Firma, Filiale und Filial-Untercollections bleiben bis zur Umsetzung der entsprechenden fachlichen Oberflaeche offen; die vereinbarten Grenzen sind durch Emulator-Tests abgesichert.
 - Der Git-Push der aktuellen Aenderungen ist kein Firebase-Deployment.
 
 ## Tests und Build
@@ -151,7 +152,7 @@ Die folgenden Backend- und Rules-Pruefungen stammen aus dem dokumentierten Stand
 - 22 Firestore-Emulator-Tests fuer Rollen, neue Hierarchie, Untercollections, eingeschraenkte Queries, Office-Aktualisierungen, Schreibschutz sowie die Trennung vom Legacy-Zugriff auf `purCustomers`.
 - Functions-Build erfolgreich.
 
-Die Tests belegen noch keinen durchgaengigen Office-/Filialablauf mit realen Daten fuer die neue Auswahl. Die Firebase-Anbindung wird durch Service-, Store- und Seitenintegrationstests mit Testdaten geprueft; das Laden der Unternehmer wurde vom Benutzer bestaetigt. Firmen-/Filialauswahl und die Kontoanlage mit einer vollstaendigen realen Hierarchie sind noch manuell zu pruefen.
+Der durchgaengige Benutzeranlageablauf mit realen Daten wurde am 22.09.2026 fuer je ein Office- und Filialkonto bestaetigt. Die vollstaendige Hierarchie wurde gespeichert, beide Konten konnten sich anmelden und nur ihre erlaubten Bereiche verwenden; die Verwaltungsroute blieb durch die Masterpruefung gesperrt. Reale Schreibversuche auf Firma, Filiale und Filial-Untercollections sind noch nicht ueber eine fachliche Oberflaeche moeglich und bleiben separat zu pruefen.
 
 ## Rollenpraezisierung: Umsetzung und offene Punkte
 
