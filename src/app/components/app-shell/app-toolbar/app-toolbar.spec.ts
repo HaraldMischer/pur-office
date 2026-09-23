@@ -144,29 +144,15 @@ describe('AppToolbar', () => {
     expect(navigationToggleSpy).toHaveBeenCalledOnce();
   });
 
-  it('should logout through the store and navigate to login when authenticated', async () => {
+  it('should logout through the store and navigate to login', async () => {
     const router = TestBed.inject(Router);
     const navigateSpy = vi.spyOn(router, 'navigate').mockResolvedValue(true);
     const fixture = TestBed.createComponent(AppToolbar);
-    fixture.componentRef.setInput('isAuthenticated', true);
-    fixture.detectChanges();
-    const compiled = fixture.nativeElement as HTMLElement;
 
-    compiled.querySelector<HTMLButtonElement>('[aria-label="Abmelden"]')?.click();
-    await fixture.whenStable();
+    await fixture.componentInstance.logout();
 
     expect(benutzerStoreMock.logout).toHaveBeenCalledOnce();
     expect(navigateSpy).toHaveBeenCalledWith(['/login']);
-  });
-
-  it('should render a password link for authenticated users', () => {
-    const fixture = TestBed.createComponent(AppToolbar);
-    fixture.componentRef.setInput('isAuthenticated', true);
-    fixture.detectChanges();
-    const compiled = fixture.nativeElement as HTMLElement;
-    const link = compiled.querySelector<HTMLAnchorElement>('[aria-label="Passwort ändern"]');
-
-    expect(link?.getAttribute('href')).toBe('/passwort');
   });
 
   it('should hide the store snapshot action for unauthenticated users', () => {

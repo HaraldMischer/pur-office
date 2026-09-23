@@ -10,6 +10,7 @@ import {
 } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
+import { MatMenuModule } from '@angular/material/menu';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { Router, RouterLink } from '@angular/router';
@@ -20,7 +21,14 @@ import { BenutzerStore } from '../../../stores/app/benutzer.store';
 
 @Component({
   selector: 'app-toolbar',
-  imports: [MatButtonModule, MatIconModule, MatProgressBarModule, MatToolbarModule, RouterLink],
+  imports: [
+    MatButtonModule,
+    MatIconModule,
+    MatMenuModule,
+    MatProgressBarModule,
+    MatToolbarModule,
+    RouterLink,
+  ],
   templateUrl: './app-toolbar.html',
   styleUrl: './app-toolbar.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -57,6 +65,9 @@ export class AppToolbar {
     this._storeSnapshotService.logStoreSnapshots();
   }
 
+  /**
+   * Meldet den aktuellen Benutzer ab und öffnet anschließend die Loginseite.
+   */
   async logout(): Promise<void> {
     await this._benutzerStore.logout();
     await this._router.navigate(['/login']);

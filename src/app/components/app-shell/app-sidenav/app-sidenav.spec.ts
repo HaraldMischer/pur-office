@@ -43,6 +43,7 @@ describe('AppSidenav', () => {
           { path: 'mitarbeiter', component: AppSidenavHost },
           { path: 'verwaltung', component: AppSidenavHost },
           { path: 'systemverwaltung', component: AppSidenavHost },
+          { path: 'passwort', component: AppSidenavHost },
         ]),
         { provide: BenutzerStore, useValue: benutzerStoreMock },
       ],

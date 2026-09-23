@@ -1,8 +1,6 @@
 // pur-office/src/app/components/app-shell/app-toolbar/app-toolbar.scss
 
 .app-toolbar {
-  position: sticky;
-  top: 0;
   z-index: 1;
   gap: 12px;
   border-block-end: 1px solid var(--mat-sys-outline-variant);
