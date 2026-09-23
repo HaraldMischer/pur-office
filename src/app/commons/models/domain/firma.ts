@@ -14,16 +14,23 @@ export interface IFirmaAnlage {
   kontakt: IKontakt;
 }
 
+export interface IFirmaAktualisierung {
+  anzeigename: string;
+  firmenname: string;
+  adresse: IAdresse;
+  kontakt: IKontakt;
+}
+
 export interface IFirmaAnlageErgebnis {
   id: string;
   nummer: number;
   anzeigename: string;
 }
 
-export interface IFirmaEintrag {
+export interface IFirmaEintrag extends IFirmaAnlage {
   id: string;
   nummer: number;
-  anzeigename: string;
+  aktiv: boolean;
 }
 
 // ===== Firestore-Dokumente ==================

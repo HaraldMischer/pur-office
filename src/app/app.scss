@@ -6,7 +6,7 @@
 }
 
 .app-sidenav {
-  width: 17rem;
+  width: 272px;
   border-radius: 0;
   border-inline-end: 1px solid var(--mat-sys-outline-variant);
   background: var(--mat-sys-surface-container);
@@ -17,17 +17,17 @@
 }
 
 .app-main {
-  padding: 2rem calc(2rem + env(safe-area-inset-right)) calc(2rem + env(safe-area-inset-bottom))
-    calc(2rem + env(safe-area-inset-left));
+  padding: 32px calc(32px + env(safe-area-inset-right))
+    calc(32px + env(safe-area-inset-bottom)) calc(32px + env(safe-area-inset-left));
 }
 
 @media (max-width: 720px) {
   .app-sidenav {
-    width: min(19rem, 84vw);
+    width: min(304px, 84vw);
   }
 
   .app-main {
-    padding: 1.25rem calc(1.25rem + env(safe-area-inset-right))
-      calc(1.25rem + env(safe-area-inset-bottom)) calc(1.25rem + env(safe-area-inset-left));
+    padding: 20px calc(20px + env(safe-area-inset-right))
+      calc(20px + env(safe-area-inset-bottom)) calc(20px + env(safe-area-inset-left));
   }
 }

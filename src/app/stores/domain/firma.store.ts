@@ -116,9 +116,14 @@ export const FirmaStore = signalStore(
         try {
           const nummer = getNaechsteNummer(store.firmen());
           const ergebnis = await firmaService.createFirma(unternehmerId, anlage, nummer);
-          stammdatenStore.upsertFirma(unternehmerId, ergebnis);
+          const eintrag: IFirmaEintrag = {
+            ...anlage,
+            ...ergebnis,
+            aktiv: true,
+          };
+          stammdatenStore.upsertFirma(unternehmerId, eintrag);
           const firmen = store.firmen().filter((eintrag) => eintrag.id !== ergebnis.id);
-          patchState(store, { firmen: sortFirmen([...firmen, ergebnis]) });
+          patchState(store, { firmen: sortFirmen([...firmen, eintrag]) });
           return ergebnis;
         } catch (error: unknown) {
           patchState(store, { error: getFirebaseErrorMessage(error) });

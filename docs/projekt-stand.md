@@ -2,7 +2,7 @@
 
 # Projekt-Stand: Pur Office
 
-Stand: 22.09.2026. Dieses Dokument beschreibt den aktuellen Umsetzungsstand im Code. Das fachliche Zielbild steht separat im [Projekt-Plan](./projekt-plan.md).
+Stand: 23.09.2026. Dieses Dokument beschreibt den aktuellen Umsetzungsstand im Code. Das fachliche Zielbild steht separat im [Projekt-Plan](./projekt-plan.md).
 
 ## Projektbasis
 
@@ -35,7 +35,7 @@ Stand: 22.09.2026. Dieses Dokument beschreibt den aktuellen Umsetzungsstand im C
 - [x] Routen für `/dashboard`, `/schichtplan` und `/mitarbeiter` werden per `loadComponent` geladen.
 - [x] `/` leitet auf `/dashboard` weiter.
 - [x] Die Route `/systemverwaltung` und die `systemverwaltung-page` enthalten die Bereiche Datenstruktur anlegen, Benutzer anlegen und den UI-Dummy Benutzer verwalten.
-- [x] Die Route `/verwaltung` und eine eigenständige Platzhalterseite für die spätere Bearbeitung zugeordneter Firmen- und Filialdaten sind angelegt.
+- [x] Die Route `/verwaltung` enthält die Auswahl zugeordneter Stammdaten und die Bearbeitung bestehender Firmendaten.
 - [x] Die geschützte Route `/passwort` ermöglicht angemeldeten Benutzern eine Passwortänderung.
 
 ## Firebase-Grundlage
@@ -45,7 +45,7 @@ Stand: 22.09.2026. Dieses Dokument beschreibt den aktuellen Umsetzungsstand im C
 - [x] Firebase App, Auth und Firestore werden in `app.config.ts` bereitgestellt.
 - [x] Firestore ist mit lokalem Cache vorbereitet.
 - [x] Firebase Tokens für Auth sowie lesende und schreibende Firestore-Zugriffe sind vorbereitet.
-- [x] Firebase-nahe Services sind unter `src/app/services/firebase` vorgesehen.
+- [x] Technische Firebase-Anbindungen liegen unter `src/app/services/firebase`; fachliche Services liegen getrennt unter `src/app/services/domain`.
 - [x] Der technische `FirestoreDbService` kapselt Collection-Lesen, Dokument-Lesen, Anlegen, Merge-Aktualisieren, Server-Zeitstempel und den Angular-Injection-Kontext.
 - [x] Firestore-Collection- und Dokumentpfade für Benutzerprofile, Unternehmer, Firmen und Filialen werden zentral in `firebase.constants.ts` erzeugt.
 - [x] `BenutzerService`, `UnternehmerService`, `FirmaService` und `FilialeService` verwenden keine direkten AngularFire-Aufrufe mehr, sondern greifen über den `FirestoreDbService` zu.
@@ -107,11 +107,13 @@ Stand: 22.09.2026. Dieses Dokument beschreibt den aktuellen Umsetzungsstand im C
 ## Firmen- und Filialverwaltung
 
 - Unter `/verwaltung` ist eine eigenständige Seite für die spätere Bearbeitung von Firmen- und Filialstammdaten angelegt. Die Route erfordert den Bereich `verwaltung` und zusätzlich die Rolle Office oder Master; Filialkonten werden unabhängig vom Bereichsschlüssel ausgeschlossen.
-- Drei abhängige Material-Selects bilden Unternehmer, Firma und Filiale ab. Ein Wechsel des Unternehmers setzt Firma und Filiale zurück; ein Firmenwechsel setzt die Filiale zurück.
+- Master wählen Unternehmer, Firma und Filiale über abhängige Material-Selects. Für Office wird der einzige zugeordnete Unternehmer automatisch gewählt und nicht als eigene Auswahl angezeigt; anschließend stehen die erlaubten Firmen und Filialen zur Auswahl. Ein Unternehmerwechsel setzt Firma und Filiale zurück; ein Firmenwechsel setzt die Filiale zurück.
 - Der seitenbezogene `VerwaltungStore` verwaltet die Listen, Auswahlen sowie getrennte Lade-, Leer- und Fehlerzustände und ist an die Store-Snapshot-Ausgabe angebunden.
 - Office-Konten laden bei der Sitzungsinitialisierung ausschließlich die im Benutzerprofil unter `zugriffe` enthaltenen Unternehmer-, Firmen- und Filialdokumente über ihre vollständigen Dokumentpfade. Es werden für Office keine unbeschränkten Collection-Abfragen ausgeführt.
 - Masterkonten besitzen keine erforderliche Zugriffszuordnung und laden bei der Sitzungsinitialisierung die vollständige Hierarchie sowie alle Benutzerprofile.
-- Die Auswahl verwendet anschließend den zentralen Sitzungsbestand; das Bearbeiten und Speichern der Firmendaten und Filialdaten folgt getrennt in Todo 5.1, Schritt 6 und Schritt 7.
+- Die Auswahl verwendet anschließend den zentralen Sitzungsbestand. Ausgewählte Firmen und Filialen können über getrennte Material-Dialoge bearbeitet werden; sie umfassen Anzeigename, Firmen- beziehungsweise Filialname, vollständige Adresse und optionale Kontaktdaten.
+- Dokument-ID, Nummer, Aktivstatus und Hierarchiepfad bleiben unverändert. `FirmaService` und `FilialeService` speichern ausschließlich die bearbeitbaren Felder und setzen `aktualisiertAm` mit einem Server-Zeitstempel.
+- Nach erfolgreichem Speichern werden Verwaltungs- und Stammdatenbestand unmittelbar aktualisiert. Eine weitere Firestore-Abfrage ist nicht erforderlich.
 
 ## Globaler Ladeindikator
 
@@ -165,10 +167,10 @@ Stand: 22.09.2026. Dieses Dokument beschreibt den aktuellen Umsetzungsstand im C
 
 ## Tests und Build
 
-Am 22.09.2026 für den aktuellen Frontend-Stand erfolgreich geprüft:
+Am 23.09.2026 für den aktuellen Frontend-Stand erfolgreich geprüft:
 
-- 186 Frontend-Tests einschließlich Store-Snapshots, Unternehmer-, Firmen- und Filialdialog, Datenstruktur-Stepper und Dummy zur Verwaltung bestehender Benutzer.
-- Der Produktions-Build ist nach der Filialanbindung erfolgreich. Alle 22 Rules-Tests sind erfolgreich: Ein aktiver Master darf verschachtelte Filialen schreiben, Office darf zugeordnete Firmen und Filialen aktualisieren, und Altkonten dürfen weder auf die neue Hierarchie noch auf `benutzer` und `benutzerprofil` zugreifen.
+- 244 Frontend-Tests einschließlich Store-Snapshots, Datenstruktur-Anlage, zentraler Stammdateninitialisierung sowie Firmen- und Filialdaten-Bearbeitung.
+- Der Produktions-Build ist nach der Firmen- und Filialdaten-Bearbeitung erfolgreich. Alle 22 zuletzt ausgeführten Rules-Tests sind erfolgreich: Ein aktiver Master darf verschachtelte Filialen schreiben, Office darf zugeordnete Firmen und Filialen aktualisieren, und Altkonten dürfen weder auf die neue Hierarchie noch auf `benutzer` und `benutzerprofil` zugreifen.
 - Frontend-Produktionsbuild erfolgreich.
 
 Die folgenden Backend- und Rules-Prüfungen stammen aus dem dokumentierten Stand vom 19.09.2026:

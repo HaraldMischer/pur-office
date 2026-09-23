@@ -2,14 +2,14 @@
 
 .pur-page {
   display: grid;
-  gap: 1.5rem;
+  gap: 24px;
   width: 100%;
 
   &__header {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 1rem;
+    gap: 16px;
     min-width: 0;
   }
 

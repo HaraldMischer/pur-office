@@ -30,9 +30,9 @@ Store übernommen und für den nächsten Schritt ausgewählt.
 - src/app/commons/models/domain/unternehmer.ts
 - src/app/commons/models/domain/firma.ts
 - src/app/commons/models/domain/filiale.ts
-- src/app/services/firebase/unternehmer.service.ts
-- src/app/services/firebase/firma.service.ts
-- src/app/services/firebase/filiale.service.ts
+- src/app/services/domain/unternehmer.service.ts
+- src/app/services/domain/firma.service.ts
+- src/app/services/domain/filiale.service.ts
 - src/app/stores/domain/unternehmer.store.ts
 - src/app/stores/domain/firma.store.ts
 - src/app/stores/domain/filiale.store.ts
@@ -119,7 +119,7 @@ erhalten.
 - src/app/components/datenzugriff-auswahl/
 - src/app/pages/systemverwaltung-page/benutzer-anlage/
 - src/app/services/firebase/benutzer-verwaltung.service.ts
-- src/app/services/firebase/datenzugriff.service.ts
+- src/app/services/domain/datenzugriff.service.ts
 - src/app/stores/domain/benutzer-verwaltung.store.ts
 - functions/src/index.ts
 - firestore.rules
@@ -290,10 +290,10 @@ weder angelegt noch gelöscht werden.
 - src/app/pages/verwaltung-page/
 - src/app/services/core/loading.service.ts
 - src/app/services/firebase/firestore-db.service.ts
-- src/app/services/firebase/benutzer.service.ts
-- src/app/services/firebase/unternehmer.service.ts
-- src/app/services/firebase/firma.service.ts
-- src/app/services/firebase/filiale.service.ts
+- src/app/services/domain/benutzer.service.ts
+- src/app/services/domain/unternehmer.service.ts
+- src/app/services/domain/firma.service.ts
+- src/app/services/domain/filiale.service.ts
 - src/app/stores/domain/firma.store.ts
 - src/app/stores/domain/filiale.store.ts
 - src/app/stores/app/benutzer.store.ts
@@ -318,7 +318,7 @@ weder angelegt noch gelöscht werden.
 
 - [x] Datenzugriffe aus dem angemeldeten Benutzerprofil als Grundlage für die erlaubten Dokumentpfade verwenden.
 - [x] Zugeordnete Unternehmer, Firmen und Filialen gezielt über ihre Dokumentpfade laden; keine unbeschränkten Collection-Abfragen für Office verwenden.
-- [x] Unternehmer-, Firmen- und Filialauswahl mit abhängigen Material-Selects aufbauen.
+- [x] Für Master eine Unternehmerauswahl bereitstellen und für Office den einzigen zugeordneten Unternehmer automatisch auswählen; Firmen- und Filialauswahl mit abhängigen Material-Selects aufbauen.
 - [x] Auswahl beim Wechsel eines übergeordneten Eintrags konsistent zurücksetzen.
 - [x] Lade-, Leer- und Fehlerzustände für die zugeordneten Stammdaten darstellen.
 
@@ -351,21 +351,21 @@ weder angelegt noch gelöscht werden.
 
 #### Schritt 6: Firmendaten bearbeiten
 
-- [ ] Aktualisierungsmodell für bearbeitbare Firmendaten festlegen.
-- [ ] Bearbeitungsdialog für `anzeigename`, `firmenname`, Adresse und Kontaktdaten anlegen.
-- [ ] Dokument-ID, `nummer`, `erstelltAm` und Hierarchiepfad nicht als bearbeitbare Felder anbieten.
-- [ ] `FirmaService` und `FirmaStore` um das Aktualisieren einer ausgewählten Firma erweitern.
-- [ ] Beim Speichern `aktualisiertAm` mit einem Server-Timestamp setzen.
-- [ ] Aktualisierte Firma ohne erneutes Laden in die Store-Liste übernehmen.
+- [x] Aktualisierungsmodell für bearbeitbare Firmendaten festlegen.
+- [x] Bearbeitungsdialog für `anzeigename`, `firmenname`, Adresse und Kontaktdaten anlegen.
+- [x] Dokument-ID, `nummer`, `aktiv`, `erstelltAm` und Hierarchiepfad nicht als bearbeitbare Felder anbieten.
+- [x] `FirmaService` und `VerwaltungStore` um das Aktualisieren einer ausgewählten Firma erweitern.
+- [x] Beim Speichern `aktualisiertAm` mit einem Server-Timestamp setzen.
+- [x] Aktualisierte Firma ohne erneutes Laden in Verwaltungs- und Stammdatenbestand übernehmen.
 
 #### Schritt 7: Filialdaten bearbeiten
 
-- [ ] Aktualisierungsmodell für bearbeitbare Filialdaten festlegen.
-- [ ] Bearbeitungsdialog für `anzeigename`, `filialname`, Adresse und Kontaktdaten anlegen.
-- [ ] Dokument-ID, `nummer`, `erstelltAm` und Hierarchiepfad nicht als bearbeitbare Felder anbieten.
-- [ ] `FilialeService` und `FilialeStore` um das Aktualisieren einer ausgewählten Filiale erweitern.
-- [ ] Beim Speichern `aktualisiertAm` mit einem Server-Timestamp setzen.
-- [ ] Aktualisierte Filiale ohne erneutes Laden in die Store-Liste übernehmen.
+- [x] Aktualisierungsmodell für bearbeitbare Filialdaten festlegen.
+- [x] Bearbeitungsdialog für `anzeigename`, `filialname`, Adresse und Kontaktdaten anlegen.
+- [x] Dokument-ID, `nummer`, `aktiv`, `erstelltAm` und Hierarchiepfad nicht als bearbeitbare Felder anbieten.
+- [x] `FilialeService` und `VerwaltungStore` um das Aktualisieren einer ausgewählten Filiale erweitern.
+- [x] Beim Speichern `aktualisiertAm` mit einem Server-Timestamp setzen.
+- [x] Aktualisierte Filiale ohne erneutes Laden in Verwaltungs- und Stammdatenbestand übernehmen.
 
 #### Schritt 8: Schreibrechte real prüfen
 
@@ -380,8 +380,9 @@ weder angelegt noch gelöscht werden.
 #### Tests und Abschluss
 
 - [x] Guard-, Routen- und Sidebar-Tests für Office, Master und Filiale ergänzen.
-- [ ] Service- und Store-Tests für Laden, Aktualisieren und Fehlerfälle ergänzen.
-- [ ] Dialog- und Seitentests für Auswahl, Validierung und Speichern ergänzen.
+- [x] Service- und Store-Tests für das Laden und Aktualisieren von Firmendaten ergänzen.
+- [x] Dialog- und Seitentests für Auswahl, Validierung und Speichern von Firmendaten ergänzen.
+- [x] Service-, Store-, Dialog- und Seitentests für die Filialdaten-Aktualisierung ergänzen.
 - [ ] Firestore-Emulator-Tests für erlaubte und verbotene Aktualisierungen erfolgreich ausführen.
 - [ ] Den Verwaltungsablauf mit einem realen Office-Testkonto prüfen.
 - [ ] `projekt-plan.md` und `projekt-stand.md` nach Abschluss aktualisieren.
@@ -414,7 +415,7 @@ Betroffene Dateien:
 - src/app/guards/auth.guard.ts
 - src/app/guards/bereich.guard.ts
 - src/app/services/firebase/auth.service.ts
-- src/app/services/firebase/benutzer.service.ts
+- src/app/services/domain/benutzer.service.ts
 - src/app/stores/app/benutzer.store.ts
 - src/app/commons/models/app/firebase-error.types.ts
 - src/app/commons/models/domain/benutzer.ts

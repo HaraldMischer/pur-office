@@ -2,7 +2,7 @@
 
 import { TestBed } from '@angular/core/testing';
 
-import { IFirmaAnlage } from '../../commons/models/domain/firma';
+import { IFirmaAnlage, IFirmaEintrag } from '../../commons/models/domain/firma';
 import { FirmaService } from '../../services/domain/firma.service';
 import { FirmaStore } from './firma.store';
 
@@ -22,6 +22,22 @@ describe('FirmaStore', () => {
       telefon: '040 123456',
     },
   };
+  const firmaAlpha: IFirmaEintrag = {
+    ...anlage,
+    id: 'a',
+    anzeigename: 'Alpha',
+    firmenname: 'Alpha GmbH',
+    nummer: 2,
+    aktiv: true,
+  };
+  const firmaZulu: IFirmaEintrag = {
+    ...anlage,
+    id: 'z',
+    anzeigename: 'Zulu',
+    firmenname: 'Zulu GmbH',
+    nummer: 4,
+    aktiv: true,
+  };
   let firmaServiceMock: {
     loadFirmen: ReturnType<typeof vi.fn>;
     createFirma: ReturnType<typeof vi.fn>;
@@ -29,10 +45,7 @@ describe('FirmaStore', () => {
 
   beforeEach(() => {
     firmaServiceMock = {
-      loadFirmen: vi.fn().mockResolvedValue([
-        { id: 'z', anzeigename: 'Zulu', nummer: 4 },
-        { id: 'a', anzeigename: 'Alpha', nummer: 2 },
-      ]),
+      loadFirmen: vi.fn().mockResolvedValue([firmaZulu, firmaAlpha]),
       createFirma: vi.fn().mockResolvedValue({
         id: 'n',
         nummer: 5,
@@ -51,10 +64,7 @@ describe('FirmaStore', () => {
     await store.loadFirmen('unternehmer-1');
 
     expect(firmaServiceMock.loadFirmen).toHaveBeenCalledWith('unternehmer-1');
-    expect(store.firmen()).toEqual([
-      { id: 'a', anzeigename: 'Alpha', nummer: 2 },
-      { id: 'z', anzeigename: 'Zulu', nummer: 4 },
-    ]);
+    expect(store.firmen()).toEqual([firmaAlpha, firmaZulu]);
     expect(store.unternehmerId()).toBe('unternehmer-1');
     expect(store.download()).toBe(false);
     expect(store.isLoaded()).toBe(true);
@@ -63,12 +73,20 @@ describe('FirmaStore', () => {
   it('should replace the company context when loading another entrepreneur', async () => {
     const store = TestBed.inject(FirmaStore);
     await store.loadFirmen('unternehmer-1');
-    firmaServiceMock.loadFirmen.mockResolvedValue([{ id: 'b', anzeigename: 'Beta', nummer: 1 }]);
+    const firmaBeta: IFirmaEintrag = {
+      ...anlage,
+      id: 'b',
+      anzeigename: 'Beta',
+      firmenname: 'Beta GmbH',
+      nummer: 1,
+      aktiv: true,
+    };
+    firmaServiceMock.loadFirmen.mockResolvedValue([firmaBeta]);
 
     await store.loadFirmen('unternehmer-2');
 
     expect(store.unternehmerId()).toBe('unternehmer-2');
-    expect(store.firmen()).toEqual([{ id: 'b', anzeigename: 'Beta', nummer: 1 }]);
+    expect(store.firmen()).toEqual([firmaBeta]);
   });
 
   it('should create a company and add it to the sorted list', async () => {
@@ -82,9 +100,14 @@ describe('FirmaStore', () => {
     });
     expect(firmaServiceMock.createFirma).toHaveBeenCalledWith('unternehmer-1', anlage, 5);
     expect(store.firmen()).toEqual([
-      { id: 'a', anzeigename: 'Alpha', nummer: 2 },
-      { id: 'n', anzeigename: 'Firma Nord', nummer: 5 },
-      { id: 'z', anzeigename: 'Zulu', nummer: 4 },
+      firmaAlpha,
+      {
+        ...anlage,
+        id: 'n',
+        nummer: 5,
+        aktiv: true,
+      },
+      firmaZulu,
     ]);
   });
 

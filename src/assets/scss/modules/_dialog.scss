@@ -3,11 +3,11 @@
 .pur-dialog {
   &__panel {
     box-sizing: border-box;
-    width: calc(100vw - 2rem);
-    max-width: min(28rem, calc(100vw - 2rem)) !important;
+    width: calc(100vw - 32px);
+    max-width: min(448px, calc(100vw - 32px)) !important;
 
     &--large {
-      max-width: min(48rem, calc(100vw - 2rem)) !important;
+      max-width: min(768px, calc(100vw - 32px)) !important;
     }
   }
 

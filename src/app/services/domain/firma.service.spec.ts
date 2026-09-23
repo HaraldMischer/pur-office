@@ -11,6 +11,7 @@ describe('FirmaService', () => {
     loadCollection: vi.fn(),
     loadDocument: vi.fn(),
     createDocument: vi.fn(),
+    updateDocument: vi.fn(),
     createServerTimestamp: vi.fn(),
   };
   const anlage: IFirmaAnlage = {
@@ -34,6 +35,7 @@ describe('FirmaService', () => {
     firestoreDbServiceMock.loadCollection.mockResolvedValue([]);
     firestoreDbServiceMock.loadDocument.mockResolvedValue(null);
     firestoreDbServiceMock.createDocument.mockResolvedValue('firma-123');
+    firestoreDbServiceMock.updateDocument.mockResolvedValue(undefined);
     firestoreDbServiceMock.createServerTimestamp.mockReturnValue('server-zeitstempel');
 
     TestBed.configureTestingModule({
@@ -44,14 +46,23 @@ describe('FirmaService', () => {
   it('should load one assigned company by its complete path', async () => {
     firestoreDbServiceMock.loadDocument.mockResolvedValue({
       id: 'firma-1',
-      daten: { anzeigename: ' Firma Nord ', nummer: 3 },
+      daten: {
+        ...anlage,
+        anzeigename: ' Firma Nord ',
+        nummer: 3,
+        aktiv: true,
+      },
     });
     const service = TestBed.inject(FirmaService);
 
     await expect(service.loadFirmaEintrag('unternehmer-1', 'firma-1')).resolves.toEqual({
       id: 'firma-1',
       anzeigename: 'Firma Nord',
+      firmenname: 'Firma Nord GmbH',
       nummer: 3,
+      aktiv: true,
+      adresse: anlage.adresse,
+      kontakt: anlage.kontakt,
     });
     expect(firestoreDbServiceMock.loadDocument).toHaveBeenCalledWith(
       'unternehmer/unternehmer-1/firma/firma-1',
@@ -66,16 +77,42 @@ describe('FirmaService', () => {
 
   it('should load, normalize and sort companies of an entrepreneur', async () => {
     firestoreDbServiceMock.loadCollection.mockResolvedValue([
-      { id: 'b', daten: { anzeigename: ' Beta ', nummer: 2 } },
-      { id: 'a', daten: { anzeigename: 'Alpha', nummer: 1 } },
+      { id: 'b', daten: { ...anlage, anzeigename: ' Beta ', nummer: 2, aktiv: true } },
+      { id: 'a', daten: { ...anlage, anzeigename: 'Alpha', nummer: 1, aktiv: true } },
       { id: 'z', daten: { anzeigename: 42, nummer: -1 } },
     ]);
     const service = TestBed.inject(FirmaService);
 
     await expect(service.loadFirmen('unternehmer-1')).resolves.toEqual([
-      { id: 'a', anzeigename: 'Alpha', nummer: 1 },
-      { id: 'b', anzeigename: 'Beta', nummer: 2 },
-      { id: 'z', anzeigename: 'z', nummer: 0 },
+      {
+        id: 'a',
+        ...anlage,
+        anzeigename: 'Alpha',
+        nummer: 1,
+        aktiv: true,
+      },
+      {
+        id: 'b',
+        ...anlage,
+        anzeigename: 'Beta',
+        nummer: 2,
+        aktiv: true,
+      },
+      {
+        id: 'z',
+        anzeigename: 'z',
+        firmenname: 'z',
+        nummer: 0,
+        aktiv: false,
+        adresse: {
+          strasse: '',
+          hausnummer: '',
+          postleitzahl: '',
+          ort: '',
+          land: 'Deutschland',
+        },
+        kontakt: {},
+      },
     ]);
     expect(firestoreDbServiceMock.loadCollection).toHaveBeenCalledWith(
       'unternehmer/unternehmer-1/firma',
@@ -103,11 +140,33 @@ describe('FirmaService', () => {
     );
   });
 
+  it('should update only editable company data with a server timestamp', async () => {
+    const service = TestBed.inject(FirmaService);
+
+    await service.updateFirma('unternehmer-1', 'firma-1', anlage);
+
+    expect(firestoreDbServiceMock.updateDocument).toHaveBeenCalledWith(
+      'unternehmer/unternehmer-1/firma/firma-1',
+      {
+        ...anlage,
+        aktualisiertAm: 'server-zeitstempel',
+      },
+    );
+  });
+
   it('should propagate Firestore errors', async () => {
     const error = { code: 'permission-denied' };
     firestoreDbServiceMock.createDocument.mockRejectedValue(error);
     const service = TestBed.inject(FirmaService);
 
     await expect(service.createFirma('unternehmer-1', anlage, 1)).rejects.toBe(error);
+  });
+
+  it('should propagate update errors', async () => {
+    const error = { code: 'permission-denied' };
+    firestoreDbServiceMock.updateDocument.mockRejectedValue(error);
+    const service = TestBed.inject(FirmaService);
+
+    await expect(service.updateFirma('unternehmer-1', 'firma-1', anlage)).rejects.toBe(error);
   });
 });

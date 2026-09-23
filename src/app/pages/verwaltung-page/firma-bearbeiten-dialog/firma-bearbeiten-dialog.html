@@ -1,0 +1,141 @@
+<!-- pur-office/src/app/pages/verwaltung-page/firma-bearbeiten-dialog/firma-bearbeiten-dialog.html -->
+
+<h2 mat-dialog-title>Firma bearbeiten</h2>
+
+<mat-dialog-content class="pur-dialog__content">
+  <form
+    id="firma-bearbeiten-form"
+    class="pur-form pur-form--grid"
+    [formGroup]="firmaForm"
+    (ngSubmit)="onSubmit()"
+  >
+    <!-- Grunddaten -->
+    <div class="pur-form__group">
+      <h2 class="pur-form__group-titel">Firmendaten</h2>
+
+      <div class="pur-form__row">
+        <mat-form-field appearance="outline" class="pur-form__field">
+          <mat-label>Anzeigename</mat-label>
+          <input matInput formControlName="anzeigename" type="text" autocomplete="organization" />
+          @if (firmaForm.controls.anzeigename.hasError('required')) {
+            <mat-error>Anzeigename ist erforderlich.</mat-error>
+          }
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="pur-form__field">
+          <mat-label>Firmenname</mat-label>
+          <input matInput formControlName="firmenname" type="text" autocomplete="organization" />
+          @if (firmaForm.controls.firmenname.hasError('required')) {
+            <mat-error>Firmenname ist erforderlich.</mat-error>
+          }
+        </mat-form-field>
+      </div>
+    </div>
+
+    <!-- Adresse -->
+    <div class="pur-form__group" formGroupName="adresse">
+      <h2 class="pur-form__group-titel">Adresse</h2>
+
+      <div class="pur-form__row">
+        <mat-form-field appearance="outline" class="pur-form__field">
+          <mat-label>Straße</mat-label>
+          <input matInput formControlName="strasse" type="text" autocomplete="street-address" />
+          @if (firmaForm.controls.adresse.controls.strasse.hasError('required')) {
+            <mat-error>Straße ist erforderlich.</mat-error>
+          }
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="pur-form__field">
+          <mat-label>Hausnummer</mat-label>
+          <input matInput formControlName="hausnummer" type="text" autocomplete="off" />
+          @if (firmaForm.controls.adresse.controls.hausnummer.hasError('required')) {
+            <mat-error>Hausnummer ist erforderlich.</mat-error>
+          }
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="pur-form__field">
+          <mat-label>Adresszusatz</mat-label>
+          <input matInput formControlName="adresszusatz" type="text" autocomplete="off" />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="pur-form__field">
+          <mat-label>Postleitzahl</mat-label>
+          <input matInput formControlName="postleitzahl" type="text" autocomplete="postal-code" />
+          @if (firmaForm.controls.adresse.controls.postleitzahl.hasError('required')) {
+            <mat-error>Postleitzahl ist erforderlich.</mat-error>
+          }
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="pur-form__field">
+          <mat-label>Ort</mat-label>
+          <input matInput formControlName="ort" type="text" autocomplete="address-level2" />
+          @if (firmaForm.controls.adresse.controls.ort.hasError('required')) {
+            <mat-error>Ort ist erforderlich.</mat-error>
+          }
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="pur-form__field">
+          <mat-label>Land</mat-label>
+          <input matInput formControlName="land" type="text" autocomplete="country-name" />
+          @if (firmaForm.controls.adresse.controls.land.hasError('required')) {
+            <mat-error>Land ist erforderlich.</mat-error>
+          }
+        </mat-form-field>
+      </div>
+    </div>
+
+    <!-- Kontaktdaten -->
+    <div class="pur-form__group" formGroupName="kontakt">
+      <h2 class="pur-form__group-titel">Kontaktdaten</h2>
+
+      <div class="pur-form__row">
+        <mat-form-field appearance="outline" class="pur-form__field">
+          <mat-label>E-Mail-Adresse</mat-label>
+          <input matInput formControlName="email" type="email" autocomplete="email" />
+          @if (firmaForm.controls.kontakt.controls.email.hasError('email')) {
+            <mat-error>Bitte eine gültige E-Mail-Adresse eingeben.</mat-error>
+          }
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="pur-form__field">
+          <mat-label>Telefon</mat-label>
+          <input matInput formControlName="telefon" type="tel" autocomplete="tel" />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="pur-form__field">
+          <mat-label>Mobil</mat-label>
+          <input matInput formControlName="mobil" type="tel" autocomplete="tel" />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="pur-form__field">
+          <mat-label>Webseite</mat-label>
+          <input matInput formControlName="webseite" type="url" autocomplete="url" />
+        </mat-form-field>
+      </div>
+    </div>
+
+    @if (verwaltungStore.updateError(); as error) {
+      <p class="pur-form__error" role="alert">{{ error }}</p>
+    }
+  </form>
+</mat-dialog-content>
+
+<!-- Dialogaktionen -->
+<mat-dialog-actions class="pur-dialog__footer" align="end">
+  <button
+    matButton
+    type="button"
+    [mat-dialog-close]="undefined"
+    [disabled]="verwaltungStore.inProgress()"
+  >
+    Abbrechen
+  </button>
+  <button
+    matButton="filled"
+    type="submit"
+    form="firma-bearbeiten-form"
+    [disabled]="firmaForm.invalid || verwaltungStore.inProgress()"
+  >
+    {{ verwaltungStore.inProgress() ? 'Firma wird gespeichert' : 'Änderungen speichern' }}
+  </button>
+</mat-dialog-actions>

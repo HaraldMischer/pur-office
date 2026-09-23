@@ -14,16 +14,23 @@ export interface IFilialeAnlage {
   kontakt: IKontakt;
 }
 
+export interface IFilialeAktualisierung {
+  anzeigename: string;
+  filialname: string;
+  adresse: IAdresse;
+  kontakt: IKontakt;
+}
+
 export interface IFilialeAnlageErgebnis {
   id: string;
   nummer: number;
   anzeigename: string;
 }
 
-export interface IFilialeEintrag {
+export interface IFilialeEintrag extends IFilialeAnlage {
   id: string;
   nummer: number;
-  anzeigename: string;
+  aktiv: boolean;
 }
 
 // ===== Firestore-Dokumente ==================

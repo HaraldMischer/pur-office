@@ -2,7 +2,7 @@
 
 import { TestBed } from '@angular/core/testing';
 
-import { IFilialeAnlage } from '../../commons/models/domain/filiale';
+import { IFilialeAnlage, IFilialeEintrag } from '../../commons/models/domain/filiale';
 import { FilialeService } from '../../services/domain/filiale.service';
 import { FilialeStore } from './filiale.store';
 
@@ -22,6 +22,22 @@ describe('FilialeStore', () => {
       telefon: '02332 123456',
     },
   };
+  const filialeAlpha: IFilialeEintrag = {
+    ...anlage,
+    id: 'a',
+    anzeigename: 'Alpha',
+    filialname: 'Filiale Alpha',
+    nummer: 2,
+    aktiv: true,
+  };
+  const filialeZulu: IFilialeEintrag = {
+    ...anlage,
+    id: 'z',
+    anzeigename: 'Zulu',
+    filialname: 'Filiale Zulu',
+    nummer: 4,
+    aktiv: true,
+  };
   let filialeServiceMock: {
     loadFilialen: ReturnType<typeof vi.fn>;
     createFiliale: ReturnType<typeof vi.fn>;
@@ -29,10 +45,7 @@ describe('FilialeStore', () => {
 
   beforeEach(() => {
     filialeServiceMock = {
-      loadFilialen: vi.fn().mockResolvedValue([
-        { id: 'z', anzeigename: 'Zulu', nummer: 4 },
-        { id: 'a', anzeigename: 'Alpha', nummer: 2 },
-      ]),
+      loadFilialen: vi.fn().mockResolvedValue([filialeZulu, filialeAlpha]),
       createFiliale: vi.fn().mockResolvedValue({
         id: 'n',
         nummer: 5,
@@ -51,10 +64,7 @@ describe('FilialeStore', () => {
     await store.loadFilialen('unternehmer-1', 'firma-1');
 
     expect(filialeServiceMock.loadFilialen).toHaveBeenCalledWith('unternehmer-1', 'firma-1');
-    expect(store.filialen()).toEqual([
-      { id: 'a', anzeigename: 'Alpha', nummer: 2 },
-      { id: 'z', anzeigename: 'Zulu', nummer: 4 },
-    ]);
+    expect(store.filialen()).toEqual([filialeAlpha, filialeZulu]);
     expect(store.unternehmerId()).toBe('unternehmer-1');
     expect(store.firmaId()).toBe('firma-1');
     expect(store.isLoaded()).toBe(true);
@@ -63,14 +73,20 @@ describe('FilialeStore', () => {
   it('should replace the branch context when loading another company', async () => {
     const store = TestBed.inject(FilialeStore);
     await store.loadFilialen('unternehmer-1', 'firma-1');
-    filialeServiceMock.loadFilialen.mockResolvedValue([
-      { id: 'b', anzeigename: 'Beta', nummer: 1 },
-    ]);
+    const filialeBeta: IFilialeEintrag = {
+      ...anlage,
+      id: 'b',
+      anzeigename: 'Beta',
+      filialname: 'Filiale Beta',
+      nummer: 1,
+      aktiv: true,
+    };
+    filialeServiceMock.loadFilialen.mockResolvedValue([filialeBeta]);
 
     await store.loadFilialen('unternehmer-1', 'firma-2');
 
     expect(store.firmaId()).toBe('firma-2');
-    expect(store.filialen()).toEqual([{ id: 'b', anzeigename: 'Beta', nummer: 1 }]);
+    expect(store.filialen()).toEqual([filialeBeta]);
   });
 
   it('should create a branch and add it to the sorted list', async () => {
@@ -89,9 +105,14 @@ describe('FilialeStore', () => {
       5,
     );
     expect(store.filialen()).toEqual([
-      { id: 'a', anzeigename: 'Alpha', nummer: 2 },
-      { id: 'n', anzeigename: 'Gevelsberg 1', nummer: 5 },
-      { id: 'z', anzeigename: 'Zulu', nummer: 4 },
+      filialeAlpha,
+      {
+        ...anlage,
+        id: 'n',
+        nummer: 5,
+        aktiv: true,
+      },
+      filialeZulu,
     ]);
   });
 

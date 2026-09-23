@@ -131,9 +131,14 @@ export const FilialeStore = signalStore(
             anlage,
             nummer,
           );
-          stammdatenStore.upsertFiliale(unternehmerId, firmaId, ergebnis);
-          const filialen = store.filialen().filter((eintrag) => eintrag.id !== ergebnis.id);
-          patchState(store, { filialen: sortFilialen([...filialen, ergebnis]) });
+          const filiale: IFilialeEintrag = {
+            ...anlage,
+            ...ergebnis,
+            aktiv: true,
+          };
+          stammdatenStore.upsertFiliale(unternehmerId, firmaId, filiale);
+          const filialen = store.filialen().filter((eintrag) => eintrag.id !== filiale.id);
+          patchState(store, { filialen: sortFilialen([...filialen, filiale]) });
           return ergebnis;
         } catch (error: unknown) {
           patchState(store, { error: getFirebaseErrorMessage(error) });

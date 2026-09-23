@@ -137,6 +137,9 @@
 ## Styles und UI
 
 - Nutze Angular Material/CDK als bestehendes UI-System.
+- Für eigene Layoutwerte werden grundsätzlich `px` verwendet, insbesondere für Breiten, Höhen, Abstände und Breakpoints.
+- `rem` wird nur verwendet, wenn eine Größe ausdrücklich mit der Root-Schriftgröße skalieren soll.
+- Vorhandene Angular-Material-Tokens bleiben von dieser Einheitenregel unberührt.
 - Wiederverwendbare CSS-Klassen folgen BEM: `block__element` für Elemente und `block__element--modifier` für Varianten oder Zustände. Zusammengesetzte Elementnamen verwenden einfache Bindestriche.
 - Formulargruppen verwenden `pur-form__group`; ihre Überschriften verwenden `pur-form__group-titel` (in SCSS unter `&__group` als `&-titel`). `titel` ist ein eigenes Element, kein Modifier.
 - Formulargruppen werden ohne `fieldset` und `legend` aufgebaut: `div`-Gruppen mit sichtbaren `h2`-Überschriften mit `pur-form__group-titel`. Diese Gruppen-Divs erhalten weder `role="group"` noch `aria-label` oder `aria-labelledby`. Beschriftungen für Bedienelemente wie reine Icon-Buttons bleiben davon unberührt.
@@ -144,13 +147,23 @@
 - Lokale Component-SCSS-Dateien bleiben als eingebundene Platzhalter bestehen und werden auch dann nicht entfernt, wenn aktuell alle Styles durch globale Klassen abgedeckt sind.
 - Beachte die vorhandenen Prettier-Einstellungen aus `package.json`.
 
+## Testregeln
+
+- Tests prüfen vorrangig fachliches Verhalten und öffentlich beobachtbare Ergebnisse statt interner Implementierungsdetails.
+- Rollen, Berechtigungen, Validierung, erfolgreiche Abläufe und relevante Fehlerfälle werden gezielt abgesichert.
+- Template-Tests prüfen sichtbares oder interaktives Verhalten. Reine DOM-Verschachtelung, dekorative Elemente und CSS-Klassen werden nur getestet, wenn sie für Funktion, Barrierefreiheit oder verbindliche Projektkonventionen relevant sind.
+- Selektoren und Erwartungen werden so gewählt, dass fachlich bedeutungslose Template- oder Styling-Änderungen keine Tests brechen.
+- Bestehende Tests werden bei einer Verhaltensänderung auf ihre fachliche Aussage geprüft und angepasst, wenn das zuvor erwartete Verhalten bewusst entfällt.
+- Redundante Tests und Tests, die ausschließlich die Testanzahl erhöhen, werden vermieden.
+- Store- und Service-Tests prüfen Zustandsübergänge, Seiteneffekte, Fehlerweitergabe und die Zusammenarbeit mit ihren direkten Abhängigkeiten.
+- Tests bleiben bei Vitest; Karma- oder Jasmine-Pakete werden nicht eingeführt.
+
 ## Arbeitsweise und Prüfungen
 
 - Halte Änderungen auf die vereinbarte Aufgabe beschränkt; keine unnötigen Refactorings.
 - Erhalte bestehende Änderungen des Benutzers. Dateien nur löschen, wenn es zur vereinbarten Aufgabe gehört; keine destruktiven Git-Aktionen ohne ausdrücklichen Auftrag.
 - Verwende die vorhandenen npm-Skripte aus dem Projekt-Root. Der lokale Dev-Server startet mit `npm run start-web`.
 - Füge Dependencies nur bei begründetem Bedarf hinzu und aktualisiere `package.json` und `package-lock.json` gemeinsam.
-- Tests bleiben bei Vitest; keine Karma-/Jasmine-Pakete einführen.
 - Ergänze oder aktualisiere passende `.spec.ts` Dateien bei Verhaltensänderungen.
 - Führe vor Abschluss von Code-Änderungen `npm test` ohne Watch-Modus aus.
 - Führe bei Build-, Template- oder größeren UI-Änderungen zusätzlich `npm run build` aus.

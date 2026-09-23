@@ -11,6 +11,7 @@ describe('FilialeService', () => {
     loadCollection: vi.fn(),
     loadDocument: vi.fn(),
     createDocument: vi.fn(),
+    updateDocument: vi.fn(),
     createServerTimestamp: vi.fn(),
   };
   const anlage: IFilialeAnlage = {
@@ -34,6 +35,7 @@ describe('FilialeService', () => {
     firestoreDbServiceMock.loadCollection.mockResolvedValue([]);
     firestoreDbServiceMock.loadDocument.mockResolvedValue(null);
     firestoreDbServiceMock.createDocument.mockResolvedValue('filiale-123');
+    firestoreDbServiceMock.updateDocument.mockResolvedValue(undefined);
     firestoreDbServiceMock.createServerTimestamp.mockReturnValue('server-zeitstempel');
 
     TestBed.configureTestingModule({
@@ -47,7 +49,7 @@ describe('FilialeService', () => {
   it('should load one assigned branch by its complete path', async () => {
     firestoreDbServiceMock.loadDocument.mockResolvedValue({
       id: 'filiale-1',
-      daten: { anzeigename: ' Filiale Nord ', nummer: 3 },
+      daten: { ...anlage, anzeigename: ' Filiale Nord ', nummer: 3, aktiv: true },
     });
     const service = TestBed.inject(FilialeService);
 
@@ -56,7 +58,11 @@ describe('FilialeService', () => {
     ).resolves.toEqual({
       id: 'filiale-1',
       anzeigename: 'Filiale Nord',
+      filialname: 'Spielhalle',
       nummer: 3,
+      aktiv: true,
+      adresse: anlage.adresse,
+      kontakt: anlage.kontakt,
     });
     expect(firestoreDbServiceMock.loadDocument).toHaveBeenCalledWith(
       'unternehmer/unternehmer-1/firma/firma-1/filiale/filiale-1',
@@ -73,16 +79,30 @@ describe('FilialeService', () => {
 
   it('should load, normalize and sort branches of a company', async () => {
     firestoreDbServiceMock.loadCollection.mockResolvedValue([
-      { id: 'b', daten: { anzeigename: ' Beta ', nummer: 2 } },
-      { id: 'a', daten: { anzeigename: 'Alpha', nummer: 1 } },
+      { id: 'b', daten: { ...anlage, anzeigename: ' Beta ', nummer: 2, aktiv: true } },
+      { id: 'a', daten: { ...anlage, anzeigename: 'Alpha', nummer: 1, aktiv: true } },
       { id: 'z', daten: { anzeigename: 42, nummer: -1 } },
     ]);
     const service = TestBed.inject(FilialeService);
 
     await expect(service.loadFilialen('unternehmer-1', 'firma-1')).resolves.toEqual([
-      { id: 'a', anzeigename: 'Alpha', nummer: 1 },
-      { id: 'b', anzeigename: 'Beta', nummer: 2 },
-      { id: 'z', anzeigename: 'z', nummer: 0 },
+      { id: 'a', ...anlage, anzeigename: 'Alpha', nummer: 1, aktiv: true },
+      { id: 'b', ...anlage, anzeigename: 'Beta', nummer: 2, aktiv: true },
+      {
+        id: 'z',
+        anzeigename: 'z',
+        filialname: 'z',
+        nummer: 0,
+        aktiv: false,
+        adresse: {
+          strasse: '',
+          hausnummer: '',
+          postleitzahl: '',
+          ort: '',
+          land: 'Deutschland',
+        },
+        kontakt: {},
+      },
     ]);
     expect(firestoreDbServiceMock.loadCollection).toHaveBeenCalledWith(
       'unternehmer/unternehmer-1/firma/firma-1/filiale',
@@ -110,11 +130,35 @@ describe('FilialeService', () => {
     );
   });
 
+  it('should update only editable branch data with a server timestamp', async () => {
+    const service = TestBed.inject(FilialeService);
+
+    await service.updateFiliale('unternehmer-1', 'firma-1', 'filiale-1', anlage);
+
+    expect(firestoreDbServiceMock.updateDocument).toHaveBeenCalledWith(
+      'unternehmer/unternehmer-1/firma/firma-1/filiale/filiale-1',
+      {
+        ...anlage,
+        aktualisiertAm: 'server-zeitstempel',
+      },
+    );
+  });
+
   it('should propagate Firestore errors', async () => {
     const error = { code: 'permission-denied' };
     firestoreDbServiceMock.createDocument.mockRejectedValue(error);
     const service = TestBed.inject(FilialeService);
 
     await expect(service.createFiliale('unternehmer-1', 'firma-1', anlage, 1)).rejects.toBe(error);
+  });
+
+  it('should propagate update errors', async () => {
+    const error = { code: 'permission-denied' };
+    firestoreDbServiceMock.updateDocument.mockRejectedValue(error);
+    const service = TestBed.inject(FilialeService);
+
+    await expect(
+      service.updateFiliale('unternehmer-1', 'firma-1', 'filiale-1', anlage),
+    ).rejects.toBe(error);
   });
 });

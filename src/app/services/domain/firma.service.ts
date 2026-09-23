@@ -9,6 +9,7 @@ import {
 import {
   IFirmaAnlage,
   IFirmaAnlageErgebnis,
+  IFirmaAktualisierung,
   IFirmaEintrag,
 } from '../../commons/models/domain/firma';
 import { FirestoreDbService } from '../firebase/firestore-db.service';
@@ -17,13 +18,52 @@ import { FirestoreDbService } from '../firebase/firestore-db.service';
 
 function mapFirmaEintrag(id: string, daten: Record<string, unknown>): IFirmaEintrag {
   const anzeigename = daten['anzeigename'];
+  const firmenname = daten['firmenname'];
   const nummer = daten['nummer'];
+  const adresse = asRecord(daten['adresse']);
+  const kontakt = asRecord(daten['kontakt']);
+  const adresszusatz = getOptionalString(adresse['adresszusatz']);
+  const email = getOptionalString(kontakt['email']);
+  const telefon = getOptionalString(kontakt['telefon']);
+  const mobil = getOptionalString(kontakt['mobil']);
+  const webseite = getOptionalString(kontakt['webseite']);
 
   return {
     id,
     anzeigename: typeof anzeigename === 'string' && anzeigename.trim() ? anzeigename.trim() : id,
+    firmenname: typeof firmenname === 'string' && firmenname.trim() ? firmenname.trim() : id,
     nummer: Number.isInteger(nummer) && Number(nummer) > 0 ? Number(nummer) : 0,
+    aktiv: daten['aktiv'] === true,
+    adresse: {
+      strasse: getString(adresse['strasse']),
+      hausnummer: getString(adresse['hausnummer']),
+      ...(adresszusatz ? { adresszusatz } : {}),
+      postleitzahl: getString(adresse['postleitzahl']),
+      ort: getString(adresse['ort']),
+      land: getString(adresse['land'], 'Deutschland'),
+    },
+    kontakt: {
+      ...(email ? { email } : {}),
+      ...(telefon ? { telefon } : {}),
+      ...(mobil ? { mobil } : {}),
+      ...(webseite ? { webseite } : {}),
+    },
   };
+}
+
+function asRecord(value: unknown): Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value)
+    ? (value as Record<string, unknown>)
+    : {};
+}
+
+function getString(value: unknown, fallback = ''): string {
+  return typeof value === 'string' && value.trim() ? value.trim() : fallback;
+}
+
+function getOptionalString(value: unknown): string | undefined {
+  const text = getString(value);
+  return text || undefined;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -98,5 +138,28 @@ export class FirmaService {
       nummer,
       anzeigename: anlage.anzeigename,
     };
+  }
+
+  /**
+   * Aktualisiert die bearbeitbaren Stammdaten einer Firma.
+   *
+   * @param unternehmerId - Die Dokument-ID des übergeordneten Unternehmers.
+   * @param firmaId - Die Dokument-ID der zu aktualisierenden Firma.
+   * @param aktualisierung - Die bearbeitbaren Anzeige-, Adress- und Kontaktdaten.
+   * @returns Ein Promise, das nach dem bestätigten Schreibvorgang abgeschlossen ist.
+   * @throws Gibt Fehler des Firestore-Zugriffs an die aufrufende Stelle weiter.
+   */
+  async updateFirma(
+    unternehmerId: string,
+    firmaId: string,
+    aktualisierung: IFirmaAktualisierung,
+  ): Promise<void> {
+    await this.firestoreDbService.updateDocument(
+      FIRESTORE_DOCUMENT_PATHS.firma(unternehmerId, firmaId),
+      {
+        ...aktualisierung,
+        aktualisiertAm: this.firestoreDbService.createServerTimestamp(),
+      },
+    );
   }
 }

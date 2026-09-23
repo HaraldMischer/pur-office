@@ -5,14 +5,14 @@
     margin-inline: -24px;
 
     .mat-vertical-content {
-      padding-block-start: 0.5rem;
+      padding-block-start: 8px;
     }
   }
 
   &.mat-stepper-horizontal {
     .mat-horizontal-content-container {
       padding: 0;
-      padding-block-start: 0.5rem;
+      padding-block-start: 8px;
     }
   }
 }

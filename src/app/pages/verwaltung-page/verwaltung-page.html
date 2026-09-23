@@ -9,25 +9,33 @@
 
     <!-- Stammdatenauswahl -->
     <div class="pur-form pur-form--grid">
-      <div class="pur-form__row">
-        <mat-form-field appearance="outline" class="pur-form__field" subscriptSizing="dynamic">
-          <mat-label>Unternehmer</mat-label>
-          <mat-select
-            [value]="verwaltungStore.selectedUnternehmerId()"
-            [disabled]="
-              verwaltungStore.unternehmerListe().download ||
-              verwaltungStore.unternehmer().length === 0
-            "
-            (selectionChange)="verwaltungStore.selectUnternehmer($event.value)"
-          >
-            @for (unternehmer of verwaltungStore.unternehmer(); track unternehmer.id) {
-              <mat-option [value]="unternehmer.id">{{ unternehmer.anzeigename }}</mat-option>
-            } @empty {
-              <mat-option disabled>Keine Unternehmer verfügbar</mat-option>
-            }
-          </mat-select>
-        </mat-form-field>
+      <!-- Unternehmer -->
+      @if (verwaltungStore.istMaster()) {
+        <div class="pur-form__row">
+          <!-- Unternehmer wählen -->
+          <mat-form-field appearance="outline" class="pur-form__field" subscriptSizing="dynamic">
+            <mat-label>Unternehmer</mat-label>
+            <mat-select
+              [value]="verwaltungStore.selectedUnternehmerId()"
+              [disabled]="
+                verwaltungStore.unternehmerListe().download ||
+                verwaltungStore.unternehmer().length === 0
+              "
+              (selectionChange)="verwaltungStore.selectUnternehmer($event.value)"
+            >
+              @for (unternehmer of verwaltungStore.unternehmer(); track unternehmer.id) {
+                <mat-option [value]="unternehmer.id">{{ unternehmer.anzeigename }}</mat-option>
+              } @empty {
+                <mat-option disabled>Keine Unternehmer verfügbar</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+        </div>
+      }
 
+      <!-- Firma -->
+      <div class="pur-form__row pur-form__row--action">
+        <!-- Firma wählen -->
         <mat-form-field appearance="outline" class="pur-form__field" subscriptSizing="dynamic">
           <mat-label>Firma</mat-label>
           <mat-select
@@ -46,7 +54,22 @@
             }
           </mat-select>
         </mat-form-field>
+        <!-- Firma bearbeiten -->
+        <button
+          class="pur-form__button"
+          matButton="outlined"
+          type="button"
+          [disabled]="!verwaltungStore.selectedFirma() || verwaltungStore.inProgress()"
+          (click)="openFirmaBearbeitenDialog()"
+        >
+          <mat-icon aria-hidden="true">edit</mat-icon>
+          Firma bearbeiten
+        </button>
+      </div>
 
+      <!-- Filiale -->
+      <div class="pur-form__row pur-form__row--action">
+        <!-- Filiale wählen -->
         <mat-form-field appearance="outline" class="pur-form__field" subscriptSizing="dynamic">
           <mat-label>Filiale</mat-label>
           <mat-select
@@ -65,7 +88,26 @@
             }
           </mat-select>
         </mat-form-field>
+        <!-- Filiale bearbeiten -->
+        <button
+          class="pur-form__button"
+          matButton="outlined"
+          type="button"
+          [disabled]="!verwaltungStore.selectedFiliale() || verwaltungStore.inProgress()"
+          (click)="openFilialeBearbeitenDialog()"
+        >
+          <mat-icon aria-hidden="true">edit</mat-icon>
+          Filiale bearbeiten
+        </button>
       </div>
+
+      @if (verwaltungStore.updateSuccess(); as erfolg) {
+        <p class="pur-form__success" role="status">{{ erfolg }}</p>
+      }
+
+      @if (verwaltungStore.updateError(); as error) {
+        <p class="pur-form__error" role="alert">{{ error }}</p>
+      }
 
       @if (verwaltungStore.unternehmerListe().error; as error) {
         <p class="pur-form__error" role="alert">{{ error }}</p>

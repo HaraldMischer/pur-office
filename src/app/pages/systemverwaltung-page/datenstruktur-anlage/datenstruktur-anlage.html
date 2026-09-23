@@ -15,7 +15,7 @@
       <form class="pur-form pur-form--grid" [formGroup]="unternehmerForm">
         <h3 class="pur-form__group-titel">Unternehmer wählen oder neu anlegen</h3>
 
-        <div class="pur-form__row">
+        <div class="pur-form__row pur-form__row--action">
           <mat-form-field appearance="outline" class="pur-form__field">
             <mat-label>Unternehmer</mat-label>
             <mat-select formControlName="id">
@@ -31,6 +31,7 @@
           </mat-form-field>
 
           <button
+            class="pur-form__button"
             matButton="outlined"
             type="button"
             [disabled]="!unternehmerStore.isLoaded()"
@@ -72,7 +73,7 @@
           Firma für {{ getUnternehmerBezeichnung() }} wählen oder neu anlegen
         </h3>
 
-        <div class="pur-form__row">
+        <div class="pur-form__row pur-form__row--action">
           <mat-form-field appearance="outline" class="pur-form__field">
             <mat-label>Firma</mat-label>
             <mat-select formControlName="id">
@@ -88,6 +89,7 @@
           </mat-form-field>
 
           <button
+            class="pur-form__button"
             matButton="outlined"
             type="button"
             [disabled]="!firmaStore.isLoaded()"
@@ -147,8 +149,9 @@
             Erneut laden
           </button>
         } @else if (!filialeStore.download()) {
-          <div class="pur-form__row">
+          <div class="pur-form__row pur-form__row--action">
             <button
+              class="pur-form__button"
               matButton="outlined"
               type="button"
               [disabled]="!filialeStore.isLoaded()"

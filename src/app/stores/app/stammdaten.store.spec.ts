@@ -146,8 +146,36 @@ describe('StammdatenStore', () => {
     await store.loadStammdaten('master-1', masterProfil);
 
     store.upsertUnternehmer({ id: 'u-2', nummer: 2, anzeigename: 'Alpha' });
-    store.upsertFirma('u-1', { id: 'f-2', nummer: 2, anzeigename: 'Alpha' });
-    store.upsertFiliale('u-1', 'f-1', { id: 'b-2', nummer: 2, anzeigename: 'Alpha' });
+    store.upsertFirma('u-1', {
+      id: 'f-2',
+      nummer: 2,
+      anzeigename: 'Alpha',
+      firmenname: 'Alpha GmbH',
+      aktiv: true,
+      adresse: {
+        strasse: 'Hauptstraße',
+        hausnummer: '1',
+        postleitzahl: '20095',
+        ort: 'Hamburg',
+        land: 'Deutschland',
+      },
+      kontakt: {},
+    });
+    store.upsertFiliale('u-1', 'f-1', {
+      id: 'b-2',
+      nummer: 2,
+      aktiv: true,
+      anzeigename: 'Alpha',
+      filialname: 'Filiale Alpha',
+      adresse: {
+        strasse: 'Hauptstraße',
+        hausnummer: '1',
+        postleitzahl: '20095',
+        ort: 'Hamburg',
+        land: 'Deutschland',
+      },
+      kontakt: {},
+    });
 
     expect(store.unternehmer()[0].id).toBe('u-2');
     expect(store.getFirmen('u-1')[0].id).toBe('f-2');

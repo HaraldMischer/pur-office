@@ -3,8 +3,8 @@
 import { DestroyRef, computed, inject, untracked } from '@angular/core';
 import { patchState, signalStore, withComputed, withMethods, withState } from '@ngrx/signals';
 
-import { IFirmaEintrag } from '../../commons/models/domain/firma';
-import { IFilialeEintrag } from '../../commons/models/domain/filiale';
+import { IFirmaAktualisierung, IFirmaEintrag } from '../../commons/models/domain/firma';
+import { IFilialeAktualisierung, IFilialeEintrag } from '../../commons/models/domain/filiale';
 import { IUnternehmerEintrag } from '../../commons/models/domain/unternehmer';
 import { getFirebaseErrorMessage } from '../../commons/utils/errors/firebase-error-message';
 import { StoreSnapshotService } from '../../services/core/store-snapshot.service';
@@ -42,6 +42,9 @@ export type TVerwaltungSnapshot = {
   readonly selectedUnternehmerId: string | null;
   readonly selectedFirmaId: string | null;
   readonly selectedFilialeId: string | null;
+  readonly inProgress: boolean;
+  readonly updateError: string | null;
+  readonly updateSuccess: string | null;
 };
 
 type TVerwaltungState = TVerwaltungSnapshot;
@@ -53,12 +56,15 @@ const initialState: TVerwaltungState = {
   selectedUnternehmerId: null,
   selectedFirmaId: null,
   selectedFilialeId: null,
+  inProgress: false,
+  updateError: null,
+  updateSuccess: null,
 };
 
 export const VerwaltungStore = signalStore(
   { providedIn: 'root', protectedState: true } as const,
   withState<TVerwaltungState>(initialState),
-  withComputed((store) => {
+  withComputed((store, benutzerStore = inject(BenutzerStore)) => {
     const unternehmer = computed(() => {
       return store.unternehmerListe().daten;
     });
@@ -68,11 +74,36 @@ export const VerwaltungStore = signalStore(
     const filialen = computed(() => {
       return store.filialenListe().daten;
     });
+    const selectedFirma = computed(() => {
+      return (
+        store.firmenListe().daten.find((firma) => firma.id === store.selectedFirmaId()) ?? null
+      );
+    });
+    const selectedFiliale = computed(() => {
+      return (
+        store.filialenListe().daten.find((filiale) => filiale.id === store.selectedFilialeId()) ??
+        null
+      );
+    });
+    const selectedUnternehmer = computed(() => {
+      return (
+        store
+          .unternehmerListe()
+          .daten.find((eintrag) => eintrag.id === store.selectedUnternehmerId()) ?? null
+      );
+    });
+    const istMaster = computed(() => {
+      return benutzerStore.benutzerProfil()?.userRole === 'master';
+    });
 
     return {
       unternehmer,
       firmen,
       filialen,
+      selectedUnternehmer,
+      selectedFirma,
+      selectedFiliale,
+      istMaster,
     };
   }),
   withMethods(
@@ -144,6 +175,10 @@ export const VerwaltungStore = signalStore(
               error: null,
             },
           });
+
+          if (profil?.userRole === 'office' && unternehmer.length === 1) {
+            await selectUnternehmer(unternehmer[0].id);
+          }
         } catch (error: unknown) {
           if (generation !== unternehmerGeneration) return;
           patchState(store, {
@@ -270,6 +305,101 @@ export const VerwaltungStore = signalStore(
         }
       }
 
+      // ===== Methoden: Schreiben ==================
+
+      /**
+       * Aktualisiert die ausgewählte Firma und übernimmt das Ergebnis in alle Sitzungslisten.
+       *
+       * @param aktualisierung - Die bearbeitbaren Anzeige-, Adress- und Kontaktdaten.
+       * @returns Der vollständig aktualisierte Firmeneintrag.
+       * @throws Wenn keine gültige Firma ausgewählt ist oder das Speichern fehlschlägt.
+       */
+      async function updateFirma(aktualisierung: IFirmaAktualisierung): Promise<IFirmaEintrag> {
+        const unternehmerId = store.selectedUnternehmerId();
+        const firmaId = store.selectedFirmaId();
+        const firma = store.firmenListe().daten.find((eintrag) => eintrag.id === firmaId);
+        if (!unternehmerId || !firmaId || !firma) {
+          throw new Error('Für die Bearbeitung muss eine gültige Firma ausgewählt sein.');
+        }
+        if (store.inProgress()) {
+          throw new Error('Die Firma wird bereits gespeichert.');
+        }
+
+        patchState(store, { inProgress: true, updateError: null, updateSuccess: null });
+        try {
+          await firmaService.updateFirma(unternehmerId, firmaId, aktualisierung);
+          const aktualisierteFirma: IFirmaEintrag = {
+            ...firma,
+            ...aktualisierung,
+          };
+          stammdatenStore.upsertFirma(unternehmerId, aktualisierteFirma);
+          const firmen = store
+            .firmenListe()
+            .daten.filter((eintrag) => eintrag.id !== aktualisierteFirma.id);
+          patchState(store, {
+            firmenListe: {
+              ...store.firmenListe(),
+              daten: sortEintraege([...firmen, aktualisierteFirma]),
+            },
+            updateSuccess: `Firma ${aktualisierteFirma.anzeigename} wurde aktualisiert.`,
+          });
+          return aktualisierteFirma;
+        } catch (error: unknown) {
+          patchState(store, { updateError: getFirebaseErrorMessage(error) });
+          throw error;
+        } finally {
+          patchState(store, { inProgress: false });
+        }
+      }
+
+      /**
+       * Aktualisiert die ausgewählte Filiale und übernimmt das Ergebnis in alle Sitzungslisten.
+       *
+       * @param aktualisierung - Die bearbeitbaren Anzeige-, Adress- und Kontaktdaten.
+       * @returns Der vollständig aktualisierte Filialeintrag.
+       * @throws Wenn keine gültige Filiale ausgewählt ist oder das Speichern fehlschlägt.
+       */
+      async function updateFiliale(
+        aktualisierung: IFilialeAktualisierung,
+      ): Promise<IFilialeEintrag> {
+        const unternehmerId = store.selectedUnternehmerId();
+        const firmaId = store.selectedFirmaId();
+        const filialeId = store.selectedFilialeId();
+        const filiale = store.filialenListe().daten.find((eintrag) => eintrag.id === filialeId);
+        if (!unternehmerId || !firmaId || !filialeId || !filiale) {
+          throw new Error('Für die Bearbeitung muss eine gültige Filiale ausgewählt sein.');
+        }
+        if (store.inProgress()) {
+          throw new Error('Die Filiale wird bereits gespeichert.');
+        }
+
+        patchState(store, { inProgress: true, updateError: null, updateSuccess: null });
+        try {
+          await filialeService.updateFiliale(unternehmerId, firmaId, filialeId, aktualisierung);
+          const aktualisierteFiliale: IFilialeEintrag = {
+            ...filiale,
+            ...aktualisierung,
+          };
+          stammdatenStore.upsertFiliale(unternehmerId, firmaId, aktualisierteFiliale);
+          const filialen = store
+            .filialenListe()
+            .daten.filter((eintrag) => eintrag.id !== aktualisierteFiliale.id);
+          patchState(store, {
+            filialenListe: {
+              ...store.filialenListe(),
+              daten: sortEintraege([...filialen, aktualisierteFiliale]),
+            },
+            updateSuccess: `Filiale ${aktualisierteFiliale.anzeigename} wurde aktualisiert.`,
+          });
+          return aktualisierteFiliale;
+        } catch (error: unknown) {
+          patchState(store, { updateError: getFirebaseErrorMessage(error) });
+          throw error;
+        } finally {
+          patchState(store, { inProgress: false });
+        }
+      }
+
       // ===== Methoden: Sonstige Aktionen ==========
 
       /**
@@ -292,6 +422,8 @@ export const VerwaltungStore = signalStore(
           selectedFilialeId: null,
           firmenListe: createLeereListe<IFirmaEintrag>(),
           filialenListe: createLeereListe<IFilialeEintrag>(),
+          updateError: null,
+          updateSuccess: null,
         });
 
         if (selectedUnternehmerId) await loadFirmen();
@@ -312,6 +444,8 @@ export const VerwaltungStore = signalStore(
           selectedFirmaId,
           selectedFilialeId: null,
           filialenListe: createLeereListe<IFilialeEintrag>(),
+          updateError: null,
+          updateSuccess: null,
         });
 
         if (selectedFirmaId) await loadFilialen();
@@ -326,7 +460,7 @@ export const VerwaltungStore = signalStore(
         const selectedFilialeId = store.filialen().some((eintrag) => eintrag.id === filialeId)
           ? filialeId
           : null;
-        patchState(store, { selectedFilialeId });
+        patchState(store, { selectedFilialeId, updateError: null, updateSuccess: null });
       }
 
       /**
@@ -342,6 +476,9 @@ export const VerwaltungStore = signalStore(
           selectedUnternehmerId: store.selectedUnternehmerId(),
           selectedFirmaId: store.selectedFirmaId(),
           selectedFilialeId: store.selectedFilialeId(),
+          inProgress: store.inProgress(),
+          updateError: store.updateError(),
+          updateSuccess: store.updateSuccess(),
         }));
       }
 
@@ -355,6 +492,8 @@ export const VerwaltungStore = signalStore(
         loadUnternehmer,
         loadFirmen,
         loadFilialen,
+        updateFirma,
+        updateFiliale,
         selectUnternehmer,
         selectFirma,
         selectFiliale,
