@@ -35,7 +35,7 @@ Stand: 23.09.2026. Dieses Dokument beschreibt den aktuellen Umsetzungsstand im C
 - [x] Routen für `/dashboard`, `/schichtplan` und `/mitarbeiter` werden per `loadComponent` geladen.
 - [x] `/` leitet auf `/dashboard` weiter.
 - [x] Die Route `/systemverwaltung` und die `systemverwaltung-page` enthalten die Bereiche Datenstruktur anlegen, Benutzer anlegen und den UI-Dummy Benutzer verwalten.
-- [x] Die Route `/verwaltung` enthält die Auswahl zugeordneter Stammdaten und die Bearbeitung bestehender Firmendaten.
+- [x] Die Route `/verwaltung` enthält die Auswahl zugeordneter Stammdaten und die Bearbeitung bestehender Firmen- und Filialdaten.
 - [x] Die geschützte Route `/passwort` ermöglicht angemeldeten Benutzern eine Passwortänderung.
 
 ## Firebase-Grundlage
@@ -106,7 +106,7 @@ Stand: 23.09.2026. Dieses Dokument beschreibt den aktuellen Umsetzungsstand im C
 
 ## Firmen- und Filialverwaltung
 
-- Unter `/verwaltung` ist eine eigenständige Seite für die spätere Bearbeitung von Firmen- und Filialstammdaten angelegt. Die Route erfordert den Bereich `verwaltung` und zusätzlich die Rolle Office oder Master; Filialkonten werden unabhängig vom Bereichsschlüssel ausgeschlossen.
+- Unter `/verwaltung` ist eine eigenständige Seite für die Bearbeitung von Firmen- und Filialstammdaten angelegt. Die Route erfordert den Bereich `verwaltung` und zusätzlich die Rolle Office oder Master; Filialkonten werden unabhängig vom Bereichsschlüssel ausgeschlossen.
 - Master wählen Unternehmer, Firma und Filiale über abhängige Material-Selects. Für Office wird der einzige zugeordnete Unternehmer automatisch gewählt und nicht als eigene Auswahl angezeigt; anschließend stehen die erlaubten Firmen und Filialen zur Auswahl. Ein Unternehmerwechsel setzt Firma und Filiale zurück; ein Firmenwechsel setzt die Filiale zurück.
 - Der seitenbezogene `VerwaltungStore` verwaltet die Listen, Auswahlen sowie getrennte Lade-, Leer- und Fehlerzustände und ist an die Store-Snapshot-Ausgabe angebunden.
 - Office-Konten laden bei der Sitzungsinitialisierung ausschließlich die im Benutzerprofil unter `zugriffe` enthaltenen Unternehmer-, Firmen- und Filialdokumente über ihre vollständigen Dokumentpfade. Es werden für Office keine unbeschränkten Collection-Abfragen ausgeführt.
@@ -162,7 +162,7 @@ Stand: 23.09.2026. Dieses Dokument beschreibt den aktuellen Umsetzungsstand im C
 - Benutzeranlage speichert ausschließlich die validierte Zugriffs-Map. Die Rules prüfen Unternehmer-ID, Firma-ID und Filial-ID direkt in dieser Struktur; ein separater `zugriffsIndex` ist nicht mehr erforderlich.
 - Altanwendung nutzt laut Benutzer ausschließlich Konten ohne `benutzerprofil`-Dokument. Diese behalten den bisherigen Lese-/Schreibzugriff außerhalb von `benutzerprofil` und `unternehmer`; Emulator-Tests sichern das ab. Fehlgeschlagene Kontoanlage darf kein nutzbares Auth-Konto ohne Profil hinterlassen (lokal durch deaktivierte Anlage abgesichert).
 - Office-/Filialqueries müssen erlaubte Dokument-IDs eingrenzen; unbeschränkte Listen werden abgelehnt. Die aktuellen unbeschränkten Auswahllisten sind für die Master-Verwaltung vorgesehen.
-- Neue Rules sind laut Benutzer produktiv; Lesen und Schreiben in der Altanwendung funktionieren weiterhin. Die sichere Kontoaktivierung ist ebenfalls deployed und die Formularsperre wurde entfernt. Reale Schreibversuche eines Office-Kontos auf Firma, Filiale und Filial-Untercollections bleiben bis zur Umsetzung der entsprechenden fachlichen Oberfläche offen; die vereinbarten Grenzen sind durch Emulator-Tests abgesichert.
+- Neue Rules sind laut Benutzer produktiv; Lesen und Schreiben in der Altanwendung funktionieren weiterhin. Die sichere Kontoaktivierung ist ebenfalls deployed und die Formularsperre wurde entfernt. Ein reales Office-Testkonto konnte seine zugeordnete Firma und Filiale über die fachliche Verwaltungsoberfläche erfolgreich aktualisieren. Nicht zugeordnete Dokumente, Neuanlagen, Löschungen und Schreibzugriffe auf Filial-Untercollections werden durch Emulator-Tests abgelehnt.
 - Der Git-Push der aktuellen Änderungen ist kein Firebase-Deployment.
 
 ## Tests und Build
@@ -170,21 +170,16 @@ Stand: 23.09.2026. Dieses Dokument beschreibt den aktuellen Umsetzungsstand im C
 Am 23.09.2026 für den aktuellen Frontend-Stand erfolgreich geprüft:
 
 - 244 Frontend-Tests einschließlich Store-Snapshots, Datenstruktur-Anlage, zentraler Stammdateninitialisierung sowie Firmen- und Filialdaten-Bearbeitung.
-- Der Produktions-Build ist nach der Firmen- und Filialdaten-Bearbeitung erfolgreich. Alle 22 zuletzt ausgeführten Rules-Tests sind erfolgreich: Ein aktiver Master darf verschachtelte Filialen schreiben, Office darf zugeordnete Firmen und Filialen aktualisieren, und Altkonten dürfen weder auf die neue Hierarchie noch auf `benutzer` und `benutzerprofil` zugreifen.
+- 36 Functions-Tests einschließlich Rollenprüfung, Hierarchievalidierung und sicherer Kontoaktivierung.
+- 22 Firestore-Emulator-Tests für Rollen, neue Hierarchie, Untercollections, eingeschränkte Queries, Office-Aktualisierungen, Schreibschutz sowie die Trennung vom Legacy-Zugriff auf `purCustomers`. Vorhandene, aber nicht zugeordnete Firmen und Filialen können durch Office nicht aktualisiert werden.
 - Frontend-Produktionsbuild erfolgreich.
 
-Die folgenden Backend- und Rules-Prüfungen stammen aus dem dokumentierten Stand vom 19.09.2026:
-
-- 36 Functions-Tests, darunter fehlende Hierarchie-Dokumente, manipulierte IDs, doppelte Zuordnungen und Abbruch vor der Auth-Anlage.
-- 22 Firestore-Emulator-Tests für Rollen, neue Hierarchie, Untercollections, eingeschränkte Queries, Office-Aktualisierungen, Schreibschutz sowie die Trennung vom Legacy-Zugriff auf `purCustomers`.
-- Functions-Build erfolgreich.
-
-Der durchgängige Benutzeranlageablauf mit realen Daten wurde am 22.09.2026 für je ein Office- und Filialkonto bestätigt. Die vollständige Hierarchie wurde gespeichert, beide Konten konnten sich anmelden und nur ihre erlaubten Bereiche verwenden; die Systemverwaltungsroute blieb durch die Masterprüfung gesperrt. Reale Schreibversuche auf Firma, Filiale und Filial-Untercollections sind noch nicht über eine fachliche Oberfläche möglich und bleiben separat zu prüfen.
+Der durchgängige Benutzeranlageablauf mit realen Daten wurde am 22.09.2026 für je ein Office- und Filialkonto bestätigt. Die vollständige Hierarchie wurde gespeichert, beide Konten konnten sich anmelden und nur ihre erlaubten Bereiche verwenden; die Systemverwaltungsroute blieb durch die Masterprüfung gesperrt. Am 23.09.2026 wurde zusätzlich die erfolgreiche Aktualisierung einer zugeordneten Firma und Filiale mit einem realen Office-Testkonto bestätigt. Die übrigen Schreibgrenzen sind durch die erfolgreichen Firestore-Emulator-Tests abgesichert.
 
 ## Rollenpräzisierung: Umsetzung und offene Punkte
 
 - Filialkonten werden genau einer Filiale zugeordnet. Einfachauswahl im UI sowie Seiten- und Backendvalidierung sind umgesetzt; mehrere Firmen oder Filialen werden für diese Rolle abgelehnt. Die neue serverseitige Begrenzung wurde laut Benutzer erfolgreich deployed.
-- Office-Konten bleiben auf ausgewählte Firmen/Filialen beschränkt; sie erhalten keinen globalen Lesezugriff. Ob eine Firmenfreigabe alle aktuellen und zukünftigen Filialen umfasst, ist noch offen. Aktuell werden Filialen explizit gespeichert.
+- Office-Konten bleiben auf ausgewählte Firmen und ausdrücklich zugeordnete Filialen beschränkt; sie erhalten keinen globalen Lesezugriff. Eine Firmenfreigabe umfasst weder automatisch alle aktuellen noch zukünftige Filialen.
 - Master benötigen keine Datenzuordnung und besitzen globalen Lese- und Schreibzugriff. Die Datenzuordnung ist im Formular für Master ausgeblendet; das Formular sendet für Master eine leere Zugriffs-Map.
 - Office-Konten dürfen zugeordnete Firmen- und Filialdokumente aktualisieren, jedoch nicht anlegen oder löschen. Schreibrechte für Filial-Untercollections sowie eigene Schreibrechte von Filialkonten werden erst zusammen mit den jeweiligen fachlichen Funktionen festgelegt und umgesetzt.
 

@@ -264,7 +264,11 @@ ersten Ausbaustufe nicht verändert.
 - [ ] Die aktualisierte Store-Liste und Oberfläche zeigen den gespeicherten Stand ohne erneutes Laden.
 - [ ] Tests, Rules-Tests, Build und manuelle Prüfung sind erfolgreich.
 
-## 5. Todo: Verwaltung
+# Erledigte Todos
+
+Die folgenden Abschnitte dokumentieren den Abschluss des jeweiligen damaligen Arbeitsschritts. Für den aktuellen Stand gelten Todo 4 und der [Projekt-Stand](./projekt-stand.md).
+
+## 5. Done Todo: Verwaltung
 
 ### 5.1 Firmen- und Filialdaten bearbeiten
 
@@ -369,13 +373,13 @@ weder angelegt noch gelöscht werden.
 
 #### Schritt 8: Schreibrechte real prüfen
 
-- [ ] Zugeordnete Firma mit einem realen Office-Testkonto erfolgreich aktualisieren.
-- [ ] Zugeordnete Filiale mit einem realen Office-Testkonto erfolgreich aktualisieren.
-- [ ] Aktualisierung einer nicht zugeordneten Firma und Filiale ablehnen.
-- [ ] Anlegen und Löschen von Firmen und Filialen für Office ablehnen.
-- [ ] Schreiben in Filial-Untercollections für Office weiterhin ablehnen.
-- [ ] Schreibzugriffe eines Filialkontos weiterhin ablehnen.
-- [ ] Entscheiden, ob die aktuell vollständige Dokumentaktualisierung später durch feldgenaue Rules eingeschränkt werden soll.
+- [x] Zugeordnete Firma mit einem realen Office-Testkonto erfolgreich aktualisieren.
+- [x] Zugeordnete Filiale mit einem realen Office-Testkonto erfolgreich aktualisieren.
+- [x] Aktualisierung einer nicht zugeordneten Firma und Filiale ablehnen.
+- [x] Anlegen und Löschen von Firmen und Filialen für Office ablehnen.
+- [x] Schreiben in Filial-Untercollections für Office weiterhin ablehnen.
+- [x] Schreibzugriffe eines Filialkontos weiterhin ablehnen.
+- [x] Entscheiden, ob die aktuell vollständige Dokumentaktualisierung später durch feldgenaue Rules eingeschränkt werden soll.
 
 #### Tests und Abschluss
 
@@ -383,23 +387,19 @@ weder angelegt noch gelöscht werden.
 - [x] Service- und Store-Tests für das Laden und Aktualisieren von Firmendaten ergänzen.
 - [x] Dialog- und Seitentests für Auswahl, Validierung und Speichern von Firmendaten ergänzen.
 - [x] Service-, Store-, Dialog- und Seitentests für die Filialdaten-Aktualisierung ergänzen.
-- [ ] Firestore-Emulator-Tests für erlaubte und verbotene Aktualisierungen erfolgreich ausführen.
-- [ ] Den Verwaltungsablauf mit einem realen Office-Testkonto prüfen.
-- [ ] `projekt-plan.md` und `projekt-stand.md` nach Abschluss aktualisieren.
-- [ ] `npm test`, `npm run test:rules`, Functions-Tests und `npm run build` erfolgreich ausführen.
+- [x] Firestore-Emulator-Tests für erlaubte und verbotene Aktualisierungen erfolgreich ausführen.
+- [x] Den Verwaltungsablauf mit einem realen Office-Testkonto prüfen.
+- [x] `projekt-plan.md` und `projekt-stand.md` nach Abschluss aktualisieren.
+- [x] `npm test`, `npm run test:rules`, Functions-Tests und `npm run build` erfolgreich ausführen.
 
 #### Erledigt, wenn
 
-- [ ] Office und Master können den Bereich `/verwaltung` nur mit entsprechender Bereichsfreigabe öffnen.
-- [ ] Filialkonten können den Verwaltungsbereich nicht öffnen.
-- [ ] Office sieht ausschließlich die im Benutzerprofil zugeordneten Firmen und Filialen.
-- [ ] Bearbeitbare Firmen- und Filialdaten können gespeichert und ohne erneutes Laden angezeigt werden.
-- [ ] Office kann keine nicht zugeordneten Dokumente, Untercollections, Neuanlagen oder Löschungen schreiben.
-- [ ] Tests, Rules-Tests, Builds und reale manuelle Prüfung sind erfolgreich.
-
-# Erledigte Todos
-
-Die folgenden Abschnitte dokumentieren den Abschluss des jeweiligen damaligen Arbeitsschritts. Für den aktuellen Stand gelten Todo 4 und der [Projekt-Stand](./projekt-stand.md).
+- [x] Office und Master können den Bereich `/verwaltung` nur mit entsprechender Bereichsfreigabe öffnen.
+- [x] Filialkonten können den Verwaltungsbereich nicht öffnen.
+- [x] Office sieht ausschließlich die im Benutzerprofil zugeordneten Firmen und Filialen.
+- [x] Bearbeitbare Firmen- und Filialdaten können gespeichert und ohne erneutes Laden angezeigt werden.
+- [x] Office kann keine nicht zugeordneten Dokumente, Untercollections, Neuanlagen oder Löschungen schreiben.
+- [x] Tests, Rules-Tests, Builds und reale manuelle Prüfung sind erfolgreich.
 
 ## 3. Done Todo: Login und Benutzerberechtigungen vorbereiten
 

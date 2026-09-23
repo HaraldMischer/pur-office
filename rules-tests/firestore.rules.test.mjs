@@ -93,6 +93,8 @@ const zugriffe = { 'u-1': { 'f-1': ['b-1'] } };
 const unternehmerPath = 'unternehmer/u-1';
 const firmaPath = `${unternehmerPath}/firma/f-1`;
 const filialePath = `${firmaPath}/filiale/b-1`;
+const nichtZugeordneteFirmaPath = `${unternehmerPath}/firma/f-2`;
+const nichtZugeordneteFilialePath = `${firmaPath}/filiale/b-2`;
 const legacyBranchPath = 'purCustomers/u-1/company/f-1/branches/b-1';
 
 async function seedProfile(userRole, overrides = {}) {
@@ -109,7 +111,8 @@ async function seedProfile(userRole, overrides = {}) {
       firmaPath,
       filialePath,
       `${filialePath}/mitarbeiter/m-1`,
-      `${firmaPath}/filiale/b-2`,
+      nichtZugeordneteFirmaPath,
+      nichtZugeordneteFilialePath,
       'unternehmer/u-2/firma/f-1/filiale/b-1',
       legacyBranchPath,
       'purUser/old',
@@ -226,9 +229,12 @@ test('active office can update assigned companies and branches without creating 
     setDoc(doc(db, filialePath), { name: 'Filiale aktualisiert' }, { merge: true }),
   );
   await assertFails(
-    setDoc(doc(db, `${firmaPath}/filiale/b-2`), { name: 'Nicht zugeordnet' }, { merge: true }),
+    setDoc(doc(db, nichtZugeordneteFirmaPath), { name: 'Nicht zugeordnet' }, { merge: true }),
   );
-  await assertFails(setDoc(doc(db, 'unternehmer/u-1/firma/f-2'), { name: 'Neue Firma' }));
+  await assertFails(
+    setDoc(doc(db, nichtZugeordneteFilialePath), { name: 'Nicht zugeordnet' }, { merge: true }),
+  );
+  await assertFails(setDoc(doc(db, `${unternehmerPath}/firma/f-3`), { name: 'Neue Firma' }));
   await assertFails(setDoc(doc(db, `${firmaPath}/filiale/b-3`), { name: 'Neue Filiale' }));
   await assertFails(setDoc(doc(db, `${filialePath}/mitarbeiter/new`), { name: 'Neu' }));
   await assertFails(deleteDoc(doc(db, firmaPath)));
