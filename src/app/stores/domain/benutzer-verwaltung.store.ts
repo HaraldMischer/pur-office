@@ -5,6 +5,8 @@ import { patchState, signalStore, withComputed, withMethods, withState } from '@
 import {
   IBenutzerAnlage,
   IBenutzerAnlageErgebnis,
+  IBenutzerProfilAktualisierung,
+  IBenutzerProfilEintrag,
   TBenutzerZugriffe,
 } from '../../commons/models/domain/benutzer';
 import {
@@ -13,8 +15,11 @@ import {
 } from '../../commons/models/domain/datenzugriff';
 import { getFirebaseErrorMessage } from '../../commons/utils/errors/firebase-error-message';
 import { StoreSnapshotService } from '../../services/core/store-snapshot.service';
-import { BenutzerVerwaltungService } from '../../services/firebase/benutzer-verwaltung.service';
+import { BenutzerService } from '../../services/domain/benutzer.service';
 import { DatenzugriffService } from '../../services/domain/datenzugriff.service';
+import { AuthService } from '../../services/firebase/auth.service';
+import { BenutzerVerwaltungService } from '../../services/firebase/benutzer-verwaltung.service';
+import { BenutzerStore } from '../app/benutzer.store';
 import { StammdatenStore } from '../app/stammdaten.store';
 
 // ===== Top-Level Helper =====================
@@ -45,6 +50,9 @@ export type TBenutzerVerwaltungSnapshot = {
   readonly inProgress: boolean;
   readonly error: string | null;
   readonly createdBenutzer: IBenutzerAnlageErgebnis | null;
+  readonly selectedBenutzerUid: string | null;
+  readonly updateError: string | null;
+  readonly updateSuccess: string | null;
 };
 
 type TBenutzerVerwaltungState = TBenutzerVerwaltungSnapshot;
@@ -57,12 +65,16 @@ const initialState: TBenutzerVerwaltungState = {
   inProgress: false,
   error: null,
   createdBenutzer: null,
+  selectedBenutzerUid: null,
+  updateError: null,
+  updateSuccess: null,
 };
 
 export const BenutzerVerwaltungStore = signalStore(
   { providedIn: 'root', protectedState: true } as const,
   withState<TBenutzerVerwaltungState>(initialState),
   withComputed((store) => {
+    const stammdatenStore = inject(StammdatenStore);
     const unternehmer = computed<readonly IUnternehmerAuswahl[]>(() => {
       return (store.listen()[unternehmerKey]?.daten ?? []).map((unternehmer) => ({
         ...unternehmer,
@@ -125,6 +137,21 @@ export const BenutzerVerwaltungStore = signalStore(
         })
       );
     });
+    const benutzerprofile = computed(() => {
+      return stammdatenStore.benutzerprofile();
+    });
+    const benutzerprofileDownload = computed(() => {
+      return stammdatenStore.download();
+    });
+    const benutzerprofileIsLoaded = computed(() => {
+      return stammdatenStore.isLoaded();
+    });
+    const benutzerprofileError = computed(() => {
+      return stammdatenStore.error();
+    });
+    const selectedBenutzer = computed(() => {
+      return benutzerprofile().find((profil) => profil.uid === store.selectedBenutzerUid()) ?? null;
+    });
 
     return {
       unternehmer,
@@ -134,6 +161,11 @@ export const BenutzerVerwaltungStore = signalStore(
       datenStatus,
       zugriffe,
       datenAuswahlGueltig,
+      benutzerprofile,
+      benutzerprofileDownload,
+      benutzerprofileIsLoaded,
+      benutzerprofileError,
+      selectedBenutzer,
     };
   }),
   withMethods(
@@ -142,6 +174,9 @@ export const BenutzerVerwaltungStore = signalStore(
       stammdatenStore = inject(StammdatenStore),
       datenService = inject(DatenzugriffService),
       service = inject(BenutzerVerwaltungService),
+      benutzerService = inject(BenutzerService),
+      authService = inject(AuthService),
+      benutzerStore = inject(BenutzerStore),
       destroyRef = inject(DestroyRef),
       storeSnapshotService = inject(StoreSnapshotService),
     ) => {
@@ -273,6 +308,53 @@ export const BenutzerVerwaltungStore = signalStore(
         }
       }
 
+      /**
+       * Aktualisiert das ausgewählte Benutzerprofil und übernimmt das Ergebnis in die Stores.
+       *
+       * @param aktualisierung - Die bearbeitbaren Profilfelder.
+       * @returns Der aktualisierte Profileintrag.
+       * @throws Gibt Validierungs- und Firestore-Fehler an die aufrufende Stelle weiter.
+       */
+      async function updateBenutzerProfil(
+        aktualisierung: IBenutzerProfilAktualisierung,
+      ): Promise<IBenutzerProfilEintrag> {
+        const profil = store.selectedBenutzer();
+        if (!profil) {
+          throw new Error('Kein Benutzerprofil ausgewählt.');
+        }
+
+        const istEigenesProfil = profil.uid === authService.getAktuelleBenutzerId();
+        if (istEigenesProfil && !aktualisierung.aktiv) {
+          patchState(store, {
+            updateError: 'Das eigene Masterprofil darf nicht deaktiviert werden.',
+          });
+          throw new Error('Ungültige Änderung am eigenen Masterprofil.');
+        }
+
+        patchState(store, { inProgress: true, updateError: null, updateSuccess: null });
+        try {
+          await benutzerService.updateBenutzerProfil(profil.uid, aktualisierung);
+          const aktualisiertesProfil: IBenutzerProfilEintrag = {
+            ...profil,
+            ...aktualisierung,
+          };
+          stammdatenStore.upsertBenutzerprofil(aktualisiertesProfil);
+          if (istEigenesProfil) {
+            const { uid: _uid, ...eigenesProfil } = aktualisiertesProfil;
+            benutzerStore.setBenutzerProfil(eigenesProfil);
+          }
+          patchState(store, {
+            updateSuccess: `Benutzer ${aktualisiertesProfil.email} wurde aktualisiert.`,
+          });
+          return aktualisiertesProfil;
+        } catch (error: unknown) {
+          patchState(store, { updateError: getFirebaseErrorMessage(error) });
+          throw error;
+        } finally {
+          patchState(store, { inProgress: false });
+        }
+      }
+
       // ===== Methoden: Sonstige Aktionen ==========
 
       /**
@@ -321,6 +403,21 @@ export const BenutzerVerwaltungStore = signalStore(
       }
 
       /**
+       * Wählt ein vorhandenes Benutzerprofil für die Bearbeitung aus.
+       *
+       * @param uid - UID des Benutzerprofils oder `null`, um die Auswahl aufzuheben.
+       */
+      function selectBenutzer(uid: string | null): void {
+        patchState(store, {
+          selectedBenutzerUid: store.benutzerprofile().some((profil) => profil.uid === uid)
+            ? uid
+            : null,
+          updateError: null,
+          updateSuccess: null,
+        });
+      }
+
+      /**
        * Setzt alle geladenen Listen und ausgewählten Datenzugriffe zurück.
        */
       function resetDatenzugriff(): void {
@@ -333,7 +430,12 @@ export const BenutzerVerwaltungStore = signalStore(
        * Entfernt vorhandene Erfolgs- und Fehlerrückmeldungen.
        */
       function clearFeedback(): void {
-        patchState(store, { error: null, createdBenutzer: null });
+        patchState(store, {
+          error: null,
+          createdBenutzer: null,
+          updateError: null,
+          updateSuccess: null,
+        });
       }
 
       /**
@@ -358,6 +460,9 @@ export const BenutzerVerwaltungStore = signalStore(
           inProgress: store.inProgress(),
           error: store.error(),
           createdBenutzer: store.createdBenutzer(),
+          selectedBenutzerUid: store.selectedBenutzerUid(),
+          updateError: store.updateError(),
+          updateSuccess: store.updateSuccess(),
         }));
       }
 
@@ -370,9 +475,11 @@ export const BenutzerVerwaltungStore = signalStore(
       return {
         loadAuswahl,
         createBenutzer,
+        updateBenutzerProfil,
         selectFilialen,
         selectFirmen,
         selectUnternehmer,
+        selectBenutzer,
         resetDatenzugriff,
         clearFeedback,
         reset,

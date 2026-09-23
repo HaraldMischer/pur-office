@@ -4,7 +4,11 @@ import { TestBed } from '@angular/core/testing';
 
 import { IBenutzerAnlage } from '../../commons/models/domain/benutzer';
 import { DatenzugriffService } from '../../services/domain/datenzugriff.service';
+import { BenutzerService } from '../../services/domain/benutzer.service';
+import { AuthService } from '../../services/firebase/auth.service';
 import { BenutzerVerwaltungService } from '../../services/firebase/benutzer-verwaltung.service';
+import { BenutzerStore } from '../app/benutzer.store';
+import { StammdatenStore } from '../app/stammdaten.store';
 import { BenutzerVerwaltungStore } from './benutzer-verwaltung.store';
 
 describe('BenutzerVerwaltungStore', () => {
@@ -17,6 +21,9 @@ describe('BenutzerVerwaltungStore', () => {
     passwort: 'SicheresPasswort123!',
   };
   let serviceMock: { createBenutzer: ReturnType<typeof vi.fn> };
+  let benutzerServiceMock: { updateBenutzerProfil: ReturnType<typeof vi.fn> };
+  let authServiceMock: { getAktuelleBenutzerId: ReturnType<typeof vi.fn> };
+  let benutzerStoreMock: { setBenutzerProfil: ReturnType<typeof vi.fn> };
 
   beforeEach(() => {
     serviceMock = {
@@ -24,6 +31,15 @@ describe('BenutzerVerwaltungStore', () => {
         uid: 'neu-123',
         email: anlage.email,
       }),
+    };
+    benutzerServiceMock = {
+      updateBenutzerProfil: vi.fn().mockResolvedValue(undefined),
+    };
+    authServiceMock = {
+      getAktuelleBenutzerId: vi.fn().mockReturnValue('master-1'),
+    };
+    benutzerStoreMock = {
+      setBenutzerProfil: vi.fn(),
     };
     TestBed.configureTestingModule({
       providers: [
@@ -35,6 +51,9 @@ describe('BenutzerVerwaltungStore', () => {
             loadFilialen: vi.fn().mockResolvedValue([]),
           },
         },
+        { provide: BenutzerService, useValue: benutzerServiceMock },
+        { provide: AuthService, useValue: authServiceMock },
+        { provide: BenutzerStore, useValue: benutzerStoreMock },
         { provide: BenutzerVerwaltungService, useValue: serviceMock },
       ],
     });
@@ -51,6 +70,9 @@ describe('BenutzerVerwaltungStore', () => {
       inProgress: false,
       error: null,
       createdBenutzer: null,
+      selectedBenutzerUid: null,
+      updateError: null,
+      updateSuccess: null,
     });
   });
 
@@ -78,6 +100,63 @@ describe('BenutzerVerwaltungStore', () => {
     expect(store.error()).toBe('Zu dieser E-Mail-Adresse besteht bereits ein Benutzerkonto.');
     expect(store.createdBenutzer()).toBeNull();
     expect(store.inProgress()).toBe(false);
+  });
+
+  it('should select and update a profile without reloading the list', async () => {
+    const store = TestBed.inject(BenutzerVerwaltungStore);
+    const stammdatenStore = TestBed.inject(StammdatenStore);
+    stammdatenStore.upsertBenutzerprofil({
+      uid: 'office-1',
+      email: 'office@example.com',
+      anzeigename: 'Office Alt',
+      aktiv: true,
+      userRole: 'office',
+      erlaubteBereiche: ['dashboard'],
+      zugriffe: { u: { f: ['b'] } },
+    });
+    store.selectBenutzer('office-1');
+
+    const result = await store.updateBenutzerProfil({
+      anzeigename: 'Office Neu',
+      aktiv: true,
+      erlaubteBereiche: ['dashboard', 'verwaltung'],
+      zugriffe: { u: { f: ['b'] } },
+    });
+
+    expect(benutzerServiceMock.updateBenutzerProfil).toHaveBeenCalledWith(
+      'office-1',
+      expect.objectContaining({ anzeigename: 'Office Neu' }),
+    );
+    expect(result.anzeigename).toBe('Office Neu');
+    expect(store.selectedBenutzer()?.anzeigename).toBe('Office Neu');
+    expect(store.updateSuccess()).toContain('office@example.com');
+  });
+
+  it('should protect the own master profile from deactivation', async () => {
+    authServiceMock.getAktuelleBenutzerId.mockReturnValue('master-1');
+    const store = TestBed.inject(BenutzerVerwaltungStore);
+    const stammdatenStore = TestBed.inject(StammdatenStore);
+    stammdatenStore.upsertBenutzerprofil({
+      uid: 'master-1',
+      email: 'master@example.com',
+      anzeigename: 'Master',
+      aktiv: true,
+      userRole: 'master',
+      erlaubteBereiche: ['systemverwaltung'],
+      zugriffe: {},
+    });
+    store.selectBenutzer('master-1');
+
+    await expect(
+      store.updateBenutzerProfil({
+        anzeigename: 'Master',
+        aktiv: false,
+        erlaubteBereiche: ['systemverwaltung'],
+        zugriffe: {},
+      }),
+    ).rejects.toThrow('Ungültige Änderung');
+    expect(benutzerServiceMock.updateBenutzerProfil).not.toHaveBeenCalled();
+    expect(store.updateError()).toContain('nicht deaktiviert');
   });
   function prepareDaten() {
     const daten = TestBed.inject(DatenzugriffService);

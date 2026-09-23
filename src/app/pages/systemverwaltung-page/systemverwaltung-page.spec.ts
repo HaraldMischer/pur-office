@@ -8,7 +8,10 @@ import { DatenzugriffAuswahl } from '../../components/datenzugriff-auswahl/daten
 import { TestBed } from '@angular/core/testing';
 
 import { DatenzugriffService } from '../../services/domain/datenzugriff.service';
+import { BenutzerService } from '../../services/domain/benutzer.service';
+import { AuthService } from '../../services/firebase/auth.service';
 import { BenutzerVerwaltungService } from '../../services/firebase/benutzer-verwaltung.service';
+import { BenutzerStore } from '../../stores/app/benutzer.store';
 import { BenutzerVerwaltungStore } from '../../stores/domain/benutzer-verwaltung.store';
 import { FirmaStore } from '../../stores/domain/firma.store';
 import { FilialeStore } from '../../stores/domain/filiale.store';
@@ -63,6 +66,24 @@ describe('SystemverwaltungPage', () => {
             loadUnternehmer: vi.fn().mockResolvedValue([]),
             loadFirmen: vi.fn().mockResolvedValue([]),
             loadFilialen: vi.fn().mockResolvedValue([]),
+          },
+        },
+        {
+          provide: BenutzerService,
+          useValue: {
+            updateBenutzerProfil: vi.fn().mockResolvedValue(undefined),
+          },
+        },
+        {
+          provide: AuthService,
+          useValue: {
+            getAktuelleBenutzerId: vi.fn().mockReturnValue('master-1'),
+          },
+        },
+        {
+          provide: BenutzerStore,
+          useValue: {
+            setBenutzerProfil: vi.fn(),
           },
         },
         {

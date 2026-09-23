@@ -2,20 +2,27 @@
 
 import { TestBed } from '@angular/core/testing';
 
-import { IBenutzerProfilDokument } from '../../commons/models/domain/benutzer';
+import {
+  IBenutzerProfilAktualisierung,
+  IBenutzerProfilDokument,
+} from '../../commons/models/domain/benutzer';
 import { BenutzerService } from './benutzer.service';
 import { FirestoreDbService } from '../firebase/firestore-db.service';
 
 describe('BenutzerService', () => {
   const firestoreDbServiceMock = {
+    createServerTimestamp: vi.fn(),
     loadCollection: vi.fn(),
     loadDocument: vi.fn(),
+    updateDocument: vi.fn(),
   };
 
   beforeEach(() => {
     vi.clearAllMocks();
     firestoreDbServiceMock.loadCollection.mockResolvedValue([]);
     firestoreDbServiceMock.loadDocument.mockResolvedValue(null);
+    firestoreDbServiceMock.createServerTimestamp.mockReturnValue('server-timestamp');
+    firestoreDbServiceMock.updateDocument.mockResolvedValue(undefined);
 
     TestBed.configureTestingModule({
       providers: [
@@ -122,5 +129,22 @@ describe('BenutzerService', () => {
       expect.objectContaining({ uid: 'z', anzeigename: 'Zulu', zugriffe: { u: { f: ['b'] } } }),
     ]);
     expect(firestoreDbServiceMock.loadCollection).toHaveBeenCalledWith('benutzerprofil');
+  });
+
+  it('should update editable profile data with a server timestamp', async () => {
+    const service = TestBed.inject(BenutzerService);
+    const aktualisierung: IBenutzerProfilAktualisierung = {
+      anzeigename: 'Office Neu',
+      aktiv: true,
+      erlaubteBereiche: ['dashboard', 'verwaltung'],
+      zugriffe: { u: { f: ['b'] } },
+    };
+
+    await service.updateBenutzerProfil('office-1', aktualisierung);
+
+    expect(firestoreDbServiceMock.updateDocument).toHaveBeenCalledWith('benutzerprofil/office-1', {
+      ...aktualisierung,
+      aktualisiertAm: 'server-timestamp',
+    });
   });
 });

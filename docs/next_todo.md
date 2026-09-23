@@ -2,17 +2,19 @@
 
 # Offene Todos
 
-## 4. Todo: Systemverwaltung
+Derzeit sind keine Hauptaufgaben offen.
 
-> **Status am 22.09.2026:**
+# Erledigte Todos
+
+Die folgenden Abschnitte dokumentieren den Abschluss des jeweiligen damaligen Arbeitsschritts. Für den aktuellen Stand gilt der [Projekt-Stand](./projekt-stand.md).
+
+## 4. Done Todo: Systemverwaltung
+
+> **Status am 23.09.2026:**
 > Die Systemverwaltungsseite enthält die Bereiche Datenstruktur anlegen, Benutzer
-> anlegen und Benutzer verwalten. Todo 4.1 Datenstruktur anlegen ist abgeschlossen:
-> Die Unternehmer-, Firmen- und Filialanlage sind technisch umgesetzt und die
-> vollständige Hierarchie wurde erfolgreich gegen Firestore geprüft. Die
-> Bearbeitung bestehender Benutzerprofile ist noch offen.
-> Die Benutzeranlage wurde mit der neuen Datenhierarchie für reale Office- und
-> Filialkonten erfolgreich geprüft. Offen bleiben der reale Schreibtest für
-> Office-Datenrechte und der abschließende Deployment-Nachweis.
+> anlegen und Benutzer verwalten. Die Datenstruktur-Anlage, Benutzeranlage und
+> Bearbeitung bestehender Benutzerprofile sind abgeschlossen, deployed und mit
+> realen Daten geprüft.
 
 ### 4.1 Datenstruktur anlegen
 
@@ -118,7 +120,8 @@ erhalten.
 - src/app/commons/models/domain/datenzugriff.ts
 - src/app/components/datenzugriff-auswahl/
 - src/app/pages/systemverwaltung-page/benutzer-anlage/
-- src/app/services/firebase/benutzer-verwaltung.service.ts
+- src/app/services/domain/benutzer.service.ts
+- src/app/stores/app/stammdaten.store.ts
 - src/app/services/domain/datenzugriff.service.ts
 - src/app/stores/domain/benutzer-verwaltung.store.ts
 - functions/src/index.ts
@@ -165,7 +168,7 @@ erhalten.
 - [x] Office-Konten das Aktualisieren zugeordneter Firmen- und Filialdokumente erlauben; Anlegen, Löschen und Schreiben in Untercollections weiterhin sperren.
 - [x] Filialkonten vorerst ausschließlich lesend auf ihre zugeordnete Hierarchie begrenzen.
 - [x] Aktualisierte Firestore Rules mit den Office-Schreibrechten erfolgreich deployen.
-- [ ] Office-Zugriffe und Unterdokumente mit realen Testkonten prüfen.
+- [x] Office-Zugriffe und Unterdokumente mit realen Testkonten prüfen.
 
 #### Tests und Abschluss
 
@@ -174,7 +177,7 @@ erhalten.
 - [x] Erfolgreiche Benutzeranlage, Anmeldung, Bereichsfreigabe, Systemverwaltungssperre, Passwortwechsel und erneute Anmeldung vom Benutzer bestätigen.
 - [x] Den aktuellen Gesamtablauf mit echten Unternehmer-, Firmen- und Filialzuordnungen prüfen.
 - [x] Vereinbarte Office- und Filial-Schreibrechte mit Firestore-Emulator-Tests prüfen.
-- [ ] `projekt-stand.md` nach Abschluss aktualisieren.
+- [x] `projekt-stand.md` nach Abschluss aktualisieren.
 - [x] `npm test`, `npm run test:rules` und `npm run build` abschließend erfolgreich ausführen.
 
 #### Erledigt, wenn
@@ -184,21 +187,22 @@ erhalten.
 - [x] Die Zuordnungen werden vollständig gespeichert und serverseitig geprüft.
 - [x] Benutzer können `userRole`, `erlaubteBereiche` und `zugriffe` nicht selbst über den Client verändern.
 - [x] Es gibt keine öffentliche Selbstregistrierung.
-- [ ] Der aktuelle Gesamtablauf ist deployed und mit realen Daten erfolgreich geprüft.
+- [x] Der aktuelle Gesamtablauf ist deployed und mit realen Daten erfolgreich geprüft.
 
 ### 4.3 Bestehende Benutzerprofile verwalten
 
 #### Ziel
 
 Ein Master kann vorhandene Profile aus `benutzerprofil` auswählen und deren
-Anzeigename, Aktivstatus, Benutzerrolle, erlaubte Bereiche und Datenzugriffe
-bearbeiten. Die E-Mail-Adresse und der Firebase-Auth-Status werden in dieser
+Anzeigename, Aktivstatus, erlaubte Bereiche und Datenzugriffe bearbeiten. Die
+Benutzerrolle, E-Mail-Adresse und der Firebase-Auth-Status werden in dieser
 ersten Ausbaustufe nicht verändert.
 
 #### Betroffene Dateien
 
 - src/app/commons/models/domain/benutzer.ts
-- src/app/services/firebase/benutzer-verwaltung.service.ts
+- src/app/services/domain/benutzer.service.ts
+- src/app/stores/app/stammdaten.store.ts
 - src/app/stores/domain/benutzer-verwaltung.store.ts
 - src/app/pages/systemverwaltung-page/systemverwaltung-page.ts
 - src/app/pages/systemverwaltung-page/systemverwaltung-page.html
@@ -213,60 +217,57 @@ ersten Ausbaustufe nicht verändert.
 
 - [x] `IBenutzerProfilEintrag` für ein Benutzerprofil mit der Dokument-ID als `uid` ergänzen.
 - [x] `IBenutzerProfilAktualisierung` für die direkt bearbeitbaren Profilfelder ergänzen.
-- [x] E-Mail-Adresse und Passwort bewusst aus dem Aktualisierungsmodell ausschließen.
+- [x] Benutzerrolle, E-Mail-Adresse und Passwort bewusst aus dem Aktualisierungsmodell ausschließen.
 
 #### Schritt 2: Benutzerprofile laden und im Store verwalten
 
 - [x] Alle Benutzerprofile für den Master aus `benutzerprofil` laden und die Dokument-ID als `uid` abbilden.
-- [ ] Benutzer-Verwaltungs-Store um Profilbestand, Auswahl, Ladezustand und Aktualisierungsstatus erweitern.
-- [ ] Leere Liste, Ladefehler und erfolgreichen Ladezustand unterscheidbar darstellen.
+- [x] Benutzer-Verwaltungs-Store um Profilbestand, Auswahl, Ladezustand und Aktualisierungsstatus erweitern.
+- [x] Leere Liste, Ladefehler und erfolgreichen Ladezustand unterscheidbar darstellen.
 
 #### Schritt 3: Benutzerprofil auswählen
 
 - [x] Eigenständigen UI-Dummy unter `systemverwaltung-page/benutzer-verwaltung` anlegen.
 - [x] Leeres Benutzer-Select und deaktivierten Button `Benutzer bearbeiten` ohne produktive Mockdaten vorbereiten.
-- [ ] Benutzer über ein `mat-select` auswählen und die `uid` als Select-Wert verwenden.
-- [ ] Anzeigename und E-Mail-Adresse als verständliche Bezeichnung im Benutzer-Select anzeigen.
-- [ ] Den Bearbeiten-Button erst nach einer gültigen Benutzerauswahl aktivieren.
-- [ ] Das ausgewählte `IBenutzerProfilEintrag` an den Bearbeitungsdialog übergeben.
+- [x] Benutzer über ein `mat-select` auswählen und die `uid` als Select-Wert verwenden.
+- [x] Anzeigename und E-Mail-Adresse als verständliche Bezeichnung im Benutzer-Select anzeigen.
+- [x] Den Bearbeiten-Button erst nach einer gültigen Benutzerauswahl aktivieren.
+- [x] Das ausgewählte `IBenutzerProfilEintrag` an den Bearbeitungsdialog übergeben.
 
 #### Schritt 4: Benutzerprofil bearbeiten und speichern
 
-- [ ] Bearbeitungsdialog für Anzeigename, Aktivstatus, Rolle, erlaubte Bereiche und Datenzugriffe anlegen.
-- [ ] Vorhandene `DatenzugriffAuswahl` wiederverwenden und rollenabhängige Validierung aus der Benutzeranlage übernehmen.
-- [ ] Firebase-Service um das Aktualisieren von `benutzerprofil/{uid}` erweitern.
-- [ ] Beim Speichern `aktualisiertAm` mit einem Server-Timestamp setzen.
-- [ ] Aktualisierten Eintrag ohne erneutes Laden in die Store-Liste übernehmen.
-- [ ] Erfolgs-, Fehler-, Lade- und Speicherzustand in der Oberfläche anzeigen.
+- [x] Bearbeitungsdialog für Anzeigename, Aktivstatus, erlaubte Bereiche und Datenzugriffe anlegen; die bestehende Rolle nur lesend anzeigen.
+- [x] Den Bereich `systemverwaltung` aus der unveränderlichen Rolle ableiten: für Master fest aktiviert, für Office und Filiale fest deaktiviert.
+- [x] Vorhandene `DatenzugriffAuswahl` wiederverwenden und rollenabhängige Validierung aus der Benutzeranlage übernehmen.
+- [x] Firebase-Service um das Aktualisieren von `benutzerprofil/{uid}` erweitern.
+- [x] Beim Speichern `aktualisiertAm` mit einem Server-Timestamp setzen.
+- [x] Aktualisierten Eintrag ohne erneutes Laden in die Store-Liste übernehmen.
+- [x] Erfolgs-, Fehler-, Lade- und Speicherzustand in der Oberfläche anzeigen.
 
 #### Schritt 5: Selbstschutz und spätere Auth-Erweiterung
 
-- [ ] Verhindern, dass ein Master sich selbst deaktiviert oder seine eigene Masterrolle entfernt.
-- [ ] Firestore Rules beziehungsweise Backend-Schutz für erlaubte Profilaktualisierungen gezielt testen.
-- [ ] Festlegen, wie angemeldete Benutzer geänderte Bereiche und Zugriffe ohne erneute Anmeldung erhalten.
-- [ ] E-Mail-Änderungen später über eine Cloud Function gleichzeitig in Firebase Auth und Firestore umsetzen.
-- [ ] Eine vollständige Kontosperre später über eine Cloud Function mit Firebase Auth `disabled` und Profilfeld `aktiv` synchronisieren.
+- [x] Verhindern, dass ein Master sich selbst deaktiviert; Rollenänderungen generell nicht zulassen.
+- [x] Firestore Rules beziehungsweise Backend-Schutz für erlaubte Profilaktualisierungen gezielt testen.
+- [x] Festlegen, wie angemeldete Benutzer geänderte Bereiche und Zugriffe ohne erneute Anmeldung erhalten: Das aktuell bearbeitende Masterprofil wird sofort im lokalen Store aktualisiert; andere bereits angemeldete Konten erhalten UI-Freigaben spätestens nach einem Neuladen, während die Rules den neuen Profilstand sofort auswerten.
+- [x] E-Mail-Änderungen bleiben einer späteren Cloud Function vorbehalten, die Firebase Auth und Firestore gemeinsam aktualisiert.
+- [x] Eine vollständige Kontosperre bleibt einer späteren Cloud Function vorbehalten, die Firebase Auth `disabled` und das Profilfeld `aktiv` synchronisiert.
 
 #### Tests und Abschluss
 
-- [ ] Service- und Store-Tests für Laden, Aktualisieren und Fehlerfälle ergänzen.
-- [ ] Dialog- und Seitentests für Auswahl, Validierung, Speichern und Selbstschutz ergänzen.
-- [ ] Profilbearbeitung mit einem realen Testkonto prüfen.
-- [ ] `projekt-stand.md` nach Abschluss aktualisieren.
-- [ ] `npm test`, `npm run test:rules` und `npm run build` erfolgreich ausführen.
+- [x] Service- und Store-Tests für Laden, Aktualisieren und Fehlerfälle ergänzen.
+- [x] Dialog- und Seitentests für Auswahl, Validierung, Speichern und Selbstschutz ergänzen.
+- [x] Profilbearbeitung mit einem realen Testkonto prüfen.
+- [x] `projekt-stand.md` nach Abschluss aktualisieren.
+- [x] `npm test`, `npm run test:rules` und `npm run build` erfolgreich ausführen.
 
 #### Erledigt, wenn
 
-- [ ] Ein Master kann ein bestehendes Benutzerprofil über das Select auswählen.
-- [ ] Anzeigename, Aktivstatus, Rolle, erlaubte Bereiche und Datenzugriffe können sicher aktualisiert werden.
-- [ ] E-Mail-Adresse, Passwort und Firebase-Auth-Status bleiben in dieser Ausbaustufe unverändert.
-- [ ] Der Master kann sich nicht selbst deaktivieren oder seine eigene Masterrolle entfernen.
-- [ ] Die aktualisierte Store-Liste und Oberfläche zeigen den gespeicherten Stand ohne erneutes Laden.
-- [ ] Tests, Rules-Tests, Build und manuelle Prüfung sind erfolgreich.
-
-# Erledigte Todos
-
-Die folgenden Abschnitte dokumentieren den Abschluss des jeweiligen damaligen Arbeitsschritts. Für den aktuellen Stand gelten Todo 4 und der [Projekt-Stand](./projekt-stand.md).
+- [x] Ein Master kann ein bestehendes Benutzerprofil über das Select auswählen.
+- [x] Anzeigename, Aktivstatus, erlaubte Bereiche und Datenzugriffe können sicher aktualisiert werden; die Benutzerrolle bleibt unverändert.
+- [x] E-Mail-Adresse, Passwort und Firebase-Auth-Status bleiben in dieser Ausbaustufe unverändert.
+- [x] Der Master kann sich nicht selbst deaktivieren; Rollen können nicht über die Profilbearbeitung verändert werden.
+- [x] Die aktualisierte Store-Liste und Oberfläche zeigen den gespeicherten Stand ohne erneutes Laden.
+- [x] Tests, Rules-Tests, Build und manuelle Prüfung sind erfolgreich.
 
 ## 5. Done Todo: Verwaltung
 

@@ -48,11 +48,13 @@ benutzerprofil/{uid}
 
 Das Benutzerprofil enthält mit `userRole` zusätzlich die Rolle `filiale`, `office` oder `master`. Die allgemeinen Bereichsfreigaben richten sich nach `erlaubteBereiche`. Der administrative Bereich `systemverwaltung` erfordert zusätzlich die Rolle `master`.
 
+Bei der Bearbeitung bestehender Benutzerprofile wird die Freigabe `systemverwaltung` aus der unveränderlichen Rolle abgeleitet: Für Master ist sie fest aktiviert, für Office und Filiale fest deaktiviert.
+
 Welche App-Bereiche und welche Datenräume der Benutzer lesen darf, wird über `erlaubteBereiche` und `zugriffe` festgelegt. Die Zugriffe sind als verschachtelte Map `Unternehmer-ID -> Firma-ID -> Filial-IDs` gespeichert. Altprofile mit der früheren Array-Struktur bleiben für Login und Bereichsfreigaben lesbar, gewähren Office- und Filialkonten aber keinen Datenzugriff. Aktive Master bleiben davon unberührt.
 
 Die App speichert keine direkten Firestore-Pfade als Berechtigung, sondern fachliche Berechtigungen. Daraus werden Navigation, Route Guards und Firestore-Abfragen abgeleitet.
 
-Die Firestore Rules erlauben aktiven Mastern das Lesen und Schreiben aller Collections samt Untercollections, einschließlich aller Benutzerprofile. Office und Filiale lesen Geschäftsdaten direkt anhand der verschachtelten `zugriffe`-Map und weiterhin ihr eigenes Profil. Aktive Office-Konten dürfen ihre zugeordneten Firmen- und Filialdokumente aktualisieren, aber weder Firmen oder Filialen anlegen oder löschen noch Filial-Untercollections beschreiben. Filialkonten bleiben vorerst rein lesend. Ein separater Zugriffsindex wird nicht gespeichert. Bestätigte Altanwendungskonten ohne `benutzerprofil`-Dokument behalten ihren bisherigen Zugriff außerhalb von `benutzerprofil` und `unternehmer`. Clientseitige Guards ersetzen die Rules nicht.
+Die Firestore Rules erlauben aktiven Mastern das Lesen aller Collections samt Untercollections. Fachliche Daten dürfen sie vollständig schreiben; vorhandene Benutzerprofile dürfen sie nur in den ausdrücklich freigegebenen Feldern aktualisieren. Benutzerrolle, E-Mail-Adresse und Auth-Daten bleiben dabei unveränderlich. Office und Filiale lesen Geschäftsdaten direkt anhand der verschachtelten `zugriffe`-Map und weiterhin ihr eigenes Profil. Aktive Office-Konten dürfen ihre zugeordneten Firmen- und Filialdokumente aktualisieren, aber weder Firmen oder Filialen anlegen oder löschen noch Filial-Untercollections beschreiben. Filialkonten bleiben vorerst rein lesend. Ein separater Zugriffsindex wird nicht gespeichert. Bestätigte Altanwendungskonten ohne `benutzerprofil`-Dokument behalten ihren bisherigen Zugriff außerhalb von `benutzerprofil` und `unternehmer`. Clientseitige Guards ersetzen die Rules nicht.
 
 Eine Selbstregistrierung ist nicht vorgesehen. Benutzerzugänge werden im Zielablauf im Bereich `systemverwaltung` von einem `master` vorkonfiguriert. Die Angular-App ruft dafür eine geschützte Firebase Cloud Function auf. Die Function prüft die Rolle des aufrufenden Benutzers serverseitig, legt mit dem Firebase Admin SDK den Auth-Benutzer und anschließend das Dokument `benutzerprofil/{uid}` an. Der angemeldete `master` bleibt dabei eingeloggt.
 
@@ -136,6 +138,6 @@ Die Sidebar enthält die Hauptnavigation der Anwendung. Aktuell sind fünf Berei
    Bereich für Office und Master zur Auswahl und Bearbeitung zugeordneter Firmen- und Filialdaten. Die Route erfordert zusätzlich die Bereichsfreigabe `verwaltung`; Filialkonten bleiben ausgeschlossen.
 
 5. **Systemverwaltung**
-   Administrativer Bereich für `master`. Er umfasst die hierarchische Datenstruktur-Anlage, die Anlage vorkonfigurierter Benutzerzugänge und die geplante Bearbeitung vorhandener Benutzerprofile. Die Auth-Benutzeranlage erfolgt serverseitig über eine geschützte Firebase Cloud Function mit Firebase Admin SDK; fachliche Stammdaten darf der Master direkt in Firestore schreiben.
+   Administrativer Bereich für `master`. Er umfasst die hierarchische Datenstruktur-Anlage, die Anlage vorkonfigurierter Benutzerzugänge und die Bearbeitung vorhandener Benutzerprofile. Die Auth-Benutzeranlage erfolgt serverseitig über eine geschützte Firebase Cloud Function mit Firebase Admin SDK; fachliche Stammdaten darf der Master direkt in Firestore schreiben.
 
 Die Benutzeranlage erstellt Auth-Konten zunächst deaktiviert und aktiviert sie erst nach erfolgreicher Profilspeicherung. Bei unklaren Aktivierungsfehlern bleibt das Profil zur Absicherung vorhandener Tokens erhalten; fehlgeschlagene Bereinigungen werden für manuelle Administratorprüfung protokolliert.

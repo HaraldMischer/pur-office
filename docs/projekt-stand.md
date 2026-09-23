@@ -34,7 +34,7 @@ Stand: 23.09.2026. Dieses Dokument beschreibt den aktuellen Umsetzungsstand im C
 - [x] `mitarbeiter-page` wurde unter `src/app/pages/mitarbeiter-page` angelegt.
 - [x] Routen für `/dashboard`, `/schichtplan` und `/mitarbeiter` werden per `loadComponent` geladen.
 - [x] `/` leitet auf `/dashboard` weiter.
-- [x] Die Route `/systemverwaltung` und die `systemverwaltung-page` enthalten die Bereiche Datenstruktur anlegen, Benutzer anlegen und den UI-Dummy Benutzer verwalten.
+- [x] Die Route `/systemverwaltung` und die `systemverwaltung-page` enthalten die Bereiche Datenstruktur anlegen, Benutzer anlegen und Benutzer verwalten.
 - [x] Die Route `/verwaltung` enthält die Auswahl zugeordneter Stammdaten und die Bearbeitung bestehender Firmen- und Filialdaten.
 - [x] Die geschützte Route `/passwort` ermöglicht angemeldeten Benutzern eine Passwortänderung.
 
@@ -58,8 +58,8 @@ Stand: 23.09.2026. Dieses Dokument beschreibt den aktuellen Umsetzungsstand im C
 
 - [x] Loginseite mit E-Mail/Passwort-Formular ist angelegt.
 - [x] Bestehende Firebase-Benutzer können sich anmelden.
-- [x] Benutzerprofile werden lesend aus `benutzerprofil/{uid}` geladen.
-- [x] Der Angular-Client schreibt derzeit keine Benutzerprofile direkt; die Anlage von Auth-Konto und Profil ist im Backend umgesetzt. Aktive Master dürfen fachliche Verwaltungsdaten direkt in Firestore schreiben.
+- [x] Benutzerprofile werden aus `benutzerprofil/{uid}` geladen. Aktive Master dürfen die ausdrücklich bearbeitbaren Felder vorhandener Profile direkt aktualisieren.
+- [x] Die Anlage von Auth-Konto und Profil bleibt im Backend umgesetzt. E-Mail-Adresse, Passwort und Firebase-Auth-Status werden durch die clientseitige Profilbearbeitung nicht verändert.
 - [x] Benutzerprofile enthalten zusätzlich `userRole` mit `filiale`, `office` oder `master`.
 - [x] Allgemeine Bereichsfreigaben richten sich nach `erlaubteBereiche`; Systemverwaltung erfordert zusätzlich `userRole: master`, Verwaltung zusätzlich `userRole: office` oder `userRole: master`.
 - [x] App-Routen sind mit `authGuard` geschützt.
@@ -98,11 +98,14 @@ Stand: 23.09.2026. Dieses Dokument beschreibt den aktuellen Umsetzungsstand im C
 
 ## Bestehende Benutzer verwalten
 
-- Unter `systemverwaltung-page/benutzer-verwaltung` ist ein eigenständiger UI-Dummy für die spätere Profilbearbeitung angelegt.
-- Der Bereich zeigt ein Benutzer-Select, einen erst nach Auswahl aktivierbaren Bearbeiten-Button und einen sichtbaren Hinweis auf die noch fehlende Datenanbindung.
-- Es werden keine produktiven Mockprofile verwendet. Für Master stehen die Benutzerprofile bereits im zentralen Sitzungsbestand bereit; das Benutzer-Select und die Profilaktualisierung sind noch nicht daran angebunden.
-- `IBenutzerProfilEintrag` bildet ein geladenes Profil mit seiner Dokument-ID als `uid` ab. `IBenutzerProfilAktualisierung` begrenzt die vorbereiteten Änderungen auf Anzeigename, Aktivstatus, Rolle, erlaubte Bereiche und Datenzugriffe; E-Mail-Adresse und Passwort sind ausgeschlossen.
-- Die weitere Umsetzung mit Laden, Bearbeitungsdialog, Selbstschutz und Speichern ist in Todo 4.3 beschrieben.
+- Unter `systemverwaltung-page/benutzer-verwaltung` ist die Bearbeitung vorhandener Benutzerprofile umgesetzt.
+- Das Benutzer-Select verwendet die UID als Wert und zeigt Anzeigename sowie E-Mail-Adresse. Der Bearbeiten-Button wird erst nach einer gültigen Auswahl aktiviert.
+- Es werden keine produktiven Mockprofile verwendet. Die für Master zentral geladenen Benutzerprofile werden direkt aus dem Sitzungsbestand verwendet; Leer-, Lade- und Fehlerzustände bleiben unterscheidbar.
+- `IBenutzerProfilEintrag` bildet ein geladenes Profil mit seiner Dokument-ID als `uid` ab. `IBenutzerProfilAktualisierung` begrenzt die vorbereiteten Änderungen auf Anzeigename, Aktivstatus, erlaubte Bereiche und Datenzugriffe; Benutzerrolle, E-Mail-Adresse und Passwort sind ausgeschlossen.
+- Der Bearbeitungsdialog verwendet die vorhandene Datenzugriffsauswahl mit rollenabhängiger Validierung. Erfolgreiche Aktualisierungen setzen `aktualisiertAm` serverseitig und werden ohne erneutes Laden in den Stammdaten- und Verwaltungsbestand übernommen.
+- Die Bereichsfreigabe `systemverwaltung` ist im Bearbeitungsdialog nicht frei wählbar: Für Master wird sie fest aktiviert, für Office und Filiale fest deaktiviert. Die vorhandenen Rollen-Guards bleiben die funktionale Zugriffssicherung.
+- Das eigene Masterprofil kann nicht deaktiviert werden. Die Benutzerrolle ist für sämtliche Profile unveränderlich. Dieser Selbstschutz sowie die weiteren unveränderlichen Profilfelder sind zusätzlich durch Firestore Rules abgesichert.
+- Änderungen am aktuell angemeldeten Masterprofil werden unmittelbar in den lokalen Benutzer-Store übernommen. Andere bereits angemeldete Benutzer erhalten geänderte UI-Freigaben spätestens nach einem Neuladen; die Firestore Rules werten den geänderten Profilstand sofort aus.
 
 ## Firmen- und Filialverwaltung
 
@@ -163,18 +166,19 @@ Stand: 23.09.2026. Dieses Dokument beschreibt den aktuellen Umsetzungsstand im C
 - Altanwendung nutzt laut Benutzer ausschließlich Konten ohne `benutzerprofil`-Dokument. Diese behalten den bisherigen Lese-/Schreibzugriff außerhalb von `benutzerprofil` und `unternehmer`; Emulator-Tests sichern das ab. Fehlgeschlagene Kontoanlage darf kein nutzbares Auth-Konto ohne Profil hinterlassen (lokal durch deaktivierte Anlage abgesichert).
 - Office-/Filialqueries müssen erlaubte Dokument-IDs eingrenzen; unbeschränkte Listen werden abgelehnt. Die aktuellen unbeschränkten Auswahllisten sind für die Master-Verwaltung vorgesehen.
 - Neue Rules sind laut Benutzer produktiv; Lesen und Schreiben in der Altanwendung funktionieren weiterhin. Die sichere Kontoaktivierung ist ebenfalls deployed und die Formularsperre wurde entfernt. Ein reales Office-Testkonto konnte seine zugeordnete Firma und Filiale über die fachliche Verwaltungsoberfläche erfolgreich aktualisieren. Nicht zugeordnete Dokumente, Neuanlagen, Löschungen und Schreibzugriffe auf Filial-Untercollections werden durch Emulator-Tests abgelehnt.
+- Die Rules für eingeschränkte Profilaktualisierungen und den Selbstschutz des eigenen Masterprofils wurden am 23.09.2026 erfolgreich deployed. Die Profilbearbeitung und die bestehenden Office-Zugriffe wurden anschließend mit realen Testkonten erfolgreich geprüft.
 - Der Git-Push der aktuellen Änderungen ist kein Firebase-Deployment.
 
 ## Tests und Build
 
 Am 23.09.2026 für den aktuellen Frontend-Stand erfolgreich geprüft:
 
-- 244 Frontend-Tests einschließlich Store-Snapshots, Datenstruktur-Anlage, zentraler Stammdateninitialisierung sowie Firmen- und Filialdaten-Bearbeitung.
+- 251 Frontend-Tests einschließlich Store-Snapshots, Datenstruktur-Anlage, zentraler Stammdateninitialisierung sowie Firmen-, Filial- und Benutzerprofil-Bearbeitung.
 - 36 Functions-Tests einschließlich Rollenprüfung, Hierarchievalidierung und sicherer Kontoaktivierung.
-- 22 Firestore-Emulator-Tests für Rollen, neue Hierarchie, Untercollections, eingeschränkte Queries, Office-Aktualisierungen, Schreibschutz sowie die Trennung vom Legacy-Zugriff auf `purCustomers`. Vorhandene, aber nicht zugeordnete Firmen und Filialen können durch Office nicht aktualisiert werden.
-- Frontend-Produktionsbuild erfolgreich.
+- 24 Firestore-Emulator-Tests für Rollen, neue Hierarchie, Untercollections, eingeschränkte Queries, Office-Aktualisierungen, Profil-Selbstschutz, unveränderliche Profilfelder sowie die Trennung vom Legacy-Zugriff auf `purCustomers`.
+- Frontend-Produktionsbuild erfolgreich. Der Build benötigt in der Codex-Umgebung Zugriff außerhalb der Sandbox, weil der native `esbuild`-Prozess innerhalb der eingeschränkten Umgebung mit Exit-Code 134 beendet wird.
 
-Der durchgängige Benutzeranlageablauf mit realen Daten wurde am 22.09.2026 für je ein Office- und Filialkonto bestätigt. Die vollständige Hierarchie wurde gespeichert, beide Konten konnten sich anmelden und nur ihre erlaubten Bereiche verwenden; die Systemverwaltungsroute blieb durch die Masterprüfung gesperrt. Am 23.09.2026 wurde zusätzlich die erfolgreiche Aktualisierung einer zugeordneten Firma und Filiale mit einem realen Office-Testkonto bestätigt. Die übrigen Schreibgrenzen sind durch die erfolgreichen Firestore-Emulator-Tests abgesichert.
+Der durchgängige Benutzeranlageablauf mit realen Daten wurde am 22.09.2026 für je ein Office- und Filialkonto bestätigt. Die vollständige Hierarchie wurde gespeichert, beide Konten konnten sich anmelden und nur ihre erlaubten Bereiche verwenden; die Systemverwaltungsroute blieb durch die Masterprüfung gesperrt. Am 23.09.2026 wurden zusätzlich die erfolgreiche Aktualisierung einer zugeordneten Firma und Filiale mit einem realen Office-Testkonto sowie die Bearbeitung eines vorhandenen Benutzerprofils mit einem realen Testkonto bestätigt. Die übrigen Schreibgrenzen sind durch die erfolgreichen Firestore-Emulator-Tests abgesichert.
 
 ## Rollenpräzisierung: Umsetzung und offene Punkte
 

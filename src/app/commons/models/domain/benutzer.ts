@@ -29,7 +29,6 @@ export interface IBenutzerProfilEintrag extends IBenutzerProfilDokument {
 export interface IBenutzerProfilAktualisierung {
   anzeigename: string;
   aktiv: boolean;
-  userRole: TUserRole;
   erlaubteBereiche: TAppBereich[];
   zugriffe: TBenutzerZugriffe;
 }

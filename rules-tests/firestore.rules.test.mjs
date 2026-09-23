@@ -218,7 +218,28 @@ test('active master can write business data, profiles and nested data', async ()
     setDoc(doc(db, 'benutzerprofil/other'), { anzeigename: 'updated' }, { merge: true }),
   );
   await assertSucceeds(deleteDoc(doc(db, 'other/doc')));
-  await assertSucceeds(deleteDoc(doc(db, 'benutzerprofil/scoped')));
+  await assertSucceeds(deleteDoc(doc(db, 'benutzerprofil/other')));
+});
+
+test('active master cannot deactivate or delete the own profile', async () => {
+  const db = await seedProfile('master');
+
+  await assertSucceeds(
+    setDoc(doc(db, 'benutzerprofil/scoped'), { anzeigename: 'Master Neu' }, { merge: true }),
+  );
+  await assertFails(setDoc(doc(db, 'benutzerprofil/scoped'), { aktiv: false }, { merge: true }));
+  await assertFails(deleteDoc(doc(db, 'benutzerprofil/scoped')));
+});
+
+test('active master cannot change immutable profile fields', async () => {
+  const db = await seedProfile('master');
+
+  await assertFails(
+    setDoc(doc(db, 'benutzerprofil/other'), { email: 'neu@example.com' }, { merge: true }),
+  );
+  await assertFails(
+    setDoc(doc(db, 'benutzerprofil/other'), { userRole: 'office' }, { merge: true }),
+  );
 });
 
 test('active office can update assigned companies and branches without creating or deleting', async () => {

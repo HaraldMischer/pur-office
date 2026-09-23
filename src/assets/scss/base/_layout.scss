@@ -5,6 +5,10 @@
   gap: 24px;
   width: 100%;
 
+  &--limited {
+    max-width: 1024px;
+  }
+
   &__header {
     display: flex;
     align-items: center;

@@ -54,8 +54,8 @@ service cloud.firestore {
     // 1. Master dürfen alles lesen und schreiben
     // =====================================================
 
-    match /{document=**} {
-      allow read, write: if isMaster();
+    match /{collection}/{document=**} {
+      allow read, write: if isMaster() && collection != 'benutzerprofil';
     }
 
     // =====================================================
@@ -84,7 +84,24 @@ service cloud.firestore {
     // =====================================================
 
     match /benutzerprofil/{uid} {
-      allow get: if isAuthenticated() && request.auth.uid == uid;
+      allow read: if isMaster() || (isAuthenticated() && request.auth.uid == uid);
+      allow create, delete: if isMaster() && request.auth.uid != uid;
+      allow update: if isMaster()
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+          'anzeigename',
+          'aktiv',
+          'erlaubteBereiche',
+          'zugriffe',
+          'aktualisiertAm'
+        ])
+        && (
+          request.auth.uid != uid
+          || request.resource.data.aktiv == true
+        );
+
+      match /{subcollection}/{document=**} {
+        allow read, write: if isMaster();
+      }
     }
 
     // =====================================================

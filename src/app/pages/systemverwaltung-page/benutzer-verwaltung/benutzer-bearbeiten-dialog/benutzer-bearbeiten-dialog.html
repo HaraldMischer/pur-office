@@ -1,0 +1,104 @@
+<!-- pur-office/src/app/pages/systemverwaltung-page/benutzer-verwaltung/benutzer-bearbeiten-dialog/benutzer-bearbeiten-dialog.html -->
+
+<h2 mat-dialog-title>Benutzer bearbeiten</h2>
+
+<mat-dialog-content class="pur-dialog__content">
+  <form
+    id="benutzer-bearbeiten-form"
+    class="pur-form pur-form--grid"
+    [formGroup]="benutzerForm"
+    (ngSubmit)="onSubmit()"
+  >
+    <!-- Profildaten -->
+    <div class="pur-form__group">
+      <h2 class="pur-form__group-titel">Profildaten</h2>
+
+      <div class="pur-form__row">
+        <mat-form-field appearance="outline" class="pur-form__field">
+          <mat-label>Anzeigename</mat-label>
+          <input matInput formControlName="anzeigename" type="text" autocomplete="name" />
+          @if (benutzerForm.controls.anzeigename.hasError('required')) {
+            <mat-error>Anzeigename ist erforderlich.</mat-error>
+          }
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="pur-form__field">
+          <mat-label>E-Mail-Adresse</mat-label>
+          <input matInput [value]="profil.email" type="email" readonly />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="pur-form__field">
+          <mat-label>Benutzerrolle</mat-label>
+          <input matInput name="benutzerrolle" [value]="rollenLabel" type="text" readonly />
+        </mat-form-field>
+
+        <mat-checkbox formControlName="aktiv">Benutzerprofil aktiv</mat-checkbox>
+      </div>
+    </div>
+
+    <!-- Erlaubte Bereiche -->
+    <div class="pur-form__group" formGroupName="erlaubteBereiche">
+      <h2 class="pur-form__group-titel">Erlaubte Bereiche</h2>
+      <div class="pur-form__row">
+        @for (bereich of bereiche; track bereich.value) {
+          <mat-checkbox [formControlName]="bereich.value">{{ bereich.label }}</mat-checkbox>
+        }
+      </div>
+      @if (
+        (benutzerForm.controls.erlaubteBereiche.dirty ||
+          benutzerForm.controls.erlaubteBereiche.touched) &&
+        benutzerForm.controls.erlaubteBereiche.hasError('mindestensEinBereich')
+      ) {
+        <p class="pur-form__error" role="alert">Mindestens ein Bereich ist erforderlich.</p>
+      }
+    </div>
+
+    @if (profil.userRole !== 'master') {
+      <!-- Datenzugriff -->
+      <div class="pur-form__group">
+        <h2 class="pur-form__group-titel">Datenzugriff</h2>
+        <app-datenzugriff-auswahl
+          [unternehmer]="unternehmer()"
+          [unternehmerIds]="unternehmerIds()"
+          (unternehmerIdsChange)="unternehmerIds.set($event)"
+          [firmaIds]="firmaIds()"
+          (firmaIdsChange)="firmaIds.set($event)"
+          [filialen]="filialen()"
+          (filialenChange)="filialen.set($event)"
+          [unternehmerMehrfach]="false"
+          [firmenMehrfach]="profil.userRole === 'office'"
+          [filialenMehrfach]="profil.userRole === 'office'"
+        />
+        @if (!datenAuswahlGueltig()) {
+          <p class="pur-form__error" role="alert">
+            Wähle eine vollständige und zur Benutzerrolle passende Datenzuordnung.
+          </p>
+        }
+      </div>
+    }
+
+    @if (verwaltungStore.updateError(); as error) {
+      <p class="pur-form__error" role="alert">{{ error }}</p>
+    }
+  </form>
+</mat-dialog-content>
+
+<!-- Dialogaktionen -->
+<mat-dialog-actions class="pur-dialog__footer" align="end">
+  <button
+    matButton
+    type="button"
+    [mat-dialog-close]="undefined"
+    [disabled]="verwaltungStore.inProgress()"
+  >
+    Abbrechen
+  </button>
+  <button
+    matButton="filled"
+    type="submit"
+    form="benutzer-bearbeiten-form"
+    [disabled]="benutzerForm.invalid || !datenAuswahlGueltig() || verwaltungStore.inProgress()"
+  >
+    {{ verwaltungStore.inProgress() ? 'Benutzer wird gespeichert' : 'Änderungen speichern' }}
+  </button>
+</mat-dialog-actions>

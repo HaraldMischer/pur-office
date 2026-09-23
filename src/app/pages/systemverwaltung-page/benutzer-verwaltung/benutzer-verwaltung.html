@@ -10,8 +10,14 @@
     <div class="pur-form__row pur-form__row--action">
       <mat-form-field appearance="outline" class="pur-form__field">
         <mat-label>Benutzer</mat-label>
-        <mat-select [formControl]="benutzerUid">
-          <mat-option disabled>Keine Benutzerprofile geladen</mat-option>
+        <mat-select [formControl]="benutzerUid" (selectionChange)="selectBenutzer($event.value)">
+          @for (profil of verwaltungStore.benutzerprofile(); track profil.uid) {
+            <mat-option [value]="profil.uid">
+              {{ profil.anzeigename }} · {{ profil.email }}
+            </mat-option>
+          } @empty {
+            <mat-option disabled>Keine Benutzerprofile verfügbar</mat-option>
+          }
         </mat-select>
       </mat-form-field>
 
@@ -19,15 +25,28 @@
         class="pur-form__button"
         matButton="outlined"
         type="button"
-        [disabled]="!benutzerUid.value"
+        [disabled]="!verwaltungStore.selectedBenutzer() || verwaltungStore.inProgress()"
+        (click)="openBenutzerBearbeitenDialog()"
       >
         <mat-icon aria-hidden="true">edit</mat-icon>
         Benutzer bearbeiten
       </button>
     </div>
 
-    <p class="pur-form__message" role="status">
-      Die Benutzerprofile werden im nächsten Schritt angebunden.
-    </p>
+    @if (verwaltungStore.benutzerprofileError(); as error) {
+      <p class="pur-form__error" role="alert">{{ error }}</p>
+    } @else if (
+      verwaltungStore.benutzerprofileIsLoaded() && verwaltungStore.benutzerprofile().length === 0
+    ) {
+      <p class="pur-form__message" role="status">Keine Benutzerprofile verfügbar.</p>
+    }
+
+    @if (verwaltungStore.updateSuccess(); as erfolg) {
+      <p class="pur-form__success" role="status">{{ erfolg }}</p>
+    }
+
+    @if (verwaltungStore.updateError(); as error) {
+      <p class="pur-form__error" role="alert">{{ error }}</p>
+    }
   </div>
 </section>
