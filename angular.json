@@ -34,7 +34,14 @@
           },
           "configurations": {
             "production": {
-              "serviceWorker": "ngsw-config.json",
+              "outputPath": "dist/pur-office",
+              "assets": [
+                {
+                  "glob": "**/*",
+                  "input": "public",
+                  "ignore": ["manifests/**"]
+                }
+              ],
               "budgets": [
                 {
                   "type": "initial",
@@ -52,6 +59,28 @@
                 {
                   "replace": "src/environments/environment.ts",
                   "with": "src/environments/environment.prod.ts"
+                }
+              ]
+            },
+            "pwa": {
+              "outputPath": "dist/pur-filiale",
+              "serviceWorker": "ngsw-config.json",
+              "assets": [
+                {
+                  "glob": "**/*",
+                  "input": "public",
+                  "ignore": ["manifest.webmanifest", "manifests/**"]
+                },
+                {
+                  "glob": "manifest.webmanifest",
+                  "input": "public/manifests/pur-filiale",
+                  "output": "/"
+                }
+              ],
+              "fileReplacements": [
+                {
+                  "replace": "src/environments/environment.ts",
+                  "with": "src/environments/environment.pwa-prod.ts"
                 }
               ]
             },

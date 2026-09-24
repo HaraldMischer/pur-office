@@ -4,8 +4,11 @@
   "scripts": {
     "start-web": "npm run web:pur-system",
     "web:pur-system": "ng serve --configuration development --port 4200",
-    "pwa:pur-system": "ng build --configuration production --output-path dist/pwa-pur-system && serve -s dist/pwa-pur-system/browser -l 8080 -n",
-    "deploy-hosting": "printf 'Pur Office deployen? Firebase-Projekt: pur-system | Hosting: pur-office.web.app | Fortfahren? (j/N) '; read -r confirm; if [ \"$confirm\" = \"j\" ]; then npm run build && firebase deploy --project pur-system --only hosting:pur-office; else echo 'Deploy abgebrochen.'; exit 0; fi",
+    "pwa:pur-system": "npm run build:filiale && serve -s dist/pur-filiale/browser -l 8080 -n",
+    "build:office": "ng build --configuration production",
+    "build:filiale": "ng build --configuration production,pwa",
+    "deploy:pur-office": "printf 'Pur Office deployen? Firebase-Projekt: pur-system | Hosting: pur-office.web.app | Ohne Service Worker | Fortfahren? (j/N) '; read -r confirm; if [ \"$confirm\" = \"j\" ]; then npm run build:office && firebase deploy --project pur-system --only hosting:office; else echo 'Deploy abgebrochen.'; exit 0; fi",
+    "deploy:pur-filiale": "printf 'Pur Filiale deployen? Firebase-Projekt: pur-system | Hosting: pur-filiale.web.app | Mit Service Worker | Fortfahren? (j/N) '; read -r confirm; if [ \"$confirm\" = \"j\" ]; then npm run build:filiale && firebase deploy --project pur-system --only hosting:filiale; else echo 'Deploy abgebrochen.'; exit 0; fi",
     "deploy-rules": "firebase deploy --only firestore:rules",
     "deploy-functions": "firebase deploy --only functions:pur-office",
     "build": "ng build",

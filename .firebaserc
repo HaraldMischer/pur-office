@@ -5,7 +5,8 @@
   "targets": {
     "pur-system": {
       "hosting": {
-        "pur-office": ["pur-office"]
+        "office": ["pur-office"],
+        "filiale": ["pur-filiale"]
       }
     }
   },

@@ -8,16 +8,15 @@
 
 #### Ziel
 
-Pur Office wird als Progressive Web App installierbar und kann auf unterstützten
+Pur Filiale wird als Progressive Web App installierbar und kann auf unterstützten
 Desktop- und Mobilgeräten wie eine eigenständige Anwendung gestartet werden. Die
 App-Shell und die für den Start erforderlichen statischen Ressourcen stehen nach
 dem ersten erfolgreichen Laden auch ohne Netzwerkverbindung zur Verfügung.
 
 Neue Anwendungsversionen werden kontrolliert erkannt und übernommen. Die
 Oberfläche informiert verständlich über den Netzwerkzustand, verfügbare Updates
-und Funktionen, die aktuell eine Verbindung benötigen. Ohne Service-Worker- oder
-Installationsunterstützung bleibt Pur Office weiterhin als normale Webanwendung
-nutzbar.
+und Funktionen, die aktuell eine Verbindung benötigen. Pur Office bleibt davon
+getrennt als normale Webanwendung ohne Service Worker nutzbar.
 
 Der Angular Service Worker verwaltet ausschließlich die Anwendungsversion und
 statische Ressourcen. Fachliche Firestore-Daten werden durch diesen Schritt
@@ -27,6 +26,7 @@ weder dauerhaft gespeichert noch für Offline-Schreibvorgänge freigegeben.
 
 Änderungen:
 
+- .firebaserc
 - package.json
 - package-lock.json
 - angular.json
@@ -45,25 +45,30 @@ weder dauerhaft gespeichert noch für Offline-Schreibvorgänge freigegeben.
 - src/app/services/firebase/benutzer-verwaltung.service.spec.ts
 - src/app/services/firebase/firestore-db.service.ts
 - src/app/services/firebase/firestore-db.service.spec.ts
+- src/environments/environment.ts
+- src/environments/environment.prod.ts
 - firebase.json
+- docs/projekt-plan.md
 - docs/projekt-stand.md
 
 Neu hinzuzufügen:
 
 - ngsw-config.json
 - public/manifest.webmanifest
+- public/manifests/pur-filiale/manifest.webmanifest
 - public/icons/
 - public/fonts/
 - src/app/services/core/netzwerk-status.service.ts
 - src/app/services/core/pwa-update.service.ts
 - src/app/services/core/pwa-update.service.spec.ts
+- src/environments/environment.pwa-prod.ts
 
 #### Schritt 1: PWA-Grundlage einrichten
 
 - [x] Angular Service Worker als Projekt-Dependency ergänzen und ausschließlich für geeignete Produktions-Builds registrieren.
 - [x] Service-Worker-Unterstützung in der Angular-Buildkonfiguration aktivieren.
 - [x] `ngsw-config.json` für App-Shell, lazy geladene Anwendungsteile und statische Ressourcen anlegen.
-- [x] Web-App-Manifest mit Name, Kurzname, Start-URL, Darstellungsmodus, Theme-Farben und geeigneten Icons anlegen.
+- [x] Getrennte Web-App-Manifeste mit den Produktkennungen Pur Office und Pur Filiale sowie Start-URL, Darstellungsmodus, Theme-Farben und geeigneten Icons anlegen.
 - [x] Manifest, Theme-Farbe und PWA-Metadaten in `index.html` einbinden.
 - [x] Installation und normaler Webbetrieb bei fehlender Service-Worker-Unterstützung voneinander unabhängig halten.
 
@@ -94,21 +99,23 @@ Neu hinzuzufügen:
 
 #### Schritt 5: Hosting und Auslieferung absichern
 
-- [ ] Firebase Hosting so konfigurieren, dass `index.html`, `ngsw.json`, Service Worker und gehashte Ressourcen mit passenden Cache-Headern ausgeliefert werden.
-- [ ] Sicherstellen, dass SPA-Rewrites Manifest-, Icon- und Service-Worker-Dateien nicht verdecken.
-- [ ] PWA ausschließlich über HTTPS beziehungsweise für lokale Tests über `localhost` prüfen.
+- [x] Getrennte Firebase-Hosting-Sites konfigurieren: `pur-office.web.app` für den normalen Web-Build und `pur-filiale.web.app` für den PWA-Build.
+- [x] Getrennte Hosting-Targets und Deployment-Skripte für Office und Filiale einrichten.
+- [x] Firebase Hosting so konfigurieren, dass `index.html`, `ngsw.json`, Service Worker und gehashte Ressourcen mit passenden Cache-Headern ausgeliefert werden.
+- [x] Sicherstellen, dass SPA-Rewrites Manifest-, Icon- und Service-Worker-Dateien nicht verdecken.
+- [x] PWA ausschließlich über HTTPS beziehungsweise für lokale Tests über `localhost` prüfen.
 - [ ] Festlegen und dokumentieren, wie eine fehlerhafte Service-Worker-Version bei Bedarf deaktiviert oder ersetzt wird.
 
 #### Tests und Abschluss
 
 - [x] Unit-Tests für Netzwerkstatus, Update-Erkennung, Update-Bestätigung und fehlende Service-Worker-Unterstützung ergänzen.
-- [x] Produktions-Build erzeugen und prüfen, dass Manifest, `ngsw.json`, Service Worker, Icons und lokale Schriften enthalten sind.
+- [x] Getrennte Produktions-Builds erzeugen und prüfen, dass beide ihr jeweiliges Manifest und nur Pur Filiale `ngsw.json` sowie den Service Worker ausliefert; Icons und lokale Schriften sind enthalten.
 - [ ] Installierbarkeit auf mindestens einem unterstützten Desktop-Browser und einem unterstützten Mobilgerät beziehungsweise einer realistischen Mobilgeräte-Simulation prüfen.
 - [ ] App-Shell nach einem ersten Online-Aufruf bei deaktiviertem Netzwerk neu laden und manuell prüfen.
 - [x] Update-Ablauf mit zwei aufeinanderfolgenden Produktions-Builds prüfen.
 - [ ] Normalen Webbetrieb ohne aktive Service-Worker-Unterstützung prüfen.
-- [ ] `projekt-stand.md` nach Abschluss aktualisieren.
-- [ ] `npm test` und `npm run build` erfolgreich ausführen.
+- [x] `projekt-stand.md` nach Abschluss aktualisieren.
+- [x] `npm test` sowie die getrennten Office- und Filial-Produktionsbuilds erfolgreich ausführen.
 
 #### Erledigt, wenn
 

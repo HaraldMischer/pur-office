@@ -12,7 +12,7 @@ Pur Office ist eine Angular-Anwendung zur Darstellung von Office- und Organisati
 - Die Systemverwaltung bündelt administrative Vorgänge des Masters. Die Verwaltung erlaubt Office und Master das Aktualisieren bestehender Firmen- und Filialdaten innerhalb der Firestore Rules. Sicherheitskritische Auth-Vorgänge laufen über ein geschütztes Backend.
 - Fachliche Bereiche werden klar getrennt.
 - UI und Datenzugriff werden über Components, Stores und Services getrennt.
-- Pur Office wird als installierbare Progressive Web App bereitgestellt. Ohne Service-Worker- oder Installationsunterstützung bleibt die Anwendung vollständig als normale Webanwendung nutzbar.
+- Das System wird getrennt ausgeliefert: Pur Office als normale Webanwendung und Pur Filiale als installierbare Progressive Web App.
 
 ## Architektur
 
@@ -37,11 +37,11 @@ Pur Office ist eine Angular-Anwendung zur Darstellung von Office- und Organisati
 
 ## PWA- und Offline-Strategie
 
-Pur Office wird als Progressive Web App installierbar. Der Angular Service Worker
-stellt nach dem ersten erfolgreichen Laden die App-Shell und die zum Start
-erforderlichen statischen Ressourcen offline bereit. Installation und
-Service-Worker-Unterstützung bleiben optionale Erweiterungen; ohne sie ist Pur
-Office weiterhin als normale Webanwendung nutzbar.
+Pur Filiale wird als Progressive Web App installierbar. Der Angular Service
+Worker stellt nach dem ersten erfolgreichen Laden die App-Shell und die zum Start
+erforderlichen statischen Ressourcen offline bereit. Pur Office wird getrennt
+als normale Webanwendung ohne Service Worker ausgeliefert. Beide Varianten
+verwenden eine eigene Produktkennung im Web-App-Manifest.
 
 Neue Anwendungsversionen werden im Hintergrund erkannt. Die Anwendung informiert
 den Benutzer über verfügbare Updates und ermöglicht einen kontrollierten Wechsel

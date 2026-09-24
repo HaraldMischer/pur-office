@@ -2,7 +2,7 @@
 
 # Projekt-Stand: Pur Office
 
-Stand: 23.09.2026. Dieses Dokument beschreibt den aktuellen Umsetzungsstand im Code. Das fachliche Zielbild steht separat im [Projekt-Plan](./projekt-plan.md).
+Stand: 24.09.2026. Dieses Dokument beschreibt den aktuellen Umsetzungsstand im Code. Das fachliche Zielbild steht separat im [Projekt-Plan](./projekt-plan.md).
 
 ## Projektbasis
 
@@ -157,6 +157,11 @@ Stand: 23.09.2026. Dieses Dokument beschreibt den aktuellen Umsetzungsstand im C
 
 ## Rules und Deployment
 
+- Das Firebase-Projekt `pur-system` verwendet getrennte Hosting-Sites: `pur-office.web.app` liefert den normalen Web-Produktionsbuild ohne Service Worker aus; `pur-filiale.web.app` liefert den installierbaren PWA-Produktionsbuild mit Angular Service Worker aus.
+- Die Hosting-Targets `office` und `filiale` verwenden getrennte Build-Verzeichnisse. Eigene Deploy-Skripte bauen vor dem Deployment jeweils die passende Variante und verlangen eine Bestätigung.
+- Der Office-Build verwendet im Web-App-Manifest die Produktkennung `Pur Office`; der Filial-Build erhält beim Build ein eigenes Manifest mit der Produktkennung `Pur Filiale`.
+- HTML, Manifest und Service-Worker-Steuerdateien werden ohne langfristigen Browser-Cache ausgeliefert. Gehashte JavaScript- und CSS-Ressourcen erhalten einen langfristigen unveränderlichen Cache.
+
 - Functions-Deployment für die rollenabhängige Validierung (Office mindestens eine, Filiale genau eine vollständige Zuordnung) wurde vom Benutzer bestätigt. Benutzeranlage, Anmeldung, Bereichsfreigabe, Systemverwaltungssperre, Passwortwechsel und erneute Anmeldung wurden anschließend bestätigt. Am 22.09.2026 wurden zusätzlich reale Office- und Filialkonten mit der neuen Unternehmer-/Firma-/Filiale-Hierarchie angelegt, ihre gespeicherten Profile geprüft und Anmeldung, erlaubte Bereiche sowie die Umleitung von `/systemverwaltung` erfolgreich bestätigt.
 
 - Die vereinfachte Function ohne Zugriffsindex ist deployed (Benutzerbestätigung). Die sichere Kontoaktivierung bleibt erhalten.
@@ -171,12 +176,12 @@ Stand: 23.09.2026. Dieses Dokument beschreibt den aktuellen Umsetzungsstand im C
 
 ## Tests und Build
 
-Am 23.09.2026 für den aktuellen Frontend-Stand erfolgreich geprüft:
+Am 24.09.2026 für den aktuellen Frontend-Stand erfolgreich geprüft:
 
-- 251 Frontend-Tests einschließlich Store-Snapshots, Datenstruktur-Anlage, zentraler Stammdateninitialisierung sowie Firmen-, Filial- und Benutzerprofil-Bearbeitung.
+- 272 Frontend-Tests einschließlich PWA-Updatebehandlung, Netzwerkstatus, Store-Snapshots, Datenstruktur-Anlage, zentraler Stammdateninitialisierung sowie Firmen-, Filial- und Benutzerprofil-Bearbeitung.
 - 36 Functions-Tests einschließlich Rollenprüfung, Hierarchievalidierung und sicherer Kontoaktivierung.
 - 24 Firestore-Emulator-Tests für Rollen, neue Hierarchie, Untercollections, eingeschränkte Queries, Office-Aktualisierungen, Profil-Selbstschutz, unveränderliche Profilfelder sowie die Trennung vom Legacy-Zugriff auf `purCustomers`.
-- Frontend-Produktionsbuild erfolgreich. Der Build benötigt in der Codex-Umgebung Zugriff außerhalb der Sandbox, weil der native `esbuild`-Prozess innerhalb der eingeschränkten Umgebung mit Exit-Code 134 beendet wird.
+- Getrennte Office- und Filial-Produktionsbuilds erfolgreich. Der Office-Build enthält keinen Service Worker; der Filial-Build enthält die vollständige PWA-Ausgabe. Der Build benötigt in der Codex-Umgebung Zugriff außerhalb der Sandbox, weil der native `esbuild`-Prozess innerhalb der eingeschränkten Umgebung mit Exit-Code 134 beendet wird.
 
 Der durchgängige Benutzeranlageablauf mit realen Daten wurde am 22.09.2026 für je ein Office- und Filialkonto bestätigt. Die vollständige Hierarchie wurde gespeichert, beide Konten konnten sich anmelden und nur ihre erlaubten Bereiche verwenden; die Systemverwaltungsroute blieb durch die Masterprüfung gesperrt. Am 23.09.2026 wurden zusätzlich die erfolgreiche Aktualisierung einer zugeordneten Firma und Filiale mit einem realen Office-Testkonto sowie die Bearbeitung eines vorhandenen Benutzerprofils mit einem realen Testkonto bestätigt. Die übrigen Schreibgrenzen sind durch die erfolgreichen Firestore-Emulator-Tests abgesichert.
 
