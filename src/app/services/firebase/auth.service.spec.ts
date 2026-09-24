@@ -13,6 +13,7 @@ import {
   SIGN_OUT,
   UPDATE_PASSWORD,
 } from '../../commons/tokens/firebase.tokens';
+import { NetzwerkStatusService } from '../core/netzwerk-status.service';
 import { AuthService } from './auth.service';
 
 describe('AuthService', () => {
@@ -25,6 +26,7 @@ describe('AuthService', () => {
   let emailAuthCredentialMock: ReturnType<typeof vi.fn>;
   let reauthenticateWithCredentialMock: ReturnType<typeof vi.fn>;
   let updatePasswordMock: ReturnType<typeof vi.fn>;
+  let assertOnlineMock: ReturnType<typeof vi.fn>;
 
   beforeEach(() => {
     currentUser = { uid: 'benutzer-123', email: 'test@example.com' } as User;
@@ -40,6 +42,7 @@ describe('AuthService', () => {
     emailAuthCredentialMock = vi.fn().mockReturnValue({ providerId: 'password' });
     reauthenticateWithCredentialMock = vi.fn().mockResolvedValue(undefined);
     updatePasswordMock = vi.fn().mockResolvedValue(undefined);
+    assertOnlineMock = vi.fn();
 
     TestBed.configureTestingModule({
       providers: [
@@ -52,6 +55,7 @@ describe('AuthService', () => {
         { provide: EMAIL_AUTH_CREDENTIAL, useValue: emailAuthCredentialMock },
         { provide: REAUTHENTICATE_WITH_CREDENTIAL, useValue: reauthenticateWithCredentialMock },
         { provide: UPDATE_PASSWORD, useValue: updatePasswordMock },
+        { provide: NetzwerkStatusService, useValue: { assertOnline: assertOnlineMock } },
       ],
     });
   });
@@ -69,6 +73,7 @@ describe('AuthService', () => {
 
     await service.login('test@example.com', 'secret-password');
 
+    expect(assertOnlineMock).toHaveBeenCalledOnce();
     expect(signInMock).toHaveBeenCalledWith(authMock, 'test@example.com', 'secret-password');
   });
 
@@ -85,6 +90,7 @@ describe('AuthService', () => {
 
     await service.sendPasswordResetEmail('test@example.com');
 
+    expect(assertOnlineMock).toHaveBeenCalledOnce();
     expect(sendPasswordResetEmailMock).toHaveBeenCalledWith(authMock, 'test@example.com');
   });
 
@@ -99,6 +105,7 @@ describe('AuthService', () => {
 
     await service.changePassword('altes-passwort', 'neues-passwort');
 
+    expect(assertOnlineMock).toHaveBeenCalledOnce();
     expect(emailAuthCredentialMock).toHaveBeenCalledWith('test@example.com', 'altes-passwort');
     expect(reauthenticateWithCredentialMock).toHaveBeenCalledWith(currentUser, {
       providerId: 'password',
@@ -114,5 +121,21 @@ describe('AuthService', () => {
     const service = TestBed.inject(AuthService);
 
     expect(() => service.getAktuelleBenutzerId()).toThrow('Kein Benutzer angemeldet.');
+  });
+
+  it('should reject connection-dependent auth actions while offline', async () => {
+    const error = Object.assign(new Error('offline'), { code: 'app/offline' });
+    assertOnlineMock.mockImplementation(() => {
+      throw error;
+    });
+    const service = TestBed.inject(AuthService);
+
+    expect(() => service.login('test@example.com', 'secret-password')).toThrow(error);
+    expect(() => service.sendPasswordResetEmail('test@example.com')).toThrow(error);
+    await expect(service.changePassword('altes-passwort', 'neues-passwort')).rejects.toBe(error);
+    expect(signInMock).not.toHaveBeenCalled();
+    expect(sendPasswordResetEmailMock).not.toHaveBeenCalled();
+    expect(reauthenticateWithCredentialMock).not.toHaveBeenCalled();
+    expect(updatePasswordMock).not.toHaveBeenCalled();
   });
 });

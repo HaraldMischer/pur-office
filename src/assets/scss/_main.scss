@@ -1,5 +1,8 @@
 // src/assets/scss/_main.scss
 
+// Fonts
+@use 'base/fonts' as *;
+
 // Theming
 @use 'theming/material-themes' as *;
 

@@ -57,12 +57,19 @@
           <p class="pur-form__error" role="alert">{{ error() }}</p>
         }
 
+        <!-- Netzwerkhinweis -->
+        @if (!isOnline()) {
+          <p class="pur-form__error" role="status">
+            Du bist offline. Die Anmeldung benötigt eine Internetverbindung.
+          </p>
+        }
+
         <!-- Anmeldung -->
         <button
           class="pur-form__submit"
           matButton="filled"
           type="submit"
-          [disabled]="loginForm.invalid || inProgress()"
+          [disabled]="loginForm.invalid || inProgress() || !isOnline()"
         >
           <mat-icon aria-hidden="true">login</mat-icon>
           Anmelden

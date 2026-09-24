@@ -2,7 +2,9 @@
   "name": "pur-office",
   "version": "0.0.0",
   "scripts": {
-    "start-web": "ng serve",
+    "start-web": "npm run web:pur-system",
+    "web:pur-system": "ng serve --configuration development --port 4200",
+    "pwa:pur-system": "ng build --configuration production --output-path dist/pwa-pur-system && serve -s dist/pwa-pur-system/browser -l 8080 -n",
     "deploy-hosting": "printf 'Pur Office deployen? Firebase-Projekt: pur-system | Hosting: pur-office.web.app | Fortfahren? (j/N) '; read -r confirm; if [ \"$confirm\" = \"j\" ]; then npm run build && firebase deploy --project pur-system --only hosting:pur-office; else echo 'Deploy abgebrochen.'; exit 0; fi",
     "deploy-rules": "firebase deploy --only firestore:rules",
     "deploy-functions": "firebase deploy --only functions:pur-office",
@@ -36,6 +38,7 @@
     "@angular/platform-browser": "^20.3.0",
     "@angular/platform-browser-dynamic": "^20.3.31",
     "@angular/router": "^20.3.0",
+    "@angular/service-worker": "^20.3.31",
     "@ngrx/signals": "^20.1.0",
     "firebase": "^12.19.0",
     "rxjs": "~7.8.0",
@@ -50,6 +53,7 @@
     "firebase-tools": "^14.27.0",
     "jsdom": "^27.0.1",
     "prettier": "^3.9.6",
+    "serve": "^14.2.6",
     "typescript": "~5.9.2",
     "vitest": "^3.2.7"
   }

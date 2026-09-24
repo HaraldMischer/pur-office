@@ -5,14 +5,18 @@ import { Functions } from '@angular/fire/functions';
 
 import { IBenutzerAnlage, IBenutzerAnlageErgebnis } from '../../commons/models/domain/benutzer';
 import { HTTPS_CALLABLE } from '../../commons/tokens/firebase.tokens';
+import { NetzwerkStatusService } from '../core/netzwerk-status.service';
 
 @Injectable({ providedIn: 'root' })
 export class BenutzerVerwaltungService {
   private readonly _injector = inject(Injector);
   private readonly _functions = inject(Functions);
   private readonly _httpsCallable = inject(HTTPS_CALLABLE);
+  private readonly _netzwerkStatusService = inject(NetzwerkStatusService);
 
   async createBenutzer(anlage: IBenutzerAnlage): Promise<IBenutzerAnlageErgebnis> {
+    this._netzwerkStatusService.assertOnline();
+
     const result = await runInInjectionContext(this._injector, () => {
       const createBenutzer = this._httpsCallable<IBenutzerAnlage, IBenutzerAnlageErgebnis>(
         this._functions,

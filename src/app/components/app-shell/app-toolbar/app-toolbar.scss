@@ -27,6 +27,68 @@
   flex: 1 1 auto;
 }
 
+.app-toolbar__network-status {
+  flex: 0 0 auto;
+}
+
+.app-toolbar__network-status-content {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 32px;
+  padding: 0 12px;
+  border-radius: 16px;
+  font: var(--mat-sys-label-large);
+
+  &--offline {
+    background: var(--mat-sys-error-container);
+    color: var(--mat-sys-on-error-container);
+  }
+
+  &--online {
+    background: var(--mat-sys-tertiary-container);
+    color: var(--mat-sys-on-tertiary-container);
+  }
+
+  mat-icon {
+    width: 20px;
+    height: 20px;
+    font-size: 20px;
+  }
+}
+
+.app-toolbar__update-status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 36px;
+  padding-inline-start: 12px;
+  border-radius: 18px;
+  background: var(--mat-sys-primary-container);
+  color: var(--mat-sys-on-primary-container);
+  font: var(--mat-sys-label-large);
+
+  &--error {
+    max-width: 520px;
+    padding-inline-end: 12px;
+    background: var(--mat-sys-error-container);
+    color: var(--mat-sys-on-error-container);
+  }
+
+  mat-icon {
+    flex: 0 0 auto;
+    width: 20px;
+    height: 20px;
+    font-size: 20px;
+  }
+}
+
+@media (max-width: 720px) {
+  .app-toolbar__update-status > span {
+    display: none;
+  }
+}
+
 .app-toolbar__progress {
   position: absolute;
   inset-inline: 0;

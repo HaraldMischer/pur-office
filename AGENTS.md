@@ -21,6 +21,7 @@
 
 - Offene Hauptaufgaben werden in `docs/next_todo.md` unter einem fachlichen Todo gebündelt und mit fortlaufenden Unterpunkten wie `4.1`, `4.2` und `4.3` gegliedert.
 - Jeder Todo-Unterpunkt verwendet in dieser Reihenfolge die Bereiche `Ziel`, `Betroffene Dateien`, fachlich benannte und nummerierte Schritte, `Tests und Abschluss` sowie `Erledigt, wenn`.
+- `Betroffene Dateien` unterscheidet vorhandene Dateien unter `Änderungen` von neu anzulegenden Dateien unter `Neu hinzuzufügen`. Bereiche ohne Einträge werden weggelassen.
 - Arbeitsschritte werden als `Schritt 1: ...`, `Schritt 2: ...` und so weiter bezeichnet. Zusammengehörige Aufgaben stehen als Checkliste unter dem jeweiligen Schritt.
 - `Tests und Abschluss` enthält konkrete Prüf-, Build-, Dokumentations- und manuelle Abschlussarbeiten.
 - `Erledigt, wenn` bleibt ein eigener Bereich und beschreibt die fachlich prüfbaren Abnahmekriterien des Todo-Unterpunkts.

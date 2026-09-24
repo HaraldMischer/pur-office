@@ -1,13 +1,16 @@
 // pur-office/src/app/pages/auth/login-page/login-page.spec.ts
 
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
+import { signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { Router, provideRouter } from '@angular/router';
 
+import { NetzwerkStatusService } from '../../../services/core/netzwerk-status.service';
 import { BenutzerStore } from '../../../stores/app/benutzer.store';
 import { LoginPage } from './login-page';
 
 describe('LoginPage', () => {
+  const isOnline = signal(true);
   let benutzerStoreMock: {
     inProgress: ReturnType<typeof vi.fn>;
     error: ReturnType<typeof vi.fn>;
@@ -16,6 +19,7 @@ describe('LoginPage', () => {
   };
 
   beforeEach(async () => {
+    isOnline.set(true);
     benutzerStoreMock = {
       inProgress: vi.fn().mockReturnValue(false),
       error: vi.fn().mockReturnValue(null),
@@ -25,7 +29,11 @@ describe('LoginPage', () => {
 
     await TestBed.configureTestingModule({
       imports: [LoginPage, NoopAnimationsModule],
-      providers: [provideRouter([]), { provide: BenutzerStore, useValue: benutzerStoreMock }],
+      providers: [
+        provideRouter([]),
+        { provide: NetzwerkStatusService, useValue: { isOnline } },
+        { provide: BenutzerStore, useValue: benutzerStoreMock },
+      ],
     }).compileComponents();
   });
 
@@ -82,7 +90,10 @@ describe('LoginPage', () => {
 
     await page.submitLogin();
 
-    expect(benutzerStoreMock.login).toHaveBeenCalledWith('harry-office@pur-software.de', 'secret-password');
+    expect(benutzerStoreMock.login).toHaveBeenCalledWith(
+      'harry-office@pur-software.de',
+      'secret-password',
+    );
     expect(navigateSpy).toHaveBeenCalledWith(['/dashboard']);
   });
 
@@ -97,6 +108,29 @@ describe('LoginPage', () => {
     expect(benutzerStoreMock.login).not.toHaveBeenCalled();
     expect(navigateSpy).not.toHaveBeenCalled();
     expect(page.loginForm.touched).toBe(true);
+  });
+
+  it('should explain and prevent login while offline', async () => {
+    isOnline.set(false);
+    const router = TestBed.inject(Router);
+    const navigateSpy = vi.spyOn(router, 'navigate').mockResolvedValue(true);
+    const fixture = TestBed.createComponent(LoginPage);
+    const page = fixture.componentInstance;
+    page.loginForm.setValue({
+      email: 'test@example.com',
+      password: 'secret-password',
+    });
+    fixture.detectChanges();
+    const compiled = fixture.nativeElement as HTMLElement;
+
+    await page.submitLogin();
+
+    expect(compiled.querySelector('[role="status"]')?.textContent).toContain(
+      'Die Anmeldung benötigt eine Internetverbindung.',
+    );
+    expect(compiled.querySelector<HTMLButtonElement>('[type="submit"]')?.disabled).toBe(true);
+    expect(benutzerStoreMock.login).not.toHaveBeenCalled();
+    expect(navigateSpy).not.toHaveBeenCalled();
   });
 
   it('should render an error message from the store', () => {

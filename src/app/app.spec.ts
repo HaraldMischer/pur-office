@@ -1,11 +1,19 @@
 // pur-office/src/app/app.spec.ts
 
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
+import { Component } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
-import { provideRouter } from '@angular/router';
+import { By } from '@angular/platform-browser';
+import { Router, provideRouter } from '@angular/router';
 
+import { AppToolbar } from './components/app-shell/app-toolbar/app-toolbar';
 import { BenutzerStore } from './stores/app/benutzer.store';
 import { App } from './app';
+
+@Component({
+  template: '',
+})
+class AuthTestPage {}
 
 describe('App', () => {
   let benutzerStoreMock: {
@@ -31,7 +39,16 @@ describe('App', () => {
 
     await TestBed.configureTestingModule({
       imports: [App, NoopAnimationsModule],
-      providers: [provideRouter([]), { provide: BenutzerStore, useValue: benutzerStoreMock }],
+      providers: [
+        provideRouter([
+          {
+            path: 'login',
+            component: AuthTestPage,
+            data: { layout: 'auth' },
+          },
+        ]),
+        { provide: BenutzerStore, useValue: benutzerStoreMock },
+      ],
     }).compileComponents();
   });
 
@@ -56,5 +73,18 @@ describe('App', () => {
     expect(compiled.querySelector('app-toolbar')).toBeTruthy();
     expect(compiled.querySelector('app-sidenav')).toBeTruthy();
     expect(compiled.querySelector('router-outlet')).toBeTruthy();
+  });
+
+  it('should show Pur-System in the toolbar without authentication', async () => {
+    const router = TestBed.inject(Router);
+    const fixture = TestBed.createComponent(App);
+
+    await router.navigateByUrl('/login');
+    fixture.detectChanges();
+
+    const toolbar = fixture.debugElement.query(By.directive(AppToolbar))
+      .componentInstance as AppToolbar;
+
+    expect(toolbar.title()).toBe('Pur-System');
   });
 });

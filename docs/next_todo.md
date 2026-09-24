@@ -25,13 +25,11 @@ weder dauerhaft gespeichert noch für Offline-Schreibvorgänge freigegeben.
 
 #### Betroffene Dateien
 
+Änderungen:
+
 - package.json
 - package-lock.json
 - angular.json
-- ngsw-config.json
-- public/manifest.webmanifest
-- public/icons/
-- public/fonts/
 - src/index.html
 - src/styles.scss
 - src/app/app.config.ts
@@ -39,44 +37,60 @@ weder dauerhaft gespeichert noch für Offline-Schreibvorgänge freigegeben.
 - src/app/app.html
 - src/app/app.spec.ts
 - src/app/components/app-shell/app-toolbar/
-- src/app/services/core/netzwerk-status.service.ts
-- src/app/services/core/pwa-update.service.ts
+- src/app/commons/utils/errors/firebase-error-message.ts
+- src/app/commons/utils/errors/firebase-error-message.spec.ts
+- src/app/services/firebase/auth.service.ts
+- src/app/services/firebase/auth.service.spec.ts
+- src/app/services/firebase/benutzer-verwaltung.service.ts
+- src/app/services/firebase/benutzer-verwaltung.service.spec.ts
+- src/app/services/firebase/firestore-db.service.ts
+- src/app/services/firebase/firestore-db.service.spec.ts
 - firebase.json
 - docs/projekt-stand.md
 
+Neu hinzuzufügen:
+
+- ngsw-config.json
+- public/manifest.webmanifest
+- public/icons/
+- public/fonts/
+- src/app/services/core/netzwerk-status.service.ts
+- src/app/services/core/pwa-update.service.ts
+- src/app/services/core/pwa-update.service.spec.ts
+
 #### Schritt 1: PWA-Grundlage einrichten
 
-- [ ] Angular Service Worker als Projekt-Dependency ergänzen und ausschließlich für geeignete Produktions-Builds registrieren.
-- [ ] Service-Worker-Unterstützung in der Angular-Buildkonfiguration aktivieren.
-- [ ] `ngsw-config.json` für App-Shell, lazy geladene Anwendungsteile und statische Ressourcen anlegen.
-- [ ] Web-App-Manifest mit Name, Kurzname, Start-URL, Darstellungsmodus, Theme-Farben und geeigneten Icons anlegen.
-- [ ] Manifest, Theme-Farbe und PWA-Metadaten in `index.html` einbinden.
-- [ ] Installation und normaler Webbetrieb bei fehlender Service-Worker-Unterstützung voneinander unabhängig halten.
+- [x] Angular Service Worker als Projekt-Dependency ergänzen und ausschließlich für geeignete Produktions-Builds registrieren.
+- [x] Service-Worker-Unterstützung in der Angular-Buildkonfiguration aktivieren.
+- [x] `ngsw-config.json` für App-Shell, lazy geladene Anwendungsteile und statische Ressourcen anlegen.
+- [x] Web-App-Manifest mit Name, Kurzname, Start-URL, Darstellungsmodus, Theme-Farben und geeigneten Icons anlegen.
+- [x] Manifest, Theme-Farbe und PWA-Metadaten in `index.html` einbinden.
+- [x] Installation und normaler Webbetrieb bei fehlender Service-Worker-Unterstützung voneinander unabhängig halten.
 
 #### Schritt 2: App-Shell vollständig offline bereitstellen
 
-- [ ] Alle zum Start erforderlichen eigenen Ressourcen durch den Service Worker vorhalten.
-- [ ] Roboto-Schriften und Material Icons nicht mehr zur Laufzeit von Google laden, sondern als lokale statische Ressourcen ausliefern.
-- [ ] Sicherstellen, dass Loginseite, App-Shell und bereits geladene lazy Routen nach einem erfolgreichen Online-Aufruf ohne Netzwerk erneut geöffnet werden können.
-- [ ] Firebase-, Firestore- und Functions-Anfragen nicht als statische Anwendungsressourcen im Angular Service Worker zwischenspeichern.
-- [ ] Einen verständlichen Zustand anzeigen, wenn die App-Shell verfügbar ist, für die angeforderte Funktion aber eine Netzwerkverbindung benötigt wird.
+- [x] Alle zum Start erforderlichen eigenen Ressourcen durch den Service Worker vorhalten.
+- [x] Roboto-Schriften und Material Icons nicht mehr zur Laufzeit von Google laden, sondern als lokale statische Ressourcen ausliefern.
+- [x] Sicherstellen, dass Loginseite, App-Shell und bereits geladene lazy Routen nach einem erfolgreichen Online-Aufruf ohne Netzwerk erneut geöffnet werden können.
+- [x] Firebase-, Firestore- und Functions-Anfragen nicht als statische Anwendungsressourcen im Angular Service Worker zwischenspeichern.
+- [x] Einen verständlichen Zustand anzeigen, wenn die App-Shell verfügbar ist, für die angeforderte Funktion aber eine Netzwerkverbindung benötigt wird.
 
 #### Schritt 3: Netzwerkzustand darstellen
 
-- [ ] Zentralen Service für den initialen Netzwerkzustand sowie `online`- und `offline`-Ereignisse anlegen.
-- [ ] Den Netzwerkzustand in der App-Shell sichtbar und barrierearm darstellen.
-- [ ] Netzwerkstatus nur als Hinweis verwenden; fehlgeschlagene Serverzugriffe weiterhin anhand ihres tatsächlichen Ergebnisses behandeln.
-- [ ] Aktionen, die zwingend Firebase Auth, Firestore oder Cloud Functions benötigen, offline verständlich sperren oder kontrolliert fehlschlagen lassen.
-- [ ] Rückkehr der Netzwerkverbindung anzeigen, ohne laufende Formulare oder Navigation ungefragt zurückzusetzen.
+- [x] Zentralen Service für den initialen Netzwerkzustand sowie `online`- und `offline`-Ereignisse anlegen.
+- [x] Den Netzwerkzustand in der App-Shell sichtbar und barrierearm darstellen.
+- [x] Netzwerkstatus nur als Hinweis verwenden; fehlgeschlagene Serverzugriffe weiterhin anhand ihres tatsächlichen Ergebnisses behandeln.
+- [x] Aktionen, die zwingend Firebase Auth, Firestore oder Cloud Functions benötigen, offline verständlich sperren oder kontrolliert fehlschlagen lassen.
+- [x] Rückkehr der Netzwerkverbindung anzeigen, ohne laufende Formulare oder Navigation ungefragt zurückzusetzen.
 
 #### Schritt 4: Anwendungsupdates kontrolliert übernehmen
 
-- [ ] Verfügbarkeit und Fehlerzustände des Angular Service Workers über `SwUpdate` behandeln.
-- [ ] Eine vollständig heruntergeladene neue Anwendungsversion in der App-Shell anzeigen.
-- [ ] Den Benutzer vor dem Wechsel der Anwendungsversion bestätigen lassen und anschließend die Seite vollständig neu laden.
-- [ ] Keine laufende Bearbeitung durch einen automatischen Reload unterbrechen.
-- [ ] Kritische Service-Worker-Fehler und nicht wiederherstellbare Versionszustände verständlich behandeln.
-- [ ] Auf Browsern ohne Service-Worker-Unterstützung keine Update-Aufrufe ausführen und keine Fehler im normalen Webbetrieb erzeugen.
+- [x] Verfügbarkeit und Fehlerzustände des Angular Service Workers über `SwUpdate` behandeln.
+- [x] Eine vollständig heruntergeladene neue Anwendungsversion in der App-Shell anzeigen.
+- [x] Den Benutzer vor dem Wechsel der Anwendungsversion bestätigen lassen und anschließend die Seite vollständig neu laden.
+- [x] Keine laufende Bearbeitung durch einen automatischen Reload unterbrechen.
+- [x] Kritische Service-Worker-Fehler und nicht wiederherstellbare Versionszustände verständlich behandeln.
+- [x] Auf Browsern ohne Service-Worker-Unterstützung keine Update-Aufrufe ausführen und keine Fehler im normalen Webbetrieb erzeugen.
 
 #### Schritt 5: Hosting und Auslieferung absichern
 
@@ -87,11 +101,11 @@ weder dauerhaft gespeichert noch für Offline-Schreibvorgänge freigegeben.
 
 #### Tests und Abschluss
 
-- [ ] Unit-Tests für Netzwerkstatus, Update-Erkennung, Update-Bestätigung und fehlende Service-Worker-Unterstützung ergänzen.
-- [ ] Produktions-Build erzeugen und prüfen, dass Manifest, `ngsw.json`, Service Worker, Icons und lokale Schriften enthalten sind.
+- [x] Unit-Tests für Netzwerkstatus, Update-Erkennung, Update-Bestätigung und fehlende Service-Worker-Unterstützung ergänzen.
+- [x] Produktions-Build erzeugen und prüfen, dass Manifest, `ngsw.json`, Service Worker, Icons und lokale Schriften enthalten sind.
 - [ ] Installierbarkeit auf mindestens einem unterstützten Desktop-Browser und einem unterstützten Mobilgerät beziehungsweise einer realistischen Mobilgeräte-Simulation prüfen.
 - [ ] App-Shell nach einem ersten Online-Aufruf bei deaktiviertem Netzwerk neu laden und manuell prüfen.
-- [ ] Update-Ablauf mit zwei aufeinanderfolgenden Produktions-Builds prüfen.
+- [x] Update-Ablauf mit zwei aufeinanderfolgenden Produktions-Builds prüfen.
 - [ ] Normalen Webbetrieb ohne aktive Service-Worker-Unterstützung prüfen.
 - [ ] `projekt-stand.md` nach Abschluss aktualisieren.
 - [ ] `npm test` und `npm run build` erfolgreich ausführen.
@@ -128,6 +142,8 @@ und eine dauerhafte Firestore-Persistenz deaktiviert. Offline-Schreibvorgänge s
 nicht Bestandteil dieses Todo-Unterpunkts.
 
 #### Betroffene Dateien
+
+Änderungen:
 
 - src/app/app.config.ts
 - src/app/commons/models/app/
@@ -219,6 +235,8 @@ Synchronisationsverhalten und Konfliktauflösung vollständig geklärt und getes
 sind.
 
 #### Betroffene Dateien
+
+Änderungen:
 
 - src/app/commons/models/domain/
 - src/app/services/firebase/firestore-db.service.ts

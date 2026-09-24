@@ -15,6 +15,12 @@ describe('getFirebaseErrorMessage', () => {
     expect(message).toBe('Du hast keine Berechtigung für diese Aktion.');
   });
 
+  it('should return a friendly message for an offline action', () => {
+    const message = getFirebaseErrorMessage({ code: 'app/offline' });
+
+    expect(message).toBe('Diese Aktion benötigt eine Internetverbindung.');
+  });
+
   it('should return the fallback message for unknown errors', () => {
     const message = getFirebaseErrorMessage({ code: 'unknown-error' });
 

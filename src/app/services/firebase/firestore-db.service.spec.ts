@@ -13,6 +13,7 @@ import {
   FIRESTORE_SET_DOC,
 } from '../../commons/tokens/firebase.tokens';
 import { LoadingService } from '../core/loading.service';
+import { NetzwerkStatusService } from '../core/netzwerk-status.service';
 import { FirestoreDbService } from './firestore-db.service';
 
 describe('FirestoreDbService', () => {
@@ -27,6 +28,7 @@ describe('FirestoreDbService', () => {
   const trackLoadMock = vi.fn(async <T>(aktion: () => Promise<T>): Promise<T> => {
     return aktion();
   });
+  const assertOnlineMock = vi.fn();
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -47,6 +49,7 @@ describe('FirestoreDbService', () => {
         { provide: FIRESTORE_SERVER_TIMESTAMP, useValue: serverTimestampMock },
         { provide: FIRESTORE_SET_DOC, useValue: setDocMock },
         { provide: LoadingService, useValue: { trackLoad: trackLoadMock } },
+        { provide: NetzwerkStatusService, useValue: { assertOnline: assertOnlineMock } },
       ],
     });
   });
@@ -139,6 +142,7 @@ describe('FirestoreDbService', () => {
     const service = TestBed.inject(FirestoreDbService);
 
     await expect(service.createDocument('unternehmer', { aktiv: true })).resolves.toBe('neu-123');
+    expect(assertOnlineMock).toHaveBeenCalledOnce();
     expect(addDocMock).toHaveBeenCalledWith('collection-ref', { aktiv: true });
   });
 
@@ -147,7 +151,23 @@ describe('FirestoreDbService', () => {
 
     await service.updateDocument('unternehmer/dokument-1', { aktiv: false });
 
+    expect(assertOnlineMock).toHaveBeenCalledOnce();
     expect(setDocMock).toHaveBeenCalledWith('document-ref', { aktiv: false }, { merge: true });
+  });
+
+  it('should reject writes before accessing Firestore while offline', async () => {
+    const error = { code: 'app/offline' };
+    assertOnlineMock.mockImplementation(() => {
+      throw error;
+    });
+    const service = TestBed.inject(FirestoreDbService);
+
+    await expect(service.createDocument('unternehmer', { aktiv: true })).rejects.toBe(error);
+    await expect(service.updateDocument('unternehmer/dokument-1', { aktiv: false })).rejects.toBe(
+      error,
+    );
+    expect(addDocMock).not.toHaveBeenCalled();
+    expect(setDocMock).not.toHaveBeenCalled();
   });
 
   it('should create a server timestamp', () => {

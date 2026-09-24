@@ -22,6 +22,43 @@
   </span>
   <span class="app-toolbar__spacer" aria-hidden="true"></span>
 
+  <!-- Netzwerkstatus -->
+  <span class="app-toolbar__network-status" aria-live="polite" aria-atomic="true">
+    @if (!isOnline()) {
+      <span
+        class="app-toolbar__network-status-content app-toolbar__network-status-content--offline"
+      >
+        <mat-icon aria-hidden="true">cloud_off</mat-icon>
+        Offline
+      </span>
+    } @else if (wiederOnline()) {
+      <span class="app-toolbar__network-status-content app-toolbar__network-status-content--online">
+        <mat-icon aria-hidden="true">cloud_done</mat-icon>
+        Wieder online
+      </span>
+    }
+  </span>
+
+  <!-- Anwendungsupdate -->
+  @if (neuladenErforderlich()) {
+    <span class="app-toolbar__update-status app-toolbar__update-status--error" role="alert">
+      <mat-icon aria-hidden="true">warning</mat-icon>
+      <span>{{ updateFehler() }}</span>
+      <button matButton type="button" (click)="reloadForUpdate()">Neu laden</button>
+    </span>
+  } @else if (updateVerfuegbar()) {
+    <span class="app-toolbar__update-status" role="status">
+      <mat-icon aria-hidden="true">system_update</mat-icon>
+      <span>Neue Version verfügbar</span>
+      <button matButton type="button" (click)="reloadForUpdate()">Jetzt aktualisieren</button>
+    </span>
+  } @else if (updateFehler()) {
+    <span class="app-toolbar__update-status app-toolbar__update-status--error" role="alert">
+      <mat-icon aria-hidden="true">warning</mat-icon>
+      <span>{{ updateFehler() }}</span>
+    </span>
+  }
+
   <!-- Entwicklungshilfen -->
   @if (isDevelopmentMode && isAuthenticated()) {
     <button

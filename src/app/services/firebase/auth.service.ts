@@ -13,6 +13,7 @@ import {
   SIGN_OUT,
   UPDATE_PASSWORD,
 } from '../../commons/tokens/firebase.tokens';
+import { NetzwerkStatusService } from '../core/netzwerk-status.service';
 
 @Injectable({
   providedIn: 'root',
@@ -27,12 +28,15 @@ export class AuthService {
   private readonly _emailAuthCredential = inject(EMAIL_AUTH_CREDENTIAL);
   private readonly _reauthenticateWithCredential = inject(REAUTHENTICATE_WITH_CREDENTIAL);
   private readonly _updatePassword = inject(UPDATE_PASSWORD);
+  private readonly _netzwerkStatusService = inject(NetzwerkStatusService);
 
   getAuthState(): Observable<User | null> {
     return runInInjectionContext(this._injector, () => this._authState(this._auth));
   }
 
   login(email: string, password: string): Promise<UserCredential> {
+    this._netzwerkStatusService.assertOnline();
+
     return runInInjectionContext(this._injector, () =>
       this._signInWithEmailAndPassword(this._auth, email, password),
     );
@@ -43,12 +47,16 @@ export class AuthService {
   }
 
   sendPasswordResetEmail(email: string): Promise<void> {
+    this._netzwerkStatusService.assertOnline();
+
     return runInInjectionContext(this._injector, () =>
       this._sendPasswordResetEmail(this._auth, email),
     );
   }
 
   async changePassword(aktuellesPasswort: string, neuesPasswort: string): Promise<void> {
+    this._netzwerkStatusService.assertOnline();
+
     const benutzer = this._auth.currentUser;
     const email = benutzer?.email;
 

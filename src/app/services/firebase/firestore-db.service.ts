@@ -13,6 +13,7 @@ import {
   FIRESTORE_SET_DOC,
 } from '../../commons/tokens/firebase.tokens';
 import { LoadingService } from '../core/loading.service';
+import { NetzwerkStatusService } from '../core/netzwerk-status.service';
 
 export interface IFirestoreDokument<T extends DocumentData> {
   id: string;
@@ -31,6 +32,7 @@ export class FirestoreDbService {
   private readonly getDoc = inject(FIRESTORE_GET_DOC);
   private readonly getDocs = inject(FIRESTORE_GET_DOCS);
   private readonly loadingService = inject(LoadingService);
+  private readonly netzwerkStatusService = inject(NetzwerkStatusService);
   private readonly serverTimestamp = inject(FIRESTORE_SERVER_TIMESTAMP);
   private readonly setDoc = inject(FIRESTORE_SET_DOC);
 
@@ -103,6 +105,8 @@ export class FirestoreDbService {
    * @throws Gibt Fehler des Firestore-Zugriffs an die aufrufende Stelle weiter.
    */
   async createDocument<T extends DocumentData>(collectionPath: string, daten: T): Promise<string> {
+    this.netzwerkStatusService.assertOnline();
+
     const dokumentRef = await this.runInContext(() => {
       const collectionRef = this.collection(this.firestore, collectionPath);
       return this.addDoc(collectionRef, daten);
@@ -120,6 +124,8 @@ export class FirestoreDbService {
    * @throws Gibt Fehler des Firestore-Zugriffs an die aufrufende Stelle weiter.
    */
   async updateDocument<T extends DocumentData>(documentPath: string, daten: T): Promise<void> {
+    this.netzwerkStatusService.assertOnline();
+
     await this.runInContext(() => {
       const documentRef = this.doc(this.firestore, documentPath);
       return this.setDoc(documentRef, daten, { merge: true });

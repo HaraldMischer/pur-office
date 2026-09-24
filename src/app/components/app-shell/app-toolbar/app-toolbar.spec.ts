@@ -4,6 +4,8 @@ import { signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { Router, provideRouter } from '@angular/router';
 import { LoadingService } from '../../../services/core/loading.service';
+import { NetzwerkStatusService } from '../../../services/core/netzwerk-status.service';
+import { PwaUpdateService } from '../../../services/core/pwa-update.service';
 import { StoreSnapshotService } from '../../../services/core/store-snapshot.service';
 import { ThemeService } from '../../../services/core/theme.service';
 import { BenutzerStore } from '../../../stores/app/benutzer.store';
@@ -21,6 +23,12 @@ describe('AppToolbar', () => {
     logStoreSnapshots: ReturnType<typeof vi.fn>;
   };
   const isLoading = signal(false);
+  const isOnline = signal(true);
+  const wiederOnline = signal(false);
+  const updateVerfuegbar = signal(false);
+  const updateFehler = signal<string | null>(null);
+  const neuladenErforderlich = signal(false);
+  const reloadAppMock = vi.fn();
 
   beforeEach(async () => {
     benutzerStoreMock = {
@@ -34,6 +42,12 @@ describe('AppToolbar', () => {
       logStoreSnapshots: vi.fn(),
     };
     isLoading.set(false);
+    isOnline.set(true);
+    wiederOnline.set(false);
+    updateVerfuegbar.set(false);
+    updateFehler.set(null);
+    neuladenErforderlich.set(false);
+    reloadAppMock.mockReset();
 
     await TestBed.configureTestingModule({
       imports: [AppToolbar],
@@ -41,6 +55,16 @@ describe('AppToolbar', () => {
         provideRouter([]),
         { provide: BenutzerStore, useValue: benutzerStoreMock },
         { provide: LoadingService, useValue: { isLoading } },
+        { provide: NetzwerkStatusService, useValue: { isOnline, wiederOnline } },
+        {
+          provide: PwaUpdateService,
+          useValue: {
+            updateVerfuegbar,
+            updateFehler,
+            neuladenErforderlich,
+            reloadApp: reloadAppMock,
+          },
+        },
         { provide: StoreSnapshotService, useValue: storeSnapshotServiceMock },
         { provide: ThemeService, useValue: themeServiceMock },
       ],
@@ -85,6 +109,55 @@ describe('AppToolbar', () => {
     themeButton?.click();
 
     expect(themeServiceMock.toggleThemeMode).toHaveBeenCalledOnce();
+  });
+
+  it('should show the offline network state accessibly', () => {
+    isOnline.set(false);
+    const fixture = TestBed.createComponent(AppToolbar);
+    fixture.detectChanges();
+    const status = fixture.nativeElement.querySelector('.app-toolbar__network-status');
+
+    expect(status?.textContent).toContain('Offline');
+    expect(status?.getAttribute('aria-live')).toBe('polite');
+  });
+
+  it('should show when the network connection is restored', () => {
+    wiederOnline.set(true);
+    const fixture = TestBed.createComponent(AppToolbar);
+    fixture.detectChanges();
+
+    expect(
+      fixture.nativeElement.querySelector('.app-toolbar__network-status')?.textContent,
+    ).toContain('Wieder online');
+  });
+
+  it('should offer a fully downloaded application update without reloading automatically', () => {
+    updateVerfuegbar.set(true);
+    const fixture = TestBed.createComponent(AppToolbar);
+    fixture.detectChanges();
+    const compiled = fixture.nativeElement as HTMLElement;
+    const updateStatus = compiled.querySelector('.app-toolbar__update-status');
+
+    expect(updateStatus?.textContent).toContain('Neue Version verfügbar');
+    expect(reloadAppMock).not.toHaveBeenCalled();
+
+    updateStatus?.querySelector<HTMLButtonElement>('button')?.click();
+    expect(reloadAppMock).toHaveBeenCalledOnce();
+  });
+
+  it('should explain an unrecoverable application state and offer a reload', () => {
+    neuladenErforderlich.set(true);
+    updateFehler.set('Die gespeicherte App-Version kann nicht weiterverwendet werden.');
+    const fixture = TestBed.createComponent(AppToolbar);
+    fixture.detectChanges();
+    const compiled = fixture.nativeElement as HTMLElement;
+    const updateStatus = compiled.querySelector('.app-toolbar__update-status');
+
+    expect(updateStatus?.getAttribute('role')).toBe('alert');
+    expect(updateStatus?.textContent).toContain(
+      'Die gespeicherte App-Version kann nicht weiterverwendet werden.',
+    );
+    expect(updateStatus?.textContent).toContain('Neu laden');
   });
 
   it('should render the menu icon when the sidenav is closed', () => {

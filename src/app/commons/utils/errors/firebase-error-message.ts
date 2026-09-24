@@ -5,6 +5,7 @@ import { IFirebaseErrorLike } from '../../models/app/firebase-error.types';
 const FALLBACK_ERROR_MESSAGE = 'Die Aktion konnte nicht ausgeführt werden.';
 
 const FIREBASE_ERROR_MESSAGES: Record<string, string> = {
+  'app/offline': 'Diese Aktion benötigt eine Internetverbindung.',
   unavailable: 'Die Daten sind gerade nicht erreichbar. Bitte versuche es erneut.',
   'auth/invalid-credential': 'E-Mail-Adresse oder Passwort ist nicht korrekt.',
   'auth/invalid-email': 'Bitte gib eine gültige E-Mail-Adresse ein.',

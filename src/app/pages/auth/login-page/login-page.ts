@@ -1,12 +1,7 @@
 // pur-office/src/app/pages/auth/login-page/login-page.ts
 
 import { ChangeDetectionStrategy, Component, effect, inject, isDevMode } from '@angular/core';
-import {
-  FormControl,
-  FormGroup,
-  ReactiveFormsModule,
-  Validators,
-} from '@angular/forms';
+import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -14,6 +9,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { Router } from '@angular/router';
 
+import { NetzwerkStatusService } from '../../../services/core/netzwerk-status.service';
 import { BenutzerStore } from '../../../stores/app/benutzer.store';
 
 type LoginForm = {
@@ -37,9 +33,11 @@ type LoginForm = {
 })
 export class LoginPage {
   private readonly _benutzerStore = inject(BenutzerStore);
+  private readonly _netzwerkStatusService = inject(NetzwerkStatusService);
   private readonly _router = inject(Router);
 
   readonly inProgress = this._benutzerStore.inProgress;
+  readonly isOnline = this._netzwerkStatusService.isOnline;
   readonly error = this._benutzerStore.error;
   readonly isDevelopmentMode = isDevMode();
   readonly loginForm = new FormGroup<LoginForm>({
@@ -62,6 +60,10 @@ export class LoginPage {
   }
 
   async submitLogin(): Promise<void> {
+    if (!this.isOnline()) {
+      return;
+    }
+
     const emailControl = this.loginForm.controls.email;
     const normalisierteEmail = emailControl.getRawValue().trim();
     emailControl.setValue(normalisierteEmail);

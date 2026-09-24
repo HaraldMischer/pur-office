@@ -6,6 +6,7 @@ import { Functions } from '@angular/fire/functions';
 
 import { IBenutzerAnlage } from '../../commons/models/domain/benutzer';
 import { HTTPS_CALLABLE } from '../../commons/tokens/firebase.tokens';
+import { NetzwerkStatusService } from '../core/netzwerk-status.service';
 import { BenutzerVerwaltungService } from './benutzer-verwaltung.service';
 
 describe('BenutzerVerwaltungService', () => {
@@ -20,6 +21,7 @@ describe('BenutzerVerwaltungService', () => {
   };
   let callableMock: ReturnType<typeof vi.fn>;
   let httpsCallableMock: ReturnType<typeof vi.fn>;
+  let assertOnlineMock: ReturnType<typeof vi.fn>;
 
   beforeEach(() => {
     callableMock = vi.fn().mockImplementation(() => {
@@ -37,11 +39,13 @@ describe('BenutzerVerwaltungService', () => {
 
       return callableMock;
     });
+    assertOnlineMock = vi.fn();
     TestBed.configureTestingModule({
       providers: [
         BenutzerVerwaltungService,
         { provide: Functions, useValue: functionsMock },
         { provide: HTTPS_CALLABLE, useValue: httpsCallableMock },
+        { provide: NetzwerkStatusService, useValue: { assertOnline: assertOnlineMock } },
       ],
     });
   });
@@ -53,6 +57,7 @@ describe('BenutzerVerwaltungService', () => {
       uid: 'neu-123',
       email: anlage.email,
     });
+    expect(assertOnlineMock).toHaveBeenCalledOnce();
     expect(httpsCallableMock).toHaveBeenCalledWith(functionsMock, 'createBenutzer');
     expect(callableMock).toHaveBeenCalledWith(anlage);
   });
@@ -63,5 +68,17 @@ describe('BenutzerVerwaltungService', () => {
     const service = TestBed.inject(BenutzerVerwaltungService);
 
     await expect(service.createBenutzer(anlage)).rejects.toBe(error);
+  });
+
+  it('should reject user creation before calling the function while offline', async () => {
+    const error = { code: 'app/offline' };
+    assertOnlineMock.mockImplementation(() => {
+      throw error;
+    });
+    const service = TestBed.inject(BenutzerVerwaltungService);
+
+    await expect(service.createBenutzer(anlage)).rejects.toBe(error);
+    expect(httpsCallableMock).not.toHaveBeenCalled();
+    expect(callableMock).not.toHaveBeenCalled();
   });
 });
