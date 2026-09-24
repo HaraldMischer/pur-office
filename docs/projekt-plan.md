@@ -12,6 +12,7 @@ Pur Office ist eine Angular-Anwendung zur Darstellung von Office- und Organisati
 - Die Systemverwaltung bündelt administrative Vorgänge des Masters. Die Verwaltung erlaubt Office und Master das Aktualisieren bestehender Firmen- und Filialdaten innerhalb der Firestore Rules. Sicherheitskritische Auth-Vorgänge laufen über ein geschütztes Backend.
 - Fachliche Bereiche werden klar getrennt.
 - UI und Datenzugriff werden über Components, Stores und Services getrennt.
+- Pur Office wird als installierbare Progressive Web App bereitgestellt. Ohne Service-Worker- oder Installationsunterstützung bleibt die Anwendung vollständig als normale Webanwendung nutzbar.
 
 ## Architektur
 
@@ -32,7 +33,41 @@ Pur Office ist eine Angular-Anwendung zur Darstellung von Office- und Organisati
 - Firestore-Collection- und Dokumentpfade werden zentral erzeugt und nicht in fachlichen Services zusammengesetzt.
 - Der bevorzugte Datenfluss ist `Component -> Store -> fachlicher Service -> FirestoreDbService -> Firebase/Firestore`.
 - Der app-weite `StammdatenStore` lädt nach dem Benutzerprofil einmalig die für die Sitzung erlaubten Unternehmer, Firmen und Filialen. Für Master werden zusätzlich alle Benutzerprofile geladen. Feature-Stores verwenden diesen Sitzungsbestand und lösen bei Routenwechseln keine erneuten Stammdatenabfragen aus.
-- Offline-Strategien und Synchronisationsstatus werden erst ergänzt, wenn die Datenmanagement- und PWA-Strategie festgelegt ist.
+- Dauerhafte lokale Speicherung, Synchronisationsstatus und Offline-Schreibvorgänge werden pro Datenart ausdrücklich festgelegt und über die zentrale Datenzugriffsschicht gekapselt.
+
+## PWA- und Offline-Strategie
+
+Pur Office wird als Progressive Web App installierbar. Der Angular Service Worker
+stellt nach dem ersten erfolgreichen Laden die App-Shell und die zum Start
+erforderlichen statischen Ressourcen offline bereit. Installation und
+Service-Worker-Unterstützung bleiben optionale Erweiterungen; ohne sie ist Pur
+Office weiterhin als normale Webanwendung nutzbar.
+
+Neue Anwendungsversionen werden im Hintergrund erkannt. Die Anwendung informiert
+den Benutzer über verfügbare Updates und ermöglicht einen kontrollierten Wechsel
+auf die neue Version. Der aktuelle Netzwerkzustand und Funktionen, die eine
+Verbindung benötigen, werden in der App-Shell verständlich dargestellt.
+
+Der Service Worker ist ausschließlich für die Anwendungsversion und statische
+Ressourcen zuständig. Er macht geschützte Firestore-Daten nicht automatisch
+offline verfügbar.
+
+Die fachliche Offline-Nutzung wird getrennt und stufenweise umgesetzt. Zunächst
+können bereits erfolgreich geladene und ausdrücklich freigegebene Daten nach
+einer Sicherheitsentscheidung lokal für einen lesenden Offline-Betrieb
+bereitgestellt werden. Noch nicht lokal vorhandene Daten bleiben offline als
+nicht verfügbar erkennbar.
+
+Offline-Schreibvorgänge werden nur für ausdrücklich ausgewählte Datenarten und
+Aktionen freigegeben. Ausstehende Änderungen erhalten einen sichtbaren
+Synchronisationsstatus und werden nach Wiederherstellung der Verbindung
+kontrolliert übertragen. Für parallele Änderungen, abgewiesene Schreibvorgänge,
+entzogene Berechtigungen und nicht mehr vorhandene Zieldokumente werden
+fachliche Konfliktregeln festgelegt.
+
+Lokal gespeicherte Daten werden nach Benutzerkonten getrennt behandelt.
+Benutzerwechsel, Abmeldung und gemeinsam genutzte Geräte dürfen keinen Zugriff
+auf Daten eines anderen Benutzerkontos ermöglichen.
 
 ## Auth und Berechtigungen
 
@@ -55,6 +90,13 @@ Welche App-Bereiche und welche Datenräume der Benutzer lesen darf, wird über `
 Die App speichert keine direkten Firestore-Pfade als Berechtigung, sondern fachliche Berechtigungen. Daraus werden Navigation, Route Guards und Firestore-Abfragen abgeleitet.
 
 Die Firestore Rules erlauben aktiven Mastern das Lesen aller Collections samt Untercollections. Fachliche Daten dürfen sie vollständig schreiben; vorhandene Benutzerprofile dürfen sie nur in den ausdrücklich freigegebenen Feldern aktualisieren. Benutzerrolle, E-Mail-Adresse und Auth-Daten bleiben dabei unveränderlich. Office und Filiale lesen Geschäftsdaten direkt anhand der verschachtelten `zugriffe`-Map und weiterhin ihr eigenes Profil. Aktive Office-Konten dürfen ihre zugeordneten Firmen- und Filialdokumente aktualisieren, aber weder Firmen oder Filialen anlegen oder löschen noch Filial-Untercollections beschreiben. Filialkonten bleiben vorerst rein lesend. Ein separater Zugriffsindex wird nicht gespeichert. Bestätigte Altanwendungskonten ohne `benutzerprofil`-Dokument behalten ihren bisherigen Zugriff außerhalb von `benutzerprofil` und `unternehmer`. Clientseitige Guards ersetzen die Rules nicht.
+
+Lokal zwischengespeicherte Berechtigungen und Daten bilden ausschließlich den
+zuletzt erfolgreich bestätigten Stand ab. Sie gewähren keine neuen Rechte. Nach
+Wiederherstellung der Verbindung entscheiden weiterhin die aktuellen Firestore
+Rules über jeden Serverzugriff. Zwischenzeitlich entzogene Rechte, deaktivierte
+Konten und serverseitig abgewiesene Offline-Änderungen müssen von der Anwendung
+erkannt und nachvollziehbar behandelt werden.
 
 Eine Selbstregistrierung ist nicht vorgesehen. Benutzerzugänge werden im Zielablauf im Bereich `systemverwaltung` von einem `master` vorkonfiguriert. Die Angular-App ruft dafür eine geschützte Firebase Cloud Function auf. Die Function prüft die Rolle des aufrufenden Benutzers serverseitig, legt mit dem Firebase Admin SDK den Auth-Benutzer und anschließend das Dokument `benutzerprofil/{uid}` an. Der angemeldete `master` bleibt dabei eingeloggt.
 

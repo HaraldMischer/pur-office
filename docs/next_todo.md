@@ -2,7 +2,53 @@
 
 # Offene Todos
 
-Derzeit sind keine Hauptaufgaben offen.
+## 6. Todo: PWA und Offline-Fähigkeit
+
+### 6.1 PWA-Grundlage und technischer Offline-Start
+
+#### Ziel
+
+Pur Office wird als Progressive Web App installierbar und kann auf unterstützten
+Desktop- und Mobilgeräten wie eine eigenständige Anwendung gestartet werden. Die
+App-Shell und die für den Start erforderlichen statischen Ressourcen stehen nach
+dem ersten erfolgreichen Laden auch ohne Netzwerkverbindung zur Verfügung.
+
+Neue Anwendungsversionen werden kontrolliert erkannt und übernommen. Die
+Oberfläche informiert verständlich über den Netzwerkzustand, verfügbare Updates
+und Funktionen, die aktuell eine Verbindung benötigen. Ohne Service-Worker- oder
+Installationsunterstützung bleibt Pur Office weiterhin als normale Webanwendung
+nutzbar.
+
+### 6.2 Fachliche Offline-Nutzung und Synchronisation
+
+#### Ziel
+
+Für fachliche Firestore-Daten wird eine abgestufte Offline- und
+Synchronisationsstrategie festgelegt. Die installierbare PWA führt nicht
+automatisch zu einer dauerhaften lokalen Datenspeicherung oder zu ungeprüften
+fachlichen Offline-Schreibzugriffen.
+
+Bereits erfolgreich geladene und für den angemeldeten Benutzer freigegebene
+Firestore-Daten können nach einer bewussten Sicherheitsentscheidung dauerhaft
+lokal gespeichert und bei einem späteren Anwendungsstart ohne Netzwerkverbindung
+lesend verwendet werden. Noch nicht lokal vorhandene Daten bleiben offline als
+nicht verfügbar erkennbar. Benutzerwechsel, Abmeldung und gemeinsam genutzte
+Geräte dürfen nicht dazu führen, dass ein Benutzer auf zwischengespeicherte Daten
+eines anderen Benutzerkontos zugreifen kann.
+
+Aufbauend auf dem lesenden Offline-Betrieb kann für ausdrücklich ausgewählte
+fachliche Funktionen eine Offline-Bearbeitung ergänzt werden. Lokal vorgenommene
+Änderungen werden eindeutig als noch nicht synchronisiert angezeigt und nach
+Wiederherstellung der Verbindung kontrolliert an Firestore übertragen. Die
+Anwendung macht erfolgreiche Synchronisationen, dauerhaft abgewiesene
+Schreibvorgänge und erforderliche Benutzerentscheidungen nachvollziehbar.
+
+Für Offline-Schreibvorgänge werden fachliche Konfliktregeln festgelegt. Dabei
+werden parallele Änderungen, zwischenzeitlich entzogene Berechtigungen,
+deaktivierte Benutzerkonten und nicht mehr vorhandene Zieldokumente berücksichtigt.
+Die Offline-Bearbeitung wird nur für Datenarten freigegeben, deren Schutzbedarf,
+Synchronisationsverhalten und Konfliktauflösung vollständig geklärt und getestet
+sind.
 
 # Erledigte Todos
 
