@@ -19,14 +19,100 @@ und Funktionen, die aktuell eine Verbindung benötigen. Ohne Service-Worker- ode
 Installationsunterstützung bleibt Pur Office weiterhin als normale Webanwendung
 nutzbar.
 
-### 6.2 Fachliche Offline-Nutzung und Synchronisation
+Der Angular Service Worker verwaltet ausschließlich die Anwendungsversion und
+statische Ressourcen. Fachliche Firestore-Daten werden durch diesen Schritt
+weder dauerhaft gespeichert noch für Offline-Schreibvorgänge freigegeben.
+
+#### Betroffene Dateien
+
+- package.json
+- package-lock.json
+- angular.json
+- ngsw-config.json
+- public/manifest.webmanifest
+- public/icons/
+- public/fonts/
+- src/index.html
+- src/styles.scss
+- src/app/app.config.ts
+- src/app/app.ts
+- src/app/app.html
+- src/app/app.spec.ts
+- src/app/components/app-shell/app-toolbar/
+- src/app/services/core/netzwerk-status.service.ts
+- src/app/services/core/pwa-update.service.ts
+- firebase.json
+- docs/projekt-stand.md
+
+#### Schritt 1: PWA-Grundlage einrichten
+
+- [ ] Angular Service Worker als Projekt-Dependency ergänzen und ausschließlich für geeignete Produktions-Builds registrieren.
+- [ ] Service-Worker-Unterstützung in der Angular-Buildkonfiguration aktivieren.
+- [ ] `ngsw-config.json` für App-Shell, lazy geladene Anwendungsteile und statische Ressourcen anlegen.
+- [ ] Web-App-Manifest mit Name, Kurzname, Start-URL, Darstellungsmodus, Theme-Farben und geeigneten Icons anlegen.
+- [ ] Manifest, Theme-Farbe und PWA-Metadaten in `index.html` einbinden.
+- [ ] Installation und normaler Webbetrieb bei fehlender Service-Worker-Unterstützung voneinander unabhängig halten.
+
+#### Schritt 2: App-Shell vollständig offline bereitstellen
+
+- [ ] Alle zum Start erforderlichen eigenen Ressourcen durch den Service Worker vorhalten.
+- [ ] Roboto-Schriften und Material Icons nicht mehr zur Laufzeit von Google laden, sondern als lokale statische Ressourcen ausliefern.
+- [ ] Sicherstellen, dass Loginseite, App-Shell und bereits geladene lazy Routen nach einem erfolgreichen Online-Aufruf ohne Netzwerk erneut geöffnet werden können.
+- [ ] Firebase-, Firestore- und Functions-Anfragen nicht als statische Anwendungsressourcen im Angular Service Worker zwischenspeichern.
+- [ ] Einen verständlichen Zustand anzeigen, wenn die App-Shell verfügbar ist, für die angeforderte Funktion aber eine Netzwerkverbindung benötigt wird.
+
+#### Schritt 3: Netzwerkzustand darstellen
+
+- [ ] Zentralen Service für den initialen Netzwerkzustand sowie `online`- und `offline`-Ereignisse anlegen.
+- [ ] Den Netzwerkzustand in der App-Shell sichtbar und barrierearm darstellen.
+- [ ] Netzwerkstatus nur als Hinweis verwenden; fehlgeschlagene Serverzugriffe weiterhin anhand ihres tatsächlichen Ergebnisses behandeln.
+- [ ] Aktionen, die zwingend Firebase Auth, Firestore oder Cloud Functions benötigen, offline verständlich sperren oder kontrolliert fehlschlagen lassen.
+- [ ] Rückkehr der Netzwerkverbindung anzeigen, ohne laufende Formulare oder Navigation ungefragt zurückzusetzen.
+
+#### Schritt 4: Anwendungsupdates kontrolliert übernehmen
+
+- [ ] Verfügbarkeit und Fehlerzustände des Angular Service Workers über `SwUpdate` behandeln.
+- [ ] Eine vollständig heruntergeladene neue Anwendungsversion in der App-Shell anzeigen.
+- [ ] Den Benutzer vor dem Wechsel der Anwendungsversion bestätigen lassen und anschließend die Seite vollständig neu laden.
+- [ ] Keine laufende Bearbeitung durch einen automatischen Reload unterbrechen.
+- [ ] Kritische Service-Worker-Fehler und nicht wiederherstellbare Versionszustände verständlich behandeln.
+- [ ] Auf Browsern ohne Service-Worker-Unterstützung keine Update-Aufrufe ausführen und keine Fehler im normalen Webbetrieb erzeugen.
+
+#### Schritt 5: Hosting und Auslieferung absichern
+
+- [ ] Firebase Hosting so konfigurieren, dass `index.html`, `ngsw.json`, Service Worker und gehashte Ressourcen mit passenden Cache-Headern ausgeliefert werden.
+- [ ] Sicherstellen, dass SPA-Rewrites Manifest-, Icon- und Service-Worker-Dateien nicht verdecken.
+- [ ] PWA ausschließlich über HTTPS beziehungsweise für lokale Tests über `localhost` prüfen.
+- [ ] Festlegen und dokumentieren, wie eine fehlerhafte Service-Worker-Version bei Bedarf deaktiviert oder ersetzt wird.
+
+#### Tests und Abschluss
+
+- [ ] Unit-Tests für Netzwerkstatus, Update-Erkennung, Update-Bestätigung und fehlende Service-Worker-Unterstützung ergänzen.
+- [ ] Produktions-Build erzeugen und prüfen, dass Manifest, `ngsw.json`, Service Worker, Icons und lokale Schriften enthalten sind.
+- [ ] Installierbarkeit auf mindestens einem unterstützten Desktop-Browser und einem unterstützten Mobilgerät beziehungsweise einer realistischen Mobilgeräte-Simulation prüfen.
+- [ ] App-Shell nach einem ersten Online-Aufruf bei deaktiviertem Netzwerk neu laden und manuell prüfen.
+- [ ] Update-Ablauf mit zwei aufeinanderfolgenden Produktions-Builds prüfen.
+- [ ] Normalen Webbetrieb ohne aktive Service-Worker-Unterstützung prüfen.
+- [ ] `projekt-stand.md` nach Abschluss aktualisieren.
+- [ ] `npm test` und `npm run build` erfolgreich ausführen.
+
+#### Erledigt, wenn
+
+- [ ] Pur Office kann auf unterstützten Geräten installiert und eigenständig gestartet werden.
+- [ ] App-Shell und statische Startressourcen funktionieren nach dem ersten erfolgreichen Laden offline.
+- [ ] Externe Schrift- und Icon-Anfragen verhindern den Offline-Start nicht.
+- [ ] Netzwerkzustand und verbindungsabhängige Funktionen werden verständlich dargestellt.
+- [ ] Eine neue vollständig geladene Anwendungsversion kann nach Benutzerbestätigung sicher übernommen werden.
+- [ ] Browser ohne Service-Worker- oder Installationsunterstützung können Pur Office weiterhin normal verwenden.
+- [ ] Tests, Produktions-Build und manuelle PWA-Prüfungen sind erfolgreich.
+
+### 6.2 Sicherer lesender Offline-Betrieb für fachliche Daten
 
 #### Ziel
 
-Für fachliche Firestore-Daten wird eine abgestufte Offline- und
-Synchronisationsstrategie festgelegt. Die installierbare PWA führt nicht
-automatisch zu einer dauerhaften lokalen Datenspeicherung oder zu ungeprüften
-fachlichen Offline-Schreibzugriffen.
+Für fachliche Firestore-Daten wird zunächst ausschließlich ein sicherer lesender
+Offline-Betrieb geprüft und festgelegt. Die installierbare PWA führt nicht
+automatisch zu einer dauerhaften lokalen Datenspeicherung.
 
 Bereits erfolgreich geladene und für den angemeldeten Benutzer freigegebene
 Firestore-Daten können nach einer bewussten Sicherheitsentscheidung dauerhaft
@@ -36,12 +122,94 @@ nicht verfügbar erkennbar. Benutzerwechsel, Abmeldung und gemeinsam genutzte
 Geräte dürfen nicht dazu führen, dass ein Benutzer auf zwischengespeicherte Daten
 eines anderen Benutzerkontos zugreifen kann.
 
-Aufbauend auf dem lesenden Offline-Betrieb kann für ausdrücklich ausgewählte
-fachliche Funktionen eine Offline-Bearbeitung ergänzt werden. Lokal vorgenommene
-Änderungen werden eindeutig als noch nicht synchronisiert angezeigt und nach
-Wiederherstellung der Verbindung kontrolliert an Firestore übertragen. Die
-Anwendung macht erfolgreiche Synchronisationen, dauerhaft abgewiesene
-Schreibvorgänge und erforderliche Benutzerentscheidungen nachvollziehbar.
+Solange diese Trennung auf gemeinsam genutzten Geräten nicht zuverlässig
+gewährleistet werden kann, bleibt der flüchtige Firestore-Speicher-Cache bestehen
+und eine dauerhafte Firestore-Persistenz deaktiviert. Offline-Schreibvorgänge sind
+nicht Bestandteil dieses Todo-Unterpunkts.
+
+#### Betroffene Dateien
+
+- src/app/app.config.ts
+- src/app/commons/models/app/
+- src/app/guards/
+- src/app/services/firebase/firestore-db.service.ts
+- src/app/services/firebase/firestore-db.service.spec.ts
+- src/app/services/domain/benutzer.service.ts
+- src/app/stores/app/benutzer.store.ts
+- src/app/stores/app/benutzer.store.spec.ts
+- src/app/stores/app/stammdaten.store.ts
+- src/app/stores/app/stammdaten.store.spec.ts
+- src/app/components/app-shell/app-toolbar/
+- src/app/pages/auth/login-page/
+- docs/projekt-plan.md
+- docs/projekt-stand.md
+
+#### Schritt 1: Schutzbedarf und Gerätemodell entscheiden
+
+- [ ] Fachliche Datenarten nach Schutzbedarf und Eignung für eine dauerhafte lokale Speicherung bewerten.
+- [ ] Festlegen, ob der lesende Offline-Betrieb ausschließlich auf ausdrücklich bestätigten vertrauenswürdigen Geräten angeboten wird.
+- [ ] Gemeinsam genutzte Geräte, mehrere Benutzerkonten im selben Browserprofil und verlorene Geräte in die Entscheidung einbeziehen.
+- [ ] Dokumentieren, dass Firestore-Persistenz im Web nicht automatisch beim Logout oder zwischen Sitzungen gelöscht wird.
+- [ ] Entscheiden, ob die Sicherheitsanforderungen mit Firestore-Persistenz erfüllt werden können oder der lesende Offline-Datenbetrieb vorerst entfällt.
+
+#### Schritt 2: Technische Cache-Strategie festlegen
+
+- [ ] Den aktuellen flüchtigen Speicher-Cache und die mögliche persistente IndexedDB-Variante eindeutig voneinander abgrenzen.
+- [ ] Für persistente Speicherung Single-Tab- und Multi-Tab-Verhalten bewusst festlegen.
+- [ ] Verhalten bei nicht unterstütztem Browser, privatem Browsermodus, blockiertem Speicher und ausgeschöpftem Speicherplatz definieren.
+- [ ] Cache-Lebensdauer, Größenbegrenzung und Umgang mit veralteten Daten festlegen.
+- [ ] Firestore-Persistenz nur aktivieren, wenn die Sicherheitsentscheidung aus Schritt 1 positiv abgeschlossen ist.
+
+#### Schritt 3: Benutzer- und Sitzungsgrenzen absichern
+
+- [ ] Offline verfügbares Benutzerprofil, Firebase-Auth-Persistenz und fachliche Daten gemeinsam als Sicherheitsgrenze betrachten.
+- [ ] Verhindern, dass ein angemeldetes Konto lokal gespeicherte Daten eines zuvor angemeldeten Kontos über die Anwendung angezeigt bekommt.
+- [ ] Verhalten bei Logout, Benutzerwechsel, deaktiviertem Konto und entzogenen Datenzugriffen festlegen und testen.
+- [ ] Berücksichtigen, dass ein reiner Store-Reset den persistenten Firestore-Cache nicht löscht.
+- [ ] Ohne online bestätigtes oder sicher offline verfügbares Benutzerprofil keine fachlichen Daten oder geschützten Routen freigeben.
+
+#### Schritt 4: Lesenden Offline-Zustand abbilden
+
+- [ ] Für geladene Daten unterscheiden, ob sie aktuell vom Server bestätigt oder aus einem lokalen Cache geliefert wurden.
+- [ ] Noch nicht lokal vorhandene Daten offline als nicht verfügbar darstellen und nicht mit einer fachlich leeren Liste verwechseln.
+- [ ] Den Zeitpunkt beziehungsweise Status der letzten erfolgreichen Serverbestätigung verständlich anzeigen, wenn dies für die fachliche Bewertung erforderlich ist.
+- [ ] Schreibende Aktionen im lesenden Offline-Betrieb deaktivieren und den Grund anzeigen.
+- [ ] Nach Wiederherstellung der Verbindung Daten und Berechtigungen kontrolliert erneut vom Server bestätigen lassen.
+
+#### Tests und Abschluss
+
+- [ ] Architektur- und Sicherheitsentscheidung für jede freigegebene Datenart dokumentieren.
+- [ ] Service-, Store- und Guard-Tests für Cache-Treffer, Cache-Miss, Offline-Start und erneute Serverbestätigung ergänzen.
+- [ ] Logout und Benutzerwechsel mit zwei unterschiedlich berechtigten Testkonten im selben Browserprofil prüfen.
+- [ ] Mehrere Tabs sowie einen Browser ohne verfügbare Firestore-Persistenz prüfen.
+- [ ] Entzogene Berechtigung und deaktiviertes Konto nach zwischenzeitlichem Offline-Betrieb prüfen.
+- [ ] Falls Persistenz nicht sicher freigegeben wird, die weiterhin deaktivierte dauerhafte Datenspeicherung ausdrücklich dokumentieren.
+- [ ] `projekt-plan.md` und `projekt-stand.md` nach der Entscheidung aktualisieren.
+- [ ] `npm test`, `npm run test:rules` und `npm run build` erfolgreich ausführen.
+
+#### Erledigt, wenn
+
+- [ ] Für jede betroffene Datenart ist entschieden, ob und unter welchen Bedingungen sie dauerhaft lokal gespeichert werden darf.
+- [ ] Daten verschiedener Benutzerkonten werden im UI und in den zulässigen Offline-Abläufen zuverlässig getrennt.
+- [ ] Nicht lokal vorhandene Daten, veraltete Cachedaten und tatsächlich leere Datenbestände sind unterscheidbar.
+- [ ] Offline sind keine fachlichen Schreibaktionen freigegeben.
+- [ ] Rückkehr der Verbindung führt zu einer erneuten Prüfung von Benutzerstatus, Berechtigungen und Datenstand.
+- [ ] Sicherheitsentscheidung, Tests, Rules-Tests, Build und manuelle Mehrbenutzerprüfung sind erfolgreich.
+
+### 6.3 Ausgewählte Offline-Schreibvorgänge und Synchronisation
+
+#### Ziel
+
+Aufbauend auf einem sicher abgeschlossenen lesenden Offline-Betrieb kann für
+ausdrücklich ausgewählte fachliche Funktionen eine Offline-Bearbeitung ergänzt
+werden. Eine allgemeine Freigabe sämtlicher vorhandener Schreibaktionen ist nicht
+vorgesehen.
+
+Lokal vorgenommene Änderungen werden eindeutig als noch nicht synchronisiert
+angezeigt und nach Wiederherstellung der Verbindung kontrolliert an Firestore
+übertragen. Die Anwendung macht erfolgreiche Synchronisationen, dauerhaft
+abgewiesene Schreibvorgänge und erforderliche Benutzerentscheidungen
+nachvollziehbar.
 
 Für Offline-Schreibvorgänge werden fachliche Konfliktregeln festgelegt. Dabei
 werden parallele Änderungen, zwischenzeitlich entzogene Berechtigungen,
@@ -49,6 +217,71 @@ deaktivierte Benutzerkonten und nicht mehr vorhandene Zieldokumente berücksicht
 Die Offline-Bearbeitung wird nur für Datenarten freigegeben, deren Schutzbedarf,
 Synchronisationsverhalten und Konfliktauflösung vollständig geklärt und getestet
 sind.
+
+#### Betroffene Dateien
+
+- src/app/commons/models/domain/
+- src/app/services/firebase/firestore-db.service.ts
+- src/app/services/firebase/firestore-db.service.spec.ts
+- src/app/services/domain/
+- src/app/stores/app/
+- src/app/stores/domain/
+- src/app/components/app-shell/app-toolbar/
+- src/app/pages/
+- firestore.rules
+- rules-tests/
+- docs/projekt-plan.md
+- docs/projekt-stand.md
+
+#### Schritt 1: Offline-fähige Aktionen einzeln freigeben
+
+- [ ] Für jede vorgesehene Datenart und Aktion Schutzbedarf, Schreibrecht und fachlichen Nutzen bewerten.
+- [ ] Neuanlage, Aktualisierung und Löschung getrennt entscheiden; keine pauschale Freigabe aus bestehenden Online-Rechten ableiten.
+- [ ] Administrative Auth-Vorgänge und Cloud-Function-Aufrufe ausdrücklich vom Offline-Schreiben ausschließen.
+- [ ] Pro freigegebener Aktion Abnahmekriterien und nicht erlaubte Offline-Fälle dokumentieren.
+
+#### Schritt 2: Synchronisationsmodell festlegen
+
+- [ ] Entscheiden, ob die automatische Firestore-Synchronisation ausreicht oder eine fachliche Outbox erforderlich ist.
+- [ ] Ausstehende Änderungen mit stabiler lokaler ID, betroffenem Dokument, Aktion, Erstellungszeit und Benutzerkontext abbilden.
+- [ ] Zustände für ausstehend, wird synchronisiert, erfolgreich, dauerhaft abgewiesen und Entscheidung erforderlich festlegen.
+- [ ] Mehrfaches Absenden sowie doppelte Verarbeitung nach Neustart oder Verbindungswechsel verhindern.
+- [ ] Reihenfolge und Abhängigkeiten mehrerer lokaler Änderungen festlegen.
+
+#### Schritt 3: Konflikte und Berechtigungsänderungen behandeln
+
+- [ ] Pro Datenart Regeln für parallele Änderungen und veraltete Ausgangsdaten festlegen.
+- [ ] Zwischenzeitlich entzogene Berechtigungen, deaktivierte Konten und gelöschte Zieldokumente als dauerhafte Ablehnung behandeln.
+- [ ] Automatisches Überschreiben konkurrierender Serveränderungen nur nach ausdrücklicher fachlicher Entscheidung zulassen.
+- [ ] Erforderliche Benutzerentscheidungen mit verständlichem Vergleich und sicheren Handlungsoptionen darstellen.
+- [ ] Fehlgeschlagene Änderungen nachvollziehbar erhalten, ohne sensible Inhalte unnötig dauerhaft zu speichern.
+
+#### Schritt 4: Synchronisationsstatus in der Oberfläche darstellen
+
+- [ ] Ausstehende Änderungen an den betroffenen Einträgen und zusammengefasst in der App-Shell anzeigen.
+- [ ] Erfolgreiche Synchronisationen eindeutig bestätigen und abgeschlossene lokale Einträge bereinigen.
+- [ ] Dauerhaft abgewiesene Änderungen sichtbar halten, bis sie verworfen oder fachlich korrigiert wurden.
+- [ ] Logout und Benutzerwechsel bei vorhandenen ausstehenden Änderungen kontrolliert behandeln.
+- [ ] Automatische Synchronisation bei wiederhergestellter Verbindung ohne unkontrollierte Navigations- oder Formularänderungen starten.
+
+#### Tests und Abschluss
+
+- [ ] Service- und Store-Tests für Offline-Anlage beziehungsweise -Änderung, Neustart, Wiederverbindung und erfolgreiche Synchronisation ergänzen.
+- [ ] Konflikte, doppelte Übertragung, Reihenfolgefehler und dauerhafte Serverablehnungen testen.
+- [ ] Rules-Tests für zwischenzeitlich entzogene Rechte, deaktivierte Konten und nicht mehr vorhandene Dokumente ergänzen.
+- [ ] Mehrere Tabs und wiederholte Online-/Offline-Wechsel prüfen.
+- [ ] Freigegebene Abläufe mit realen Testkonten und absichtlich erzeugten Konflikten manuell prüfen.
+- [ ] `projekt-plan.md` und `projekt-stand.md` nach jeder freigegebenen Datenart aktualisieren.
+- [ ] `npm test`, `npm run test:rules` und `npm run build` erfolgreich ausführen.
+
+#### Erledigt, wenn
+
+- [ ] Nur ausdrücklich geprüfte Datenarten und Aktionen können offline geändert werden.
+- [ ] Jede lokale Änderung besitzt einen sichtbaren und nachvollziehbaren Synchronisationsstatus.
+- [ ] Änderungen werden nach Wiederherstellung der Verbindung höchstens einmal fachlich wirksam übertragen.
+- [ ] Konflikte, entzogene Rechte, deaktivierte Konten und gelöschte Zieldokumente werden kontrolliert behandelt.
+- [ ] Benutzerwechsel und Logout legen keine ausstehenden Änderungen oder Daten für ein anderes Konto offen.
+- [ ] Tests, Rules-Tests, Build und reale Konfliktprüfungen sind erfolgreich.
 
 # Erledigte Todos
 
