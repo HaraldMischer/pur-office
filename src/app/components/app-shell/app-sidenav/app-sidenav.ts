@@ -49,7 +49,18 @@ export class AppSidenav {
 
   readonly isHandset = input(false);
   readonly navigationSelected = output<void>();
-  readonly title: Signal<string> = signal('Pur Office');
+  readonly title: Signal<string> = computed(() => {
+    switch (this.benutzerProfil()?.userRole) {
+      case 'master':
+        return 'Pur Master';
+      case 'office':
+        return 'Pur Office';
+      case 'filiale':
+        return 'Pur Filiale';
+      default:
+        return 'Pur-System';
+    }
+  });
   readonly navigationItems: Signal<readonly NavigationItem[]> = computed(() =>
     this._navigationItems().filter(
       (item) =>
