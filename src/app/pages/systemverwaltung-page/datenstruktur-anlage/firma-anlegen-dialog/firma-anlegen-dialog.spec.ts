@@ -109,7 +109,6 @@ describe('FirmaAnlegenDialog', () => {
         hausnummer: '1',
         postleitzahl: '20095',
         ort: 'Hamburg',
-        land: 'Deutschland',
       },
       kontakt: {},
     });
@@ -142,7 +141,6 @@ describe('FirmaAnlegenDialog', () => {
         hausnummer: '1',
         postleitzahl: '20095',
         ort: 'Hamburg',
-        land: 'Deutschland',
       },
       kontakt: {
         email: 'info@example.com',

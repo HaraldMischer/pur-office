@@ -22,7 +22,6 @@ function mapFilialeEintrag(id: string, daten: Record<string, unknown>): IFiliale
   const nummer = daten['nummer'];
   const adresse = asRecord(daten['adresse']);
   const kontakt = asRecord(daten['kontakt']);
-  const adresszusatz = getOptionalString(adresse['adresszusatz']);
   const email = getOptionalString(kontakt['email']);
   const telefon = getOptionalString(kontakt['telefon']);
   const mobil = getOptionalString(kontakt['mobil']);
@@ -37,10 +36,8 @@ function mapFilialeEintrag(id: string, daten: Record<string, unknown>): IFiliale
     adresse: {
       strasse: getString(adresse['strasse']),
       hausnummer: getString(adresse['hausnummer']),
-      ...(adresszusatz ? { adresszusatz } : {}),
       postleitzahl: getString(adresse['postleitzahl']),
       ort: getString(adresse['ort']),
-      land: getString(adresse['land'], 'Deutschland'),
     },
     kontakt: {
       ...(email ? { email } : {}),

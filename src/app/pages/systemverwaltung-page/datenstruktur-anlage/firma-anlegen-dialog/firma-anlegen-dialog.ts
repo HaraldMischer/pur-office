@@ -134,7 +134,6 @@ export class FirmaAnlegenDialog {
         hausnummer: value.adresse.hausnummer.trim(),
         postleitzahl: value.adresse.postleitzahl.trim(),
         ort: value.adresse.ort.trim(),
-        land: 'Deutschland',
       },
       kontakt: {
         ...(email ? { email } : {}),

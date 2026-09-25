@@ -114,7 +114,7 @@ export class BenutzerAnlage implements OnInit {
         schichtplan: new FormControl(false, { nonNullable: true }),
         mitarbeiter: new FormControl(false, { nonNullable: true }),
         verwaltung: new FormControl(false, { nonNullable: true }),
-        systemverwaltung: new FormControl(false, { nonNullable: true }),
+        systemverwaltung: new FormControl({ value: false, disabled: true }, { nonNullable: true }),
       },
       { validators: [mindestensEinBereichValidator] },
     ),
@@ -220,14 +220,8 @@ export class BenutzerAnlage implements OnInit {
     const systemverwaltungControl =
       this.benutzerForm.controls.erlaubteBereiche.controls.systemverwaltung;
 
-    if (userRole === 'master') {
-      systemverwaltungControl.setValue(true);
-      systemverwaltungControl.disable();
-      return;
-    }
-
-    systemverwaltungControl.enable();
-    systemverwaltungControl.setValue(false);
+    systemverwaltungControl.setValue(userRole === 'master');
+    systemverwaltungControl.disable();
   }
 
   private resetForm(): void {

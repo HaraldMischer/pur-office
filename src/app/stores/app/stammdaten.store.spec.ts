@@ -157,7 +157,6 @@ describe('StammdatenStore', () => {
         hausnummer: '1',
         postleitzahl: '20095',
         ort: 'Hamburg',
-        land: 'Deutschland',
       },
       kontakt: {},
     });
@@ -172,7 +171,6 @@ describe('StammdatenStore', () => {
         hausnummer: '1',
         postleitzahl: '20095',
         ort: 'Hamburg',
-        land: 'Deutschland',
       },
       kontakt: {},
     });

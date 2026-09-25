@@ -122,7 +122,6 @@ export class UnternehmerAnlegenDialog {
           hausnummer: value.person.adresse.hausnummer.trim(),
           postleitzahl: value.person.adresse.postleitzahl.trim(),
           ort: value.person.adresse.ort.trim(),
-          land: 'Deutschland',
         },
         kontakt: {
           ...(email ? { email } : {}),

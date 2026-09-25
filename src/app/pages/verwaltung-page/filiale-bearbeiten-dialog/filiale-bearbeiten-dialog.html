@@ -54,11 +54,6 @@
         </mat-form-field>
 
         <mat-form-field appearance="outline" class="pur-form__field">
-          <mat-label>Adresszusatz</mat-label>
-          <input matInput formControlName="adresszusatz" type="text" autocomplete="off" />
-        </mat-form-field>
-
-        <mat-form-field appearance="outline" class="pur-form__field">
           <mat-label>Postleitzahl</mat-label>
           <input matInput formControlName="postleitzahl" type="text" autocomplete="postal-code" />
           @if (filialeForm.controls.adresse.controls.postleitzahl.hasError('required')) {
@@ -71,14 +66,6 @@
           <input matInput formControlName="ort" type="text" autocomplete="address-level2" />
           @if (filialeForm.controls.adresse.controls.ort.hasError('required')) {
             <mat-error>Ort ist erforderlich.</mat-error>
-          }
-        </mat-form-field>
-
-        <mat-form-field appearance="outline" class="pur-form__field">
-          <mat-label>Land</mat-label>
-          <input matInput formControlName="land" type="text" autocomplete="country-name" />
-          @if (filialeForm.controls.adresse.controls.land.hasError('required')) {
-            <mat-error>Land ist erforderlich.</mat-error>
           }
         </mat-form-field>
       </div>

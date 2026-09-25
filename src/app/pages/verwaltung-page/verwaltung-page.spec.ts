@@ -112,7 +112,6 @@ describe('VerwaltungPage', () => {
         hausnummer: '1',
         postleitzahl: '20095',
         ort: 'Hamburg',
-        land: 'Deutschland',
       },
       kontakt: {},
     };
@@ -150,7 +149,6 @@ describe('VerwaltungPage', () => {
         hausnummer: '2',
         postleitzahl: '20095',
         ort: 'Hamburg',
-        land: 'Deutschland',
       },
       kontakt: {},
     };

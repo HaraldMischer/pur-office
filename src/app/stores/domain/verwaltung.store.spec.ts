@@ -25,7 +25,6 @@ describe('VerwaltungStore', () => {
       hausnummer: '1',
       postleitzahl: '20095',
       ort: 'Hamburg',
-      land: 'Deutschland',
     },
     kontakt: { email: 'info@example.com' },
   };
@@ -40,7 +39,6 @@ describe('VerwaltungStore', () => {
       hausnummer: '2',
       postleitzahl: '20095',
       ort: 'Hamburg',
-      land: 'Deutschland',
     },
     kontakt: { telefon: '040 123456' },
   };
@@ -218,7 +216,6 @@ describe('VerwaltungStore', () => {
         hausnummer: '2',
         postleitzahl: '10115',
         ort: 'Berlin',
-        land: 'Deutschland',
       },
       kontakt: { telefon: '030 123456' },
     };
@@ -275,7 +272,6 @@ describe('VerwaltungStore', () => {
         hausnummer: '3',
         postleitzahl: '10115',
         ort: 'Berlin',
-        land: 'Deutschland',
       },
       kontakt: { email: 'filiale@example.com' },
     };

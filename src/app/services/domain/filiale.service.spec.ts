@@ -22,7 +22,6 @@ describe('FilialeService', () => {
       hausnummer: '102',
       postleitzahl: '58285',
       ort: 'Gevelsberg',
-      land: 'Deutschland',
     },
     kontakt: {
       email: 'gevelsberg@example.com',
@@ -99,7 +98,6 @@ describe('FilialeService', () => {
           hausnummer: '',
           postleitzahl: '',
           ort: '',
-          land: 'Deutschland',
         },
         kontakt: {},
       },

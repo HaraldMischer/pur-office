@@ -125,6 +125,9 @@ describe('SystemverwaltungPage', () => {
     expect(compiled.querySelectorAll('mat-divider')).toHaveLength(2);
     expect(compiled.querySelector('mat-select')).toBeTruthy();
     expect(compiled.querySelectorAll('mat-checkbox')).toHaveLength(5);
+    const bereichCheckboxen = compiled.querySelectorAll<HTMLInputElement>('input[type="checkbox"]');
+    expect(bereichCheckboxen).toHaveLength(5);
+    expect(bereichCheckboxen[4].disabled).toBe(true);
   });
 
   it('should create normalized input data from a valid form', () => {
@@ -238,17 +241,26 @@ describe('SystemverwaltungPage', () => {
       verwaltung: false,
       systemverwaltung: false,
     });
+    expect(component.benutzerForm.controls.erlaubteBereiche.controls.dashboard.enabled).toBe(true);
+    expect(component.benutzerForm.controls.erlaubteBereiche.controls.schichtplan.enabled).toBe(
+      true,
+    );
+    expect(component.benutzerForm.controls.erlaubteBereiche.controls.mitarbeiter.enabled).toBe(
+      true,
+    );
+    expect(component.benutzerForm.controls.erlaubteBereiche.controls.verwaltung.enabled).toBe(true);
     expect(
-      Object.values(component.benutzerForm.controls.erlaubteBereiche.controls).every(
-        (control) => control.enabled,
-      ),
+      component.benutzerForm.controls.erlaubteBereiche.controls.systemverwaltung.disabled,
     ).toBe(true);
   });
 
-  it('should require system administration for master accounts', () => {
+  it('should always lock system administration and derive its value from the role', () => {
     const component = TestBed.createComponent(BenutzerAnlage).componentInstance;
     const systemverwaltung =
       component.benutzerForm.controls.erlaubteBereiche.controls.systemverwaltung;
+
+    expect(systemverwaltung.getRawValue()).toBe(false);
+    expect(systemverwaltung.disabled).toBe(true);
 
     component.benutzerForm.controls.userRole.setValue('master');
 
@@ -257,7 +269,7 @@ describe('SystemverwaltungPage', () => {
     systemverwaltung.setValue(false);
     component.benutzerForm.controls.userRole.setValue('office');
     expect(systemverwaltung.getRawValue()).toBe(false);
-    expect(systemverwaltung.enabled).toBe(true);
+    expect(systemverwaltung.disabled).toBe(true);
   });
 
   it.each(['', 'short'])(

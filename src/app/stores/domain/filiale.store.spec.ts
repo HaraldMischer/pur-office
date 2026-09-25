@@ -15,7 +15,6 @@ describe('FilialeStore', () => {
       hausnummer: '102',
       postleitzahl: '58285',
       ort: 'Gevelsberg',
-      land: 'Deutschland',
     },
     kontakt: {
       email: 'gevelsberg@example.com',

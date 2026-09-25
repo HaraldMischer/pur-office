@@ -109,7 +109,6 @@ describe('FilialeAnlegenDialog', () => {
         hausnummer: '102',
         postleitzahl: '58285',
         ort: 'Gevelsberg',
-        land: 'Deutschland',
       },
       kontakt: {},
     });
@@ -142,7 +141,6 @@ describe('FilialeAnlegenDialog', () => {
         hausnummer: '102',
         postleitzahl: '58285',
         ort: 'Gevelsberg',
-        land: 'Deutschland',
       },
       kontakt: {
         email: 'info@example.com',

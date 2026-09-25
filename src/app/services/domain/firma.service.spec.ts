@@ -22,7 +22,6 @@ describe('FirmaService', () => {
       hausnummer: '1',
       postleitzahl: '20095',
       ort: 'Hamburg',
-      land: 'Deutschland',
     },
     kontakt: {
       email: 'info@example.com',
@@ -109,7 +108,6 @@ describe('FirmaService', () => {
           hausnummer: '',
           postleitzahl: '',
           ort: '',
-          land: 'Deutschland',
         },
         kontakt: {},
       },

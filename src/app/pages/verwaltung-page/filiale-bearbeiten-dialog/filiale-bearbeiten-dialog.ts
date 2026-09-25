@@ -70,18 +70,11 @@ export class FilialeBearbeitenDialog {
         nonNullable: true,
         validators: [Validators.required, nichtLeerValidator],
       }),
-      adresszusatz: new FormControl(this.dialogDaten.filiale.adresse.adresszusatz ?? '', {
-        nonNullable: true,
-      }),
       postleitzahl: new FormControl(this.dialogDaten.filiale.adresse.postleitzahl, {
         nonNullable: true,
         validators: [Validators.required, nichtLeerValidator],
       }),
       ort: new FormControl(this.dialogDaten.filiale.adresse.ort, {
-        nonNullable: true,
-        validators: [Validators.required, nichtLeerValidator],
-      }),
-      land: new FormControl(this.dialogDaten.filiale.adresse.land, {
         nonNullable: true,
         validators: [Validators.required, nichtLeerValidator],
       }),
@@ -135,7 +128,6 @@ export class FilialeBearbeitenDialog {
 
   private getFilialeAktualisierung(): IFilialeAktualisierung {
     const value = this.filialeForm.getRawValue();
-    const adresszusatz = value.adresse.adresszusatz.trim();
     const email = value.kontakt.email.trim().toLowerCase();
     const telefon = value.kontakt.telefon.trim();
     const mobil = value.kontakt.mobil.trim();
@@ -147,10 +139,8 @@ export class FilialeBearbeitenDialog {
       adresse: {
         strasse: value.adresse.strasse.trim(),
         hausnummer: value.adresse.hausnummer.trim(),
-        ...(adresszusatz ? { adresszusatz } : {}),
         postleitzahl: value.adresse.postleitzahl.trim(),
         ort: value.adresse.ort.trim(),
-        land: value.adresse.land.trim(),
       },
       kontakt: {
         ...(email ? { email } : {}),

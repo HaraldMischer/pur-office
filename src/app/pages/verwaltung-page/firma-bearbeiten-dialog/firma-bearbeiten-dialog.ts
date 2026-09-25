@@ -70,18 +70,11 @@ export class FirmaBearbeitenDialog {
         nonNullable: true,
         validators: [Validators.required, nichtLeerValidator],
       }),
-      adresszusatz: new FormControl(this.dialogDaten.firma.adresse.adresszusatz ?? '', {
-        nonNullable: true,
-      }),
       postleitzahl: new FormControl(this.dialogDaten.firma.adresse.postleitzahl, {
         nonNullable: true,
         validators: [Validators.required, nichtLeerValidator],
       }),
       ort: new FormControl(this.dialogDaten.firma.adresse.ort, {
-        nonNullable: true,
-        validators: [Validators.required, nichtLeerValidator],
-      }),
-      land: new FormControl(this.dialogDaten.firma.adresse.land, {
         nonNullable: true,
         validators: [Validators.required, nichtLeerValidator],
       }),
@@ -135,7 +128,6 @@ export class FirmaBearbeitenDialog {
 
   private getFirmaAktualisierung(): IFirmaAktualisierung {
     const value = this.firmaForm.getRawValue();
-    const adresszusatz = value.adresse.adresszusatz.trim();
     const email = value.kontakt.email.trim().toLowerCase();
     const telefon = value.kontakt.telefon.trim();
     const mobil = value.kontakt.mobil.trim();
@@ -147,10 +139,8 @@ export class FirmaBearbeitenDialog {
       adresse: {
         strasse: value.adresse.strasse.trim(),
         hausnummer: value.adresse.hausnummer.trim(),
-        ...(adresszusatz ? { adresszusatz } : {}),
         postleitzahl: value.adresse.postleitzahl.trim(),
         ort: value.adresse.ort.trim(),
-        land: value.adresse.land.trim(),
       },
       kontakt: {
         ...(email ? { email } : {}),

@@ -19,10 +19,8 @@ describe('FilialeBearbeitenDialog', () => {
     adresse: {
       strasse: 'Hauptstraße',
       hausnummer: '1',
-      adresszusatz: 'Hinterhaus',
       postleitzahl: '20095',
       ort: 'Hamburg',
-      land: 'Deutschland',
     },
     kontakt: {
       email: 'hamburg@example.com',
