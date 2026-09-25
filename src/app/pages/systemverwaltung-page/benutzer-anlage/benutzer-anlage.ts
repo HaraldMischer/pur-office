@@ -31,11 +31,15 @@ import { distinctUntilChanged } from 'rxjs';
 import { DatenzugriffAuswahl } from '../../../components/datenzugriff-auswahl/datenzugriff-auswahl';
 import { TAppBereich } from '../../../commons/models/app/app-bereich';
 import { IBenutzerAnlage, TUserRole } from '../../../commons/models/domain/benutzer';
+import {
+  buildAnmeldename,
+  normalizeNamensbestandteil,
+} from '../../../commons/utils/auth/technische-anmeldeadresse';
 import { BenutzerVerwaltungStore } from '../../../stores/domain/benutzer-verwaltung.store';
 
 type TErlaubteBereicheForm = { [K in TAppBereich]: FormControl<boolean> };
 type TBenutzerAnlageForm = {
-  email: FormControl<string>;
+  namensbestandteil: FormControl<string>;
   anzeigename: FormControl<string>;
   userRole: FormControl<TUserRole>;
   erlaubteBereiche: FormGroup<TErlaubteBereicheForm>;
@@ -45,10 +49,15 @@ type TBenutzerAnlageForm = {
 const nichtLeerValidator: ValidatorFn = (control: AbstractControl): ValidationErrors | null =>
   String(control.value).trim() ? null : { required: true };
 
+const namensbestandteilValidator: ValidatorFn = (
+  control: AbstractControl,
+): ValidationErrors | null =>
+  normalizeNamensbestandteil(String(control.value)) ? null : { required: true };
+
 const mindestensEinBereichValidator: ValidatorFn = (
   control: AbstractControl,
 ): ValidationErrors | null => {
-  const bereiche = control.value as Record<string, boolean>;
+  const bereiche = control.getRawValue() as Record<string, boolean>;
   return Object.values(bereiche).some(Boolean) ? null : { mindestensEinBereich: true };
 };
 
@@ -76,6 +85,7 @@ export class BenutzerAnlage implements OnInit {
   readonly rollen: ReadonlyArray<{ value: TUserRole; label: string }> = [
     { value: 'filiale', label: 'Filiale' },
     { value: 'office', label: 'Office' },
+    { value: 'mitarbeiter', label: 'Mitarbeiter' },
     { value: 'master', label: 'Master' },
   ];
   readonly bereiche: ReadonlyArray<{ value: TAppBereich; label: string }> = [
@@ -86,9 +96,9 @@ export class BenutzerAnlage implements OnInit {
     { value: 'systemverwaltung', label: 'Systemverwaltung' },
   ];
   readonly benutzerForm = new FormGroup<TBenutzerAnlageForm>({
-    email: new FormControl('', {
+    namensbestandteil: new FormControl('', {
       nonNullable: true,
-      validators: [Validators.required, Validators.email],
+      validators: [namensbestandteilValidator],
     }),
     anzeigename: new FormControl('', {
       nonNullable: true,
@@ -115,9 +125,19 @@ export class BenutzerAnlage implements OnInit {
   });
 
   constructor() {
+    this.benutzerForm.controls.anzeigename.valueChanges
+      .pipe(distinctUntilChanged(), takeUntilDestroyed())
+      .subscribe((anzeigename) => {
+        this.benutzerForm.controls.namensbestandteil.setValue(
+          normalizeNamensbestandteil(anzeigename),
+        );
+      });
     this.benutzerForm.controls.userRole.valueChanges
       .pipe(distinctUntilChanged(), takeUntilDestroyed())
-      .subscribe(() => this.verwaltungStore.selectUnternehmer([]));
+      .subscribe((userRole) => {
+        this.verwaltungStore.selectUnternehmer([]);
+        this.updateSystemverwaltungFuerRolle(userRole);
+      });
   }
 
   ngOnInit(): void {
@@ -140,7 +160,7 @@ export class BenutzerAnlage implements OnInit {
 
   datenAuswahlGueltig(): boolean {
     const rolle = this.benutzerForm.controls.userRole.value;
-    if (rolle === 'master') return true;
+    if (rolle === 'master' || rolle === 'mitarbeiter') return true;
     const zugriffe = this.verwaltungStore.zugriffe();
     const firmen = Object.values(zugriffe).flatMap((eintrag) => Object.values(eintrag));
     return (
@@ -151,11 +171,22 @@ export class BenutzerAnlage implements OnInit {
     );
   }
 
+  /**
+   * Liefert den automatisch gebildeten Anmeldenamen für die Vorschau.
+   */
+  getAnmeldenameVorschau(): string {
+    return buildAnmeldename(
+      this.benutzerForm.controls.anzeigename.value,
+      this.benutzerForm.controls.userRole.value,
+    );
+  }
+
   getBenutzerAnlage(): IBenutzerAnlage | null {
-    const emailControl = this.benutzerForm.controls.email;
+    const namensbestandteilControl = this.benutzerForm.controls.namensbestandteil;
     const anzeigenameControl = this.benutzerForm.controls.anzeigename;
-    emailControl.setValue(emailControl.getRawValue().trim());
+    this.updateSystemverwaltungFuerRolle(this.benutzerForm.controls.userRole.value);
     anzeigenameControl.setValue(anzeigenameControl.getRawValue().trim());
+    namensbestandteilControl.setValue(normalizeNamensbestandteil(anzeigenameControl.value));
     this.benutzerForm.updateValueAndValidity();
 
     if (this.benutzerForm.invalid || !this.datenAuswahlGueltig()) {
@@ -169,11 +200,14 @@ export class BenutzerAnlage implements OnInit {
       .map((bereich) => bereich.value);
 
     return {
-      email: formValue.email,
+      namensbestandteil: formValue.namensbestandteil,
       anzeigename: formValue.anzeigename,
       userRole: formValue.userRole,
       erlaubteBereiche,
-      zugriffe: formValue.userRole === 'master' ? {} : this.verwaltungStore.zugriffe(),
+      zugriffe:
+        formValue.userRole === 'master' || formValue.userRole === 'mitarbeiter'
+          ? {}
+          : this.verwaltungStore.zugriffe(),
       passwort: formValue.passwort,
     };
   }
@@ -182,11 +216,25 @@ export class BenutzerAnlage implements OnInit {
     this.passwortSichtbar.update((sichtbar) => !sichtbar);
   }
 
+  private updateSystemverwaltungFuerRolle(userRole: TUserRole): void {
+    const systemverwaltungControl =
+      this.benutzerForm.controls.erlaubteBereiche.controls.systemverwaltung;
+
+    if (userRole === 'master') {
+      systemverwaltungControl.setValue(true);
+      systemverwaltungControl.disable();
+      return;
+    }
+
+    systemverwaltungControl.enable();
+    systemverwaltungControl.setValue(false);
+  }
+
   private resetForm(): void {
     this.passwortSichtbar.set(false);
     this.verwaltungStore.selectUnternehmer([]);
     this.formDirective().resetForm({
-      email: '',
+      namensbestandteil: '',
       anzeigename: '',
       userRole: 'filiale',
       erlaubteBereiche: {

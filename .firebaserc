@@ -6,7 +6,8 @@
     "pur-system": {
       "hosting": {
         "office": ["pur-office"],
-        "filiale": ["pur-filiale"]
+        "filiale": ["pur-filiale"],
+        "mitarbeiter": ["pur-mitarbeiter"]
       }
     }
   },

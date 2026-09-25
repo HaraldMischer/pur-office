@@ -84,6 +84,28 @@
                 }
               ]
             },
+            "mitarbeiter": {
+              "outputPath": "dist/pur-mitarbeiter",
+              "serviceWorker": "ngsw-config.json",
+              "assets": [
+                {
+                  "glob": "**/*",
+                  "input": "public",
+                  "ignore": ["manifest.webmanifest", "manifests/**"]
+                },
+                {
+                  "glob": "manifest.webmanifest",
+                  "input": "public/manifests/pur-mitarbeiter",
+                  "output": "/"
+                }
+              ],
+              "fileReplacements": [
+                {
+                  "replace": "src/environments/environment.ts",
+                  "with": "src/environments/environment.mitarbeiter-prod.ts"
+                }
+              ]
+            },
             "development": {
               "optimization": false,
               "extractLicenses": false,

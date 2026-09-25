@@ -46,7 +46,7 @@ describe('PasswortStore', () => {
     await expect(store.savePasswort('falsch', 'neues-passwort')).rejects.toEqual({
       code: 'auth/invalid-credential',
     });
-    expect(store.error()).toBe('E-Mail-Adresse oder Passwort ist nicht korrekt.');
+    expect(store.error()).toBe('Anmeldename oder Passwort ist nicht korrekt.');
     expect(store.erfolgreich()).toBe(false);
   });
 });

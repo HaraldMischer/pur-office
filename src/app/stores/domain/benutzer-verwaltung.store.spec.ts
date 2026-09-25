@@ -13,7 +13,7 @@ import { BenutzerVerwaltungStore } from './benutzer-verwaltung.store';
 
 describe('BenutzerVerwaltungStore', () => {
   const anlage: IBenutzerAnlage = {
-    email: 'user@example.com',
+    namensbestandteil: 'testbenutzer',
     anzeigename: 'Test Benutzer',
     userRole: 'office',
     erlaubteBereiche: ['dashboard'],
@@ -29,7 +29,8 @@ describe('BenutzerVerwaltungStore', () => {
     serviceMock = {
       createBenutzer: vi.fn().mockResolvedValue({
         uid: 'neu-123',
-        email: anlage.email,
+        anmeldename: 'testbenutzer-office',
+        email: 'testbenutzer-office@pur-system.invalid',
       }),
     };
     benutzerServiceMock = {
@@ -81,12 +82,24 @@ describe('BenutzerVerwaltungStore', () => {
 
     await expect(store.createBenutzer(anlage)).resolves.toEqual({
       uid: 'neu-123',
-      email: anlage.email,
+      anmeldename: 'testbenutzer-office',
+      email: 'testbenutzer-office@pur-system.invalid',
     });
     expect(serviceMock.createBenutzer).toHaveBeenCalledWith(anlage);
     expect(store.createdBenutzer()).toEqual({
       uid: 'neu-123',
-      email: anlage.email,
+      anmeldename: 'testbenutzer-office',
+      email: 'testbenutzer-office@pur-system.invalid',
+    });
+    expect(TestBed.inject(StammdatenStore).benutzerprofile()).toContainEqual({
+      uid: 'neu-123',
+      anmeldename: 'testbenutzer-office',
+      email: 'testbenutzer-office@pur-system.invalid',
+      anzeigename: anlage.anzeigename,
+      userRole: anlage.userRole,
+      erlaubteBereiche: anlage.erlaubteBereiche,
+      zugriffe: anlage.zugriffe,
+      aktiv: true,
     });
     expect(store.inProgress()).toBe(false);
   });
@@ -97,7 +110,9 @@ describe('BenutzerVerwaltungStore', () => {
     const store = TestBed.inject(BenutzerVerwaltungStore);
 
     await expect(store.createBenutzer(anlage)).rejects.toBe(error);
-    expect(store.error()).toBe('Zu dieser E-Mail-Adresse besteht bereits ein Benutzerkonto.');
+    expect(store.error()).toBe(
+      'Dieser Anmeldename wird bereits verwendet. Bitte einen anderen Namensbestandteil wählen.',
+    );
     expect(store.createdBenutzer()).toBeNull();
     expect(store.inProgress()).toBe(false);
   });
@@ -130,6 +145,36 @@ describe('BenutzerVerwaltungStore', () => {
     expect(result.anzeigename).toBe('Office Neu');
     expect(store.selectedBenutzer()?.anzeigename).toBe('Office Neu');
     expect(store.updateSuccess()).toContain('office@example.com');
+  });
+
+  it('should clear feedback from the previous user action when a new action starts', async () => {
+    const store = TestBed.inject(BenutzerVerwaltungStore);
+    const stammdatenStore = TestBed.inject(StammdatenStore);
+    stammdatenStore.upsertBenutzerprofil({
+      uid: 'office-1',
+      email: 'office@example.com',
+      anzeigename: 'Office Alt',
+      aktiv: true,
+      userRole: 'office',
+      erlaubteBereiche: ['dashboard'],
+      zugriffe: { u: { f: ['b'] } },
+    });
+    store.selectBenutzer('office-1');
+
+    await store.createBenutzer(anlage);
+    expect(store.createdBenutzer()).not.toBeNull();
+
+    await store.updateBenutzerProfil({
+      anzeigename: 'Office Neu',
+      aktiv: true,
+      erlaubteBereiche: ['dashboard'],
+      zugriffe: { u: { f: ['b'] } },
+    });
+    expect(store.createdBenutzer()).toBeNull();
+    expect(store.updateSuccess()).not.toBeNull();
+
+    await store.createBenutzer(anlage);
+    expect(store.updateSuccess()).toBeNull();
   });
 
   it('should protect the own master profile from deactivation', async () => {

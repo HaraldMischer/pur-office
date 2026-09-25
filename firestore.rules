@@ -2,9 +2,9 @@ rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
-    // =====================================================
+    // ===============================================================================
     // Gemeinsame Hilfsfunktionen
-    // =====================================================
+    // ===============================================================================
 
     function isAuthenticated() {
       return request.auth != null;
@@ -26,8 +26,38 @@ service cloud.firestore {
       return hasProfil() && profil().aktiv == true && profil().userRole == 'office';
     }
 
+    function isMitarbeiter() {
+      return hasProfil() && profil().aktiv == true && profil().userRole == 'mitarbeiter';
+    }
+
     function isScopedUser() {
       return hasProfil() && profil().aktiv == true && profil().userRole in ['office', 'filiale'];
+    }
+
+    function isValidMitarbeiterProfilWrite() {
+      return !('userRole' in request.resource.data)
+        || request.resource.data.userRole != 'mitarbeiter'
+        || (
+          request.resource.data.zugriffe is map
+          && request.resource.data.zugriffe.size() == 0
+        );
+    }
+
+    function istEigenesProfil(uid) {
+      return isAuthenticated() && request.auth.uid == uid;
+    }
+
+    function darfBenutzerprofilBearbeiten(uid) {
+      return isMaster()
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+          'anzeigename',
+          'aktiv',
+          'erlaubteBereiche',
+          'zugriffe',
+          'aktualisiertAm'
+        ])
+        && isValidMitarbeiterProfilWrite()
+        && (request.auth.uid != uid || request.resource.data.aktiv == true);
     }
 
     function darfUnternehmerLesen(unternehmerId) {
@@ -50,17 +80,17 @@ service cloud.firestore {
         && filialId in profil().zugriffe[unternehmerId][firmaId];
     }
 
-    // =====================================================
+    // ===============================================================================
     // 1. Master dürfen alles lesen und schreiben
-    // =====================================================
+    // ===============================================================================
 
     match /{collection}/{document=**} {
       allow read, write: if isMaster() && collection != 'benutzerprofil';
     }
 
-    // =====================================================
-    // 2. Office und Filiale lesen nur ihre Zuordnungen
-    // =====================================================
+    // ===============================================================================
+    // 2. Office und Filiale lesen nur die über TBenutzerZugriffe zugeordneten Daten
+    // ===============================================================================
 
     match /unternehmer/{unternehmerId} {
       allow read: if darfUnternehmerLesen(unternehmerId);
@@ -79,41 +109,29 @@ service cloud.firestore {
       }
     }
 
-    // =====================================================
-    // 3. Das eigene Benutzerprofil bleibt lesbar
-    // =====================================================
+    // ===============================================================================
+    // 3. Benutzerprofile lesen und durch Master bearbeiten
+    // ===============================================================================
 
     match /benutzerprofil/{uid} {
-      allow read: if isMaster() || (isAuthenticated() && request.auth.uid == uid);
-      allow create, delete: if isMaster() && request.auth.uid != uid;
-      allow update: if isMaster()
-        && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
-          'anzeigename',
-          'aktiv',
-          'erlaubteBereiche',
-          'zugriffe',
-          'aktualisiertAm'
-        ])
-        && (
-          request.auth.uid != uid
-          || request.resource.data.aktiv == true
-        );
+      allow read: if isMaster() || istEigenesProfil(uid);
+      allow update: if darfBenutzerprofilBearbeiten(uid);
 
       match /{subcollection}/{document=**} {
         allow read, write: if isMaster();
       }
     }
 
-    // =====================================================
-    // 4. Altkonten ohne Benutzerprofil behalten ihre Rechte
-    // =====================================================
+    // ===============================================================================
+    // 4. Konten der Altanwendung ohne Pur-System-Benutzerprofil
+    // ===============================================================================
 
-    match /{collection}/{document=**} {
-      allow read, write: if isAuthenticated()
-        && !hasProfil()
-        && collection != 'benutzerprofil'
-        && collection != 'benutzer'
-        && collection != 'unternehmer';
+    match /purCustomers/{document=**} {
+      allow read, write: if isAuthenticated() && !hasProfil();
+    }
+
+    match /purUser/{document=**} {
+      allow read, write: if isAuthenticated() && !hasProfil();
     }
   }
 }

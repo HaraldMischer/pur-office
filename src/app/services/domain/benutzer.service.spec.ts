@@ -34,6 +34,7 @@ describe('BenutzerService', () => {
 
   it('should load an existing user profile', async () => {
     const profil: IBenutzerProfilDokument = {
+      anmeldename: 'test-office',
       anzeigename: 'Test',
       email: 'test@example.com',
       aktiv: true,
@@ -102,6 +103,7 @@ describe('BenutzerService', () => {
       {
         id: 'z',
         daten: {
+          anmeldename: 'zulu-office',
           email: 'z@example.com',
           anzeigename: 'Zulu',
           aktiv: true,
@@ -113,6 +115,7 @@ describe('BenutzerService', () => {
       {
         id: 'a',
         daten: {
+          anmeldename: 'alpha-filiale',
           email: 'a@example.com',
           anzeigename: 'Alpha',
           aktiv: true,
@@ -125,8 +128,18 @@ describe('BenutzerService', () => {
     const service = TestBed.inject(BenutzerService);
 
     await expect(service.loadBenutzerProfile()).resolves.toEqual([
-      expect.objectContaining({ uid: 'a', anzeigename: 'Alpha', zugriffe: {} }),
-      expect.objectContaining({ uid: 'z', anzeigename: 'Zulu', zugriffe: { u: { f: ['b'] } } }),
+      expect.objectContaining({
+        uid: 'a',
+        anmeldename: 'alpha-filiale',
+        anzeigename: 'Alpha',
+        zugriffe: {},
+      }),
+      expect.objectContaining({
+        uid: 'z',
+        anmeldename: 'zulu-office',
+        anzeigename: 'Zulu',
+        zugriffe: { u: { f: ['b'] } },
+      }),
     ]);
     expect(firestoreDbServiceMock.loadCollection).toHaveBeenCalledWith('benutzerprofil');
   });

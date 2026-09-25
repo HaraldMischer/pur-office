@@ -9,11 +9,12 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { Router } from '@angular/router';
 
+import { normalizeAnmeldename } from '../../../commons/utils/auth/technische-anmeldeadresse';
 import { NetzwerkStatusService } from '../../../services/core/netzwerk-status.service';
 import { BenutzerStore } from '../../../stores/app/benutzer.store';
 
-type LoginForm = {
-  email: FormControl<string>;
+type TLoginForm = {
+  anmeldename: FormControl<string>;
   password: FormControl<string>;
 };
 
@@ -40,10 +41,10 @@ export class LoginPage {
   readonly isOnline = this._netzwerkStatusService.isOnline;
   readonly error = this._benutzerStore.error;
   readonly isDevelopmentMode = isDevMode();
-  readonly loginForm = new FormGroup<LoginForm>({
-    email: new FormControl('', {
+  readonly loginForm = new FormGroup<TLoginForm>({
+    anmeldename: new FormControl('', {
       nonNullable: true,
-      validators: [Validators.required, Validators.email],
+      validators: [Validators.required],
     }),
     password: new FormControl('', {
       nonNullable: true,
@@ -64,10 +65,10 @@ export class LoginPage {
       return;
     }
 
-    const emailControl = this.loginForm.controls.email;
-    const normalisierteEmail = emailControl.getRawValue().trim();
-    emailControl.setValue(normalisierteEmail);
-    emailControl.updateValueAndValidity();
+    const anmeldenameControl = this.loginForm.controls.anmeldename;
+    const normalisierterAnmeldename = normalizeAnmeldename(anmeldenameControl.getRawValue());
+    anmeldenameControl.setValue(normalisierterAnmeldename);
+    anmeldenameControl.updateValueAndValidity();
 
     if (this.loginForm.invalid || this.inProgress()) {
       this.loginForm.markAllAsTouched();
@@ -75,13 +76,13 @@ export class LoginPage {
     }
 
     const { password } = this.loginForm.getRawValue();
-    await this._benutzerStore.login(normalisierteEmail, password);
+    await this._benutzerStore.login(normalisierterAnmeldename, password);
     await this._router.navigate(['/dashboard']);
   }
 
   patchLoginForm(): void {
     this.loginForm.patchValue({
-      email: 'harry-master@pur-system.de',
+      anmeldename: 'harry-master',
       password: '',
     });
   }

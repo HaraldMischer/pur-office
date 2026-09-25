@@ -12,7 +12,7 @@ import { BenutzerVerwaltungService } from './benutzer-verwaltung.service';
 describe('BenutzerVerwaltungService', () => {
   const functionsMock = {} as Functions;
   const anlage: IBenutzerAnlage = {
-    email: 'user@example.com',
+    namensbestandteil: 'testbenutzer',
     anzeigename: 'Test Benutzer',
     userRole: 'office',
     erlaubteBereiche: ['dashboard'],
@@ -30,7 +30,8 @@ describe('BenutzerVerwaltungService', () => {
       return Promise.resolve({
         data: {
           uid: 'neu-123',
-          email: anlage.email,
+          anmeldename: 'testbenutzer-office',
+          email: 'testbenutzer-office@pur-system.invalid',
         },
       });
     });
@@ -55,7 +56,8 @@ describe('BenutzerVerwaltungService', () => {
 
     await expect(service.createBenutzer(anlage)).resolves.toEqual({
       uid: 'neu-123',
-      email: anlage.email,
+      anmeldename: 'testbenutzer-office',
+      email: 'testbenutzer-office@pur-system.invalid',
     });
     expect(assertOnlineMock).toHaveBeenCalledOnce();
     expect(httpsCallableMock).toHaveBeenCalledWith(functionsMock, 'createBenutzer');

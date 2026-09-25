@@ -281,17 +281,24 @@ export const BenutzerVerwaltungStore = signalStore(
        * Legt einen Benutzer an und speichert das Ergebnis für die Rückmeldung im Store.
        *
        * @param anlage - Die vollständigen Daten des neu anzulegenden Benutzers.
-       * @returns Das Anlageergebnis mit UID und E-Mail-Adresse.
+       * @returns Das Anlageergebnis mit UID, Anmeldename und technischer E-Mail-Adresse.
        * @throws Gibt Fehler der Benutzeranlage an die aufrufende Stelle weiter.
        */
       async function createBenutzer(anlage: IBenutzerAnlage): Promise<IBenutzerAnlageErgebnis> {
-        patchState(store, { inProgress: true, error: null, createdBenutzer: null });
+        patchState(store, {
+          inProgress: true,
+          error: null,
+          createdBenutzer: null,
+          updateError: null,
+          updateSuccess: null,
+        });
 
         try {
           const createdBenutzer = await service.createBenutzer(anlage);
           stammdatenStore.upsertBenutzerprofil({
             uid: createdBenutzer.uid,
-            email: anlage.email,
+            anmeldename: createdBenutzer.anmeldename,
+            email: createdBenutzer.email,
             anzeigename: anlage.anzeigename,
             userRole: anlage.userRole,
             erlaubteBereiche: anlage.erlaubteBereiche,
@@ -331,7 +338,13 @@ export const BenutzerVerwaltungStore = signalStore(
           throw new Error('Ungültige Änderung am eigenen Masterprofil.');
         }
 
-        patchState(store, { inProgress: true, updateError: null, updateSuccess: null });
+        patchState(store, {
+          inProgress: true,
+          error: null,
+          createdBenutzer: null,
+          updateError: null,
+          updateSuccess: null,
+        });
         try {
           await benutzerService.updateBenutzerProfil(profil.uid, aktualisierung);
           const aktualisiertesProfil: IBenutzerProfilEintrag = {

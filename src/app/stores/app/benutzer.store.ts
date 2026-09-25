@@ -138,15 +138,15 @@ export const BenutzerStore = signalStore(
       /**
        * Meldet einen Benutzer an und lädt anschließend sein Benutzerprofil.
        *
-       * @param email - Die normalisierte E-Mail-Adresse des Benutzers.
+       * @param anmeldename - Der normalisierte vollständige Anmeldename des Benutzers.
        * @param password - Das Passwort des Benutzers.
        * @throws Gibt Fehler der Anmeldung oder des Profilladens weiter.
        */
-      async function login(email: string, password: string): Promise<void> {
+      async function login(anmeldename: string, password: string): Promise<void> {
         patchState(store, { inProgress: true, error: null });
 
         try {
-          const credential = await authService.login(email, password);
+          const credential = await authService.login(anmeldename, password);
           debugLogService.log('Authentifizierung', 'Benutzer angemeldet', {
             uid: credential.user.uid,
           });

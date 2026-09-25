@@ -13,6 +13,7 @@ import {
   SIGN_OUT,
   UPDATE_PASSWORD,
 } from '../../commons/tokens/firebase.tokens';
+import { buildTechnischeAnmeldeadresse } from '../../commons/utils/auth/technische-anmeldeadresse';
 import { NetzwerkStatusService } from '../core/netzwerk-status.service';
 
 @Injectable({
@@ -34,11 +35,12 @@ export class AuthService {
     return runInInjectionContext(this._injector, () => this._authState(this._auth));
   }
 
-  login(email: string, password: string): Promise<UserCredential> {
+  login(anmeldename: string, password: string): Promise<UserCredential> {
     this._netzwerkStatusService.assertOnline();
+    const technischeAnmeldeadresse = buildTechnischeAnmeldeadresse(anmeldename);
 
     return runInInjectionContext(this._injector, () =>
-      this._signInWithEmailAndPassword(this._auth, email, password),
+      this._signInWithEmailAndPassword(this._auth, technischeAnmeldeadresse, password),
     );
   }
 

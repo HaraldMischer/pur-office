@@ -42,11 +42,11 @@ describe('LoginPage', () => {
     const page = fixture.componentInstance;
 
     expect(page.loginForm.invalid).toBe(true);
-    expect(page.loginForm.controls.email.hasError('required')).toBe(true);
+    expect(page.loginForm.controls.anmeldename.hasError('required')).toBe(true);
     expect(page.loginForm.controls.password.hasError('required')).toBe(true);
   });
 
-  it('should provide the master email through the development helper', () => {
+  it('should provide the master login name through the development helper', () => {
     const fixture = TestBed.createComponent(LoginPage);
     fixture.detectChanges();
     const compiled = fixture.nativeElement as HTMLElement;
@@ -55,46 +55,36 @@ describe('LoginPage', () => {
 
     expect(compiled.querySelector('mat-card-title button')?.textContent).toContain('pur-master');
     expect(fixture.componentInstance.loginForm.getRawValue()).toEqual({
-      email: 'harry-master@pur-system.de',
+      anmeldename: 'harry-master',
       password: '',
     });
   });
 
-  it('should login and navigate to the dashboard when the form is valid', async () => {
+  it('should normalize the login name, login and navigate to the dashboard', async () => {
     const router = TestBed.inject(Router);
     const navigateSpy = vi.spyOn(router, 'navigate').mockResolvedValue(true);
     const fixture = TestBed.createComponent(LoginPage);
     const page = fixture.componentInstance;
 
     page.loginForm.setValue({
-      email: ' test@example.com ',
+      anmeldename: ' HaraldMischer--MASTER ',
       password: 'secret-password',
     });
 
     await page.submitLogin();
 
-    expect(benutzerStoreMock.login).toHaveBeenCalledWith('test@example.com', 'secret-password');
+    expect(benutzerStoreMock.login).toHaveBeenCalledWith('haraldmischer-master', 'secret-password');
     expect(navigateSpy).toHaveBeenCalledWith(['/dashboard']);
   });
 
-  it('should allow the temporary harry-office login value', async () => {
-    const router = TestBed.inject(Router);
-    const navigateSpy = vi.spyOn(router, 'navigate').mockResolvedValue(true);
+  it('should render a login name field without a role selection', () => {
     const fixture = TestBed.createComponent(LoginPage);
-    const page = fixture.componentInstance;
+    fixture.detectChanges();
+    const compiled = fixture.nativeElement as HTMLElement;
 
-    page.loginForm.setValue({
-      email: 'harry-office@pur-software.de',
-      password: 'secret-password',
-    });
-
-    await page.submitLogin();
-
-    expect(benutzerStoreMock.login).toHaveBeenCalledWith(
-      'harry-office@pur-software.de',
-      'secret-password',
-    );
-    expect(navigateSpy).toHaveBeenCalledWith(['/dashboard']);
+    expect(compiled.querySelector('input[formControlName="anmeldename"]')).not.toBeNull();
+    expect(compiled.querySelector('mat-select')).toBeNull();
+    expect(compiled.textContent).toContain('Anmeldename');
   });
 
   it('should not login when the form is invalid', async () => {
@@ -117,7 +107,7 @@ describe('LoginPage', () => {
     const fixture = TestBed.createComponent(LoginPage);
     const page = fixture.componentInstance;
     page.loginForm.setValue({
-      email: 'test@example.com',
+      anmeldename: 'test-master',
       password: 'secret-password',
     });
     fixture.detectChanges();
@@ -134,13 +124,13 @@ describe('LoginPage', () => {
   });
 
   it('should render an error message from the store', () => {
-    benutzerStoreMock.error.mockReturnValue('E-Mail-Adresse oder Passwort ist nicht korrekt.');
+    benutzerStoreMock.error.mockReturnValue('Anmeldename oder Passwort ist nicht korrekt.');
     const fixture = TestBed.createComponent(LoginPage);
     fixture.detectChanges();
     const compiled = fixture.nativeElement as HTMLElement;
 
     expect(compiled.querySelector('.pur-form__error')?.textContent).toContain(
-      'E-Mail-Adresse oder Passwort ist nicht korrekt.',
+      'Anmeldename oder Passwort ist nicht korrekt.',
     );
   });
 });

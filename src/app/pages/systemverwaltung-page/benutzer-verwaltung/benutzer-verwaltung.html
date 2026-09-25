@@ -13,7 +13,7 @@
         <mat-select [formControl]="benutzerUid" (selectionChange)="selectBenutzer($event.value)">
           @for (profil of verwaltungStore.benutzerprofile(); track profil.uid) {
             <mat-option [value]="profil.uid">
-              {{ profil.anzeigename }} · {{ profil.email }}
+              {{ profil.anzeigename }} - {{ rollenLabels[profil.userRole] }}
             </mat-option>
           } @empty {
             <mat-option disabled>Keine Benutzerprofile verfügbar</mat-option>

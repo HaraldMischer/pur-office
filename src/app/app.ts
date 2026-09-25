@@ -75,7 +75,7 @@ export class App {
 
     return {
       authLayout,
-      toolbarTitel: authLayout ? 'Pur-System' : (route.title ?? 'Pur Office'),
+      toolbarTitel: authLayout ? 'Pur-System' : (route.title ?? ''),
     };
   }
 }

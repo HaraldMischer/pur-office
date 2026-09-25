@@ -10,7 +10,7 @@
           <button type="button" (click)="patchLoginForm()">pur-master</button>
         }
       </mat-card-title>
-      <mat-card-subtitle>Melde dich mit deiner E-Mail-Adresse an.</mat-card-subtitle>
+      <mat-card-subtitle>Melde dich mit deinem Anmeldenamen an.</mat-card-subtitle>
     </mat-card-header>
 
     <mat-card-content>
@@ -19,22 +19,20 @@
         class="pur-form pur-form--grid"
         [formGroup]="loginForm"
         aria-label="Bei Pur Office anmelden"
-        (submit)="$event.preventDefault(); submitLogin()"
+        (ngSubmit)="submitLogin()"
       >
         <mat-form-field appearance="outline" class="pur-form__field">
-          <mat-label>E-Mail-Adresse</mat-label>
+          <mat-label>Anmeldename</mat-label>
           <input
-            formControlName="email"
+            formControlName="anmeldename"
             matInput
-            type="email"
-            autocomplete="email"
-            inputmode="email"
+            type="text"
+            autocomplete="username"
+            autocapitalize="none"
           />
 
-          @if (loginForm.controls.email.hasError('required')) {
-            <mat-error>E-Mail-Adresse ist erforderlich.</mat-error>
-          } @else if (loginForm.controls.email.hasError('email')) {
-            <mat-error>Bitte eine gültige E-Mail-Adresse eingeben.</mat-error>
+          @if (loginForm.controls.anmeldename.hasError('required')) {
+            <mat-error>Anmeldename ist erforderlich.</mat-error>
           }
         </mat-form-field>
 

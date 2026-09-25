@@ -65,6 +65,7 @@ describe('verwaltungGuard', () => {
     benutzerStoreMock.loadBenutzerProfil.mockResolvedValue({
       ...profil,
       userRole: 'filiale',
+      erlaubteBereiche: ['dashboard', 'verwaltung'],
     });
     routerMock.createUrlTree.mockReturnValue(dashboardUrlTree);
 
@@ -74,6 +75,23 @@ describe('verwaltungGuard', () => {
 
     expect(result).toBe(dashboardUrlTree);
     expect(routerMock.createUrlTree).toHaveBeenCalledWith(['/dashboard']);
+  });
+
+  it('should redirect a branch user without dashboard to an allowed area', async () => {
+    const schichtplanUrlTree = {} as UrlTree;
+    benutzerStoreMock.loadBenutzerProfil.mockResolvedValue({
+      ...profil,
+      userRole: 'filiale',
+      erlaubteBereiche: ['verwaltung', 'schichtplan'],
+    });
+    routerMock.createUrlTree.mockReturnValue(schichtplanUrlTree);
+
+    const result = await TestBed.runInInjectionContext(() =>
+      verwaltungGuard({} as never, {} as never),
+    );
+
+    expect(result).toBe(schichtplanUrlTree);
+    expect(routerMock.createUrlTree).toHaveBeenCalledWith(['/schichtplan']);
   });
 
   it('should redirect to login when no user is signed in', async () => {

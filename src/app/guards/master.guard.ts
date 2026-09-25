@@ -6,6 +6,7 @@ import { firstValueFrom, take } from 'rxjs';
 
 import { AuthService } from '../services/firebase/auth.service';
 import { BenutzerStore } from '../stores/app/benutzer.store';
+import { getErlaubteStartRoute } from './guard-navigation';
 
 export const masterGuard: CanActivateFn = async () => {
   const authService = inject(AuthService);
@@ -23,5 +24,8 @@ export const masterGuard: CanActivateFn = async () => {
     return router.createUrlTree(['/login']);
   }
 
-  return benutzerProfil.userRole === 'master' || router.createUrlTree(['/dashboard']);
+  return (
+    benutzerProfil.userRole === 'master' ||
+    router.createUrlTree([getErlaubteStartRoute(benutzerProfil) ?? '/login'])
+  );
 };

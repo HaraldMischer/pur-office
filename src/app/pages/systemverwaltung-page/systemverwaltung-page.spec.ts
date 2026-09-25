@@ -91,7 +91,8 @@ describe('SystemverwaltungPage', () => {
           useValue: {
             createBenutzer: vi.fn().mockResolvedValue({
               uid: 'neu-123',
-              email: 'user.com',
+              anmeldename: 'test-master',
+              email: 'test-master@pur-system.invalid',
             }),
           },
         },
@@ -130,7 +131,7 @@ describe('SystemverwaltungPage', () => {
     const fixture = TestBed.createComponent(BenutzerAnlage);
     const component = fixture.componentInstance;
     component.benutzerForm.patchValue({
-      email: '  user@example.com ',
+      namensbestandteil: '  Tést Benutzer! ',
       anzeigename: '  Test Benutzer ',
       userRole: 'master',
       passwort: 'SicheresPasswort123!',
@@ -143,13 +144,120 @@ describe('SystemverwaltungPage', () => {
       },
     });
     expect(component.getBenutzerAnlage()).toEqual({
-      email: 'user@example.com',
+      namensbestandteil: 'testbenutzer',
       anzeigename: 'Test Benutzer',
       userRole: 'master',
-      erlaubteBereiche: ['dashboard', 'schichtplan', 'verwaltung'],
+      erlaubteBereiche: ['dashboard', 'schichtplan', 'verwaltung', 'systemverwaltung'],
       zugriffe: {},
       passwort: 'SicheresPasswort123!',
     });
+  });
+
+  it('should derive read-only login details from display name and role', () => {
+    const fixture = TestBed.createComponent(BenutzerAnlage);
+    const component = fixture.componentInstance;
+
+    component.benutzerForm.controls.anzeigename.setValue('Harald Mischer');
+    component.benutzerForm.controls.userRole.setValue('master');
+    fixture.detectChanges();
+
+    expect(component.benutzerForm.controls.namensbestandteil.value).toBe('haraldmischer');
+    expect(component.getAnmeldenameVorschau()).toBe('haraldmischer-master');
+    const readOnlyInputs = fixture.nativeElement.querySelectorAll('input[readonly]');
+    expect(readOnlyInputs).toHaveLength(1);
+    expect(readOnlyInputs[0].value).toBe('haraldmischer-master');
+    expect(fixture.nativeElement.textContent).not.toContain('Technische Adresse');
+
+    component.benutzerForm.controls.anzeigename.setValue('Anderer Anzeigename');
+    fixture.detectChanges();
+
+    expect(component.benutzerForm.controls.namensbestandteil.value).toBe('andereranzeigename');
+    expect(readOnlyInputs[0].value).toBe('andereranzeigename-master');
+  });
+
+  it('should reject a display name without usable login characters', () => {
+    const component = TestBed.createComponent(BenutzerAnlage).componentInstance;
+    component.benutzerForm.patchValue({
+      anzeigename: '---',
+      userRole: 'master',
+      passwort: 'SicheresPasswort123!',
+    });
+
+    expect(component.getBenutzerAnlage()).toBeNull();
+    expect(component.benutzerForm.controls.namensbestandteil.hasError('required')).toBe(true);
+  });
+
+  it('should create an employee account with the selected areas and without data scopes', async () => {
+    const fixture = TestBed.createComponent(BenutzerAnlage);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    const component = fixture.componentInstance;
+
+    component.benutzerForm.patchValue({
+      namensbestandteil: 'mitarbeiter',
+      anzeigename: 'Test Mitarbeiter',
+      userRole: 'mitarbeiter',
+      passwort: 'SicheresPasswort123!',
+      erlaubteBereiche: {
+        dashboard: true,
+        schichtplan: true,
+      },
+    });
+    fixture.detectChanges();
+
+    expect(component.rollen).toContainEqual({ value: 'mitarbeiter', label: 'Mitarbeiter' });
+    expect(component.benutzerForm.controls.erlaubteBereiche.controls.dashboard.enabled).toBe(true);
+    expect(component.benutzerForm.controls.erlaubteBereiche.controls.schichtplan.enabled).toBe(
+      true,
+    );
+    expect(fixture.debugElement.query(By.directive(DatenzugriffAuswahl))).toBeNull();
+    expect(component.getBenutzerAnlage()).toEqual({
+      namensbestandteil: 'testmitarbeiter',
+      anzeigename: 'Test Mitarbeiter',
+      userRole: 'mitarbeiter',
+      erlaubteBereiche: ['dashboard', 'schichtplan'],
+      zugriffe: {},
+      passwort: 'SicheresPasswort123!',
+    });
+  });
+
+  it('should preserve selected areas when changing roles', () => {
+    const component = TestBed.createComponent(BenutzerAnlage).componentInstance;
+
+    component.benutzerForm.controls.erlaubteBereiche.patchValue({
+      dashboard: false,
+      schichtplan: true,
+    });
+    component.benutzerForm.controls.userRole.setValue('mitarbeiter');
+    component.benutzerForm.controls.userRole.setValue('office');
+
+    expect(component.benutzerForm.controls.erlaubteBereiche.getRawValue()).toEqual({
+      dashboard: false,
+      schichtplan: true,
+      mitarbeiter: false,
+      verwaltung: false,
+      systemverwaltung: false,
+    });
+    expect(
+      Object.values(component.benutzerForm.controls.erlaubteBereiche.controls).every(
+        (control) => control.enabled,
+      ),
+    ).toBe(true);
+  });
+
+  it('should require system administration for master accounts', () => {
+    const component = TestBed.createComponent(BenutzerAnlage).componentInstance;
+    const systemverwaltung =
+      component.benutzerForm.controls.erlaubteBereiche.controls.systemverwaltung;
+
+    component.benutzerForm.controls.userRole.setValue('master');
+
+    expect(systemverwaltung.getRawValue()).toBe(true);
+    expect(systemverwaltung.disabled).toBe(true);
+    systemverwaltung.setValue(false);
+    component.benutzerForm.controls.userRole.setValue('office');
+    expect(systemverwaltung.getRawValue()).toBe(false);
+    expect(systemverwaltung.enabled).toBe(true);
   });
 
   it.each(['', 'short'])(
@@ -157,7 +265,7 @@ describe('SystemverwaltungPage', () => {
     async (passwort) => {
       const component = TestBed.createComponent(BenutzerAnlage).componentInstance;
       component.benutzerForm.patchValue({
-        email: 'user@example.com',
+        namensbestandteil: 'user',
         anzeigename: 'Test',
         passwort,
       });
@@ -171,7 +279,7 @@ describe('SystemverwaltungPage', () => {
     const fixture = TestBed.createComponent(BenutzerAnlage);
     const component = fixture.componentInstance;
     component.benutzerForm.patchValue({
-      email: 'user@example.com',
+      namensbestandteil: 'test',
       anzeigename: 'Test',
       userRole: 'master',
       passwort: 'SicheresPasswort123!',
@@ -199,22 +307,32 @@ describe('SystemverwaltungPage', () => {
     expect(
       TestBed.inject(BenutzerVerwaltungService).createBenutzer,
     ).toHaveBeenCalledExactlyOnceWith({
-      email: 'user@example.com',
+      namensbestandteil: 'test',
       anzeigename: 'Test',
       userRole: 'master',
       passwort: 'SicheresPasswort123!',
-      erlaubteBereiche: ['dashboard'],
+      erlaubteBereiche: ['dashboard', 'systemverwaltung'],
       zugriffe: {},
     });
     expect(component.benutzerForm.controls.passwort.value).toBe('');
-    expect(component.benutzerForm.controls.email.value).toBe('');
+    expect(component.benutzerForm.controls.namensbestandteil.value).toBe('');
+  });
+
+  it('should clear user management feedback when leaving the page', () => {
+    const store = TestBed.inject(BenutzerVerwaltungStore);
+    const clearFeedback = vi.spyOn(store, 'clearFeedback');
+    const fixture = TestBed.createComponent(SystemverwaltungPage);
+
+    fixture.destroy();
+
+    expect(clearFeedback).toHaveBeenCalledOnce();
   });
 
   it('should toggle password visibility without submitting or changing the password', () => {
     const fixture = TestBed.createComponent(BenutzerAnlage);
     const component = fixture.componentInstance;
     component.benutzerForm.patchValue({
-      email: 'user@example.com',
+      namensbestandteil: 'test',
       anzeigename: 'Test',
       passwort: 'SicheresPasswort123!',
     });
@@ -268,7 +386,7 @@ describe('SystemverwaltungPage', () => {
     const fixture = TestBed.createComponent(BenutzerAnlage);
     const component = fixture.componentInstance;
     component.benutzerForm.patchValue({
-      email: 'user@example.com',
+      namensbestandteil: 'testbenutzer',
       anzeigename: 'Test Benutzer',
       erlaubteBereiche: {
         dashboard: false,
@@ -297,7 +415,7 @@ describe('SystemverwaltungPage', () => {
     }
     await render();
     fixture.componentInstance.benutzerForm.patchValue({
-      email: 'user@example.com',
+      namensbestandteil: 'test',
       anzeigename: 'Test',
       passwort: 'SicheresPasswort123!',
     });
@@ -340,7 +458,7 @@ describe('SystemverwaltungPage', () => {
     await fixture.whenStable();
     const component = fixture.componentInstance;
     component.benutzerForm.patchValue({
-      email: 'user@example.com',
+      namensbestandteil: 'test',
       anzeigename: 'Test',
       userRole: 'master',
       passwort: 'SicheresPasswort123!',
@@ -360,7 +478,7 @@ describe('SystemverwaltungPage', () => {
     rejectSave(new Error('Speichern fehlgeschlagen'));
     await pending;
     fixture.detectChanges();
-    expect(component.benutzerForm.controls.email.value).toBe('user@example.com');
+    expect(component.benutzerForm.controls.namensbestandteil.value).toBe('test');
     expect(component.verwaltungStore.error()).toBeTruthy();
     expect(fixture.nativeElement.querySelector('button[type="submit"]').disabled).toBe(false);
   });
@@ -372,7 +490,7 @@ describe('SystemverwaltungPage', () => {
       await fixture.whenStable();
       const component = fixture.componentInstance;
       component.benutzerForm.patchValue({
-        email: 'user@example.com',
+        namensbestandteil: 'test',
         anzeigename: 'Test',
         passwort: 'SicheresPasswort123!',
         userRole,

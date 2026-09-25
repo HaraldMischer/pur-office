@@ -1,79 +1,118 @@
 <!-- pur-office/docs/projekt-plan.md -->
 
-# Projekt-Plan: Pur Office
+# Projekt-Plan: Pur-System
 
 ## Produktidee
 
-Pur Office ist eine Angular-Anwendung zur Darstellung von Office- und Organisationsdaten sowie zur kontrollierten Verwaltung von Benutzerzugängen.
+Pur-System ist eine Angular-Anwendung zur Darstellung und Bearbeitung von Organisationsdaten sowie zur kontrollierten Verwaltung
+von Benutzerzugängen. Es wird in den technischen Auslieferungsvarianten Pur Office, Pur Filiale und Pur Mitarbeiter
+bereitgestellt.
 
 ## Zielrichtung
 
 - Die fachlichen App-Bereiche lesen Daten aus Firestore und schreiben ausschließlich die jeweils ausdrücklich freigegebenen Daten.
-- Die Systemverwaltung bündelt administrative Vorgänge des Masters. Die Verwaltung erlaubt Office und Master das Aktualisieren bestehender Firmen- und Filialdaten innerhalb der Firestore Rules. Sicherheitskritische Auth-Vorgänge laufen über ein geschütztes Backend.
+- Die Systemverwaltung bündelt administrative Vorgänge des Masters. Die Verwaltung erlaubt Office und Master das Aktualisieren
+  bestehender Firmen- und Filialdaten innerhalb der Firestore Rules. Sicherheitskritische Auth-Vorgänge laufen über ein
+  geschütztes Backend.
 - Fachliche Bereiche werden klar getrennt.
 - UI und Datenzugriff werden über Components, Stores und Services getrennt.
-- Das System wird getrennt ausgeliefert: Pur Office als normale Webanwendung und Pur Filiale als installierbare Progressive Web App.
+- Das System wird getrennt ausgeliefert: Pur Office als normale Webanwendung sowie Pur Filiale und Pur Mitarbeiter als
+  installierbare Progressive Web Apps.
 
 ## Architektur
 
 - Firestore dient für die fachlichen App-Bereiche als Datenquelle für lesende und gezielt freigegebene schreibende Zugriffe.
-- Sicherheitskritische administrative Vorgänge an Firebase Auth werden über geschützte Firebase Cloud Functions mit Firebase Admin SDK ausgeführt.
-- Fachliche Verwaltungsdaten können durch einen aktiven Master direkt aus dem Angular-Client in Firestore geschrieben werden. Aktive Office-Konten dürfen ausschließlich ihre zugeordneten Firmen- und Filialdokumente aktualisieren.
+- Sicherheitskritische administrative Vorgänge an Firebase Auth werden über geschützte Firebase Cloud Functions mit Firebase Admin
+  SDK ausgeführt.
+- Fachliche Verwaltungsdaten können durch einen aktiven Master direkt aus dem Angular-Client in Firestore geschrieben werden.
+  Aktive Office-Konten dürfen ausschließlich ihre zugeordneten Firmen- und Filialdokumente aktualisieren.
 - Firestore Rules bleiben bewusst einfach und sichern nur Zugriff und Besitz.
 - Fachliche Regeln, Feldvalidierung und UI-Logik werden in der Anwendung umgesetzt.
 - Feature-Bereiche werden lazy geladen.
 - Persistenter App-State wird zentral und nachvollziehbar gekapselt.
 
-## Architektur-Schichten
+### Architektur-Schichten
 
 - Components enthalten UI und einfache Formular- oder Interaktionslogik.
 - Stores halten App-State, Lade- und Fehlerzustände und orchestrieren Service-Aufrufe.
 - Fachliche Services kapseln Domänen-Mapping, Sortierung und fachlich benannte Datenoperationen.
-- Der technische `FirestoreDbService` kapselt direkte AngularFire-Aufrufe, den Angular-Injection-Kontext und die globale Registrierung lesender Ladevorgänge.
+- Der technische `FirestoreDbService` kapselt direkte AngularFire-Aufrufe, den Angular-Injection-Kontext und die globale
+  Registrierung lesender Ladevorgänge.
 - Firestore-Collection- und Dokumentpfade werden zentral erzeugt und nicht in fachlichen Services zusammengesetzt.
 - Der bevorzugte Datenfluss ist `Component -> Store -> fachlicher Service -> FirestoreDbService -> Firebase/Firestore`.
-- Der app-weite `StammdatenStore` lädt nach dem Benutzerprofil einmalig die für die Sitzung erlaubten Unternehmer, Firmen und Filialen. Für Master werden zusätzlich alle Benutzerprofile geladen. Feature-Stores verwenden diesen Sitzungsbestand und lösen bei Routenwechseln keine erneuten Stammdatenabfragen aus.
-- Dauerhafte lokale Speicherung, Synchronisationsstatus und Offline-Schreibvorgänge werden pro Datenart ausdrücklich festgelegt und über die zentrale Datenzugriffsschicht gekapselt.
+- Der app-weite `StammdatenStore` lädt nach dem Benutzerprofil einmalig die für die Sitzung erlaubten Unternehmer, Firmen und
+  Filialen. Für Master werden zusätzlich alle Benutzerprofile geladen. Feature-Stores verwenden diesen Sitzungsbestand und lösen
+  bei Routenwechseln keine erneuten Stammdatenabfragen aus.
+- Fachliche Daten werden zunächst ausschließlich online gelesen und geändert. Dauerhafte lokale Speicherung,
+  Synchronisationsstatus und Offline-Schreibvorgänge werden erst bei einem konkreten fachlichen Bedarf pro Datenart ausdrücklich
+  festgelegt und über die zentrale Datenzugriffsschicht gekapselt.
 
 ## PWA- und Offline-Strategie
 
-Pur Filiale wird als Progressive Web App installierbar. Der Angular Service
-Worker stellt nach dem ersten erfolgreichen Laden die App-Shell und die zum Start
-erforderlichen statischen Ressourcen offline bereit. Pur Office wird getrennt
-als normale Webanwendung ohne Service Worker ausgeliefert. Beide Varianten
-verwenden eine eigene Produktkennung im Web-App-Manifest.
+### Auslieferungsvarianten
 
-Neue Anwendungsversionen werden im Hintergrund erkannt. Die Anwendung informiert
-den Benutzer über verfügbare Updates und ermöglicht einen kontrollierten Wechsel
-auf die neue Version. Der aktuelle Netzwerkzustand und Funktionen, die eine
-Verbindung benötigen, werden in der App-Shell verständlich dargestellt.
+- **Pur Office:** Normale Webanwendung ohne Service Worker.
+- **Pur Filiale:** Installierbare Progressive Web App. Der Angular Service Worker stellt nach dem ersten erfolgreichen Laden die
+  App-Shell und die zum Start erforderlichen statischen Ressourcen offline bereit.
+- **Pur Mitarbeiter:** Persönliche mobile PWA innerhalb desselben Angular- und Firebase-Projekts. Sie besitzt einen getrennten
+  Build, die eigene Hosting-Adresse `pur-mitarbeiter.web.app` und eine App-Shell mit dem Titel „Pur Mitarbeiter“.
 
-Der Service Worker ist ausschließlich für die Anwendungsversion und statische
-Ressourcen zuständig. Er macht geschützte Firestore-Daten nicht automatisch
-offline verfügbar.
+Alle drei Auslieferungsvarianten verwenden eine eigene Produktkennung im Web-App-Manifest.
 
-Die fachliche Offline-Nutzung wird getrennt und stufenweise umgesetzt. Zunächst
-können bereits erfolgreich geladene und ausdrücklich freigegebene Daten nach
-einer Sicherheitsentscheidung lokal für einen lesenden Offline-Betrieb
-bereitgestellt werden. Noch nicht lokal vorhandene Daten bleiben offline als
-nicht verfügbar erkennbar.
+In Pur Mitarbeiter richten sich Anmeldung, App-Shell und Navigation nach den im Benutzerprofil zugewiesenen `erlaubteBereiche`.
+Welche fachlichen Mitarbeiterdaten und Funktionen später innerhalb dieser Umgebung angeboten werden, wird bei konkretem fachlichem
+Bedarf separat geplant. Der Produktname „Pur Mitarbeiter“ bezeichnet dabei nicht den fachlichen Mitarbeiterdatensatz.
 
-Offline-Schreibvorgänge werden nur für ausdrücklich ausgewählte Datenarten und
-Aktionen freigegeben. Ausstehende Änderungen erhalten einen sichtbaren
-Synchronisationsstatus und werden nach Wiederherstellung der Verbindung
-kontrolliert übertragen. Für parallele Änderungen, abgewiesene Schreibvorgänge,
-entzogene Berechtigungen und nicht mehr vorhandene Zieldokumente werden
-fachliche Konfliktregeln festgelegt.
+Die Mitarbeiter-App erzeugt keine zusätzliche Rollenbeschränkung. Auch dort bestimmen `erlaubteBereiche` die sichtbaren und
+erreichbaren Bereiche. Besondere administrative Routen bleiben zusätzlich durch ihre vorhandenen Rollenguards geschützt.
 
-Lokal gespeicherte Daten werden nach Benutzerkonten getrennt behandelt.
-Benutzerwechsel, Abmeldung und gemeinsam genutzte Geräte dürfen keinen Zugriff
-auf Daten eines anderen Benutzerkontos ermöglichen.
+Die konkreten Build-, Hosting- und Service-Worker-Einstellungen sind in den [PWA-Konfigurationen](./pwa-konfigurationen.md)
+zusammengefasst. Die vorgesehene Verwendung und das fachliche Online-/Offline-Verhalten stehen in den
+[PWA-Betriebsarten](./pwa-betriebsarten.md).
+
+### Updates und Service Worker
+
+Neue Anwendungsversionen werden im Hintergrund erkannt. Die Anwendung informiert den Benutzer über verfügbare Updates und
+ermöglicht einen kontrollierten Wechsel auf die neue Version. Der aktuelle Netzwerkzustand und Funktionen, die eine Verbindung
+benötigen, werden in der App-Shell verständlich dargestellt.
+
+Der Service Worker ist ausschließlich für die Anwendungsversion und statische Ressourcen zuständig. Er macht geschützte
+Firestore-Daten nicht automatisch offline verfügbar.
+
+### Fachliche Online- und Offline-Nutzung
+
+Fachliche Daten werden in Pur Office, Pur Filiale und Pur Mitarbeiter zunächst ausschließlich online gelesen und geändert. Es
+werden keine fachlichen Daten bewusst dauerhaft für einen späteren Offline-Aufruf gespeichert und keine Offline-Änderungen zur
+späteren Synchronisation zugelassen.
+
+Eine spätere Ausnahme wird erst bei einem konkreten fachlichen Bedarf einzeln für Datenart, Benutzerrolle, Auslieferungsvariante
+und Aktion entschieden. Dabei werden insbesondere Schutzbedarf, Benutzertrennung, veraltete Daten, Berechtigungsänderungen,
+Synchronisation und Konfliktbehandlung berücksichtigt.
 
 ## Auth und Berechtigungen
 
-Ein Benutzer ist ein authentifizierter Firebase-Auth-User mit `uid`.
+### Identität und Anmeldung
 
-Firebase Auth klärt die Identität: Wer ist eingeloggt?
+Ein Benutzer ist ein authentifizierter Firebase-Auth-User mit `uid`. Firebase Auth klärt die Identität des angemeldeten Benutzers.
+
+Jeder Benutzer besitzt zusätzlich einen unveränderlichen Anmeldenamen im Format `<normalisierter-name>-<rolle>`, beispielsweise
+`haraldmischer-master`. Leerzeichen und Sonderzeichen werden entfernt, deutsche Umlaute und `ß` werden eindeutig umgeschrieben.
+Firebase Auth verwendet intern die daraus gebildete technische Adresse `<anmeldename>@pur-system.invalid`. Der Rollenbestandteil
+im Anmeldenamen ist ausschließlich Teil der technischen Kennung und gewährt keine Berechtigungen.
+
+Das Loginformular fragt ausschließlich den vollständigen Anmeldenamen und das Passwort ab. Die Anwendung normalisiert den
+Anmeldenamen und ergänzt für den Firebase-Auth-Aufruf intern `@pur-system.invalid`. Eine Rollenauswahl gibt es im Login nicht;
+Rolle, Aktivstatus und Bereichsfreigaben werden erst aus dem über die Firebase-UID geladenen Benutzerprofil abgeleitet.
+
+### Benutzeranlage und technische Kennung
+
+Bei der Benutzeranlage erfasst der Master Anzeigename, Benutzerrolle und Anfangspasswort. Die Anwendung bildet daraus automatisch
+den nicht bearbeitbaren Anmeldenamen und zeigt ihn im Formular an. Die technische Firebase-Adresse bleibt bei der Anlage verborgen
+und wird erst in der Benutzerbearbeitung angezeigt. Die Callable Function normalisiert den Anzeigenamen erneut und erzeugt
+Anmeldename und technische Adresse verbindlich. Dadurch bleibt die technische Kennung nach der Anlage unabhängig von späteren
+Änderungen des Anzeigenamens.
+
+### Benutzerprofil und Bereichsfreigaben
 
 Die Berechtigungen liegen im Firestore-Dokument:
 
@@ -81,36 +120,94 @@ Die Berechtigungen liegen im Firestore-Dokument:
 benutzerprofil/{uid}
 ```
 
-Das Benutzerprofil enthält mit `userRole` zusätzlich die Rolle `filiale`, `office` oder `master`. Die allgemeinen Bereichsfreigaben richten sich nach `erlaubteBereiche`. Der administrative Bereich `systemverwaltung` erfordert zusätzlich die Rolle `master`.
+Das Benutzerprofil enthält mit `userRole` die Rollen `filiale`, `office`, `master` und `mitarbeiter`. Die allgemeinen
+Bereichsfreigaben richten sich nach `erlaubteBereiche`. Der administrative Bereich `systemverwaltung` erfordert zusätzlich die
+Rolle `master`.
 
-Bei der Bearbeitung bestehender Benutzerprofile wird die Freigabe `systemverwaltung` aus der unveränderlichen Rolle abgeleitet: Für Master ist sie fest aktiviert, für Office und Filiale fest deaktiviert.
+Ein Mitarbeiter kann für die Mitarbeiter-App optional einen eigenen Mitarbeiterzugang mit Firebase Auth und eigener `uid`
+erhalten. Der Zugang wird ausschließlich durch einen Master angelegt; eine Selbstregistrierung ist nicht vorgesehen. Benutzer mit
+einem Mitarbeiterzugang verwenden die bestehenden Abläufe für Anmeldung, Abmeldung und Passwortänderung. Der Master kann einen
+Mitarbeiterzugang deaktivieren und vergibt bei einem vergessenen Passwort ein neues vorläufiges Passwort.
 
-Welche App-Bereiche und welche Datenräume der Benutzer lesen darf, wird über `erlaubteBereiche` und `zugriffe` festgelegt. Die Zugriffe sind als verschachtelte Map `Unternehmer-ID -> Firma-ID -> Filial-IDs` gespeichert. Altprofile mit der früheren Array-Struktur bleiben für Login und Bereichsfreigaben lesbar, gewähren Office- und Filialkonten aber keinen Datenzugriff. Aktive Master bleiben davon unberührt.
+Der Master weist Mitarbeiterzugängen die benötigten `erlaubteBereiche` bei der Anlage und Bearbeitung des Kontos zu. Die
+Auslieferungsvariante erzeugt keine zusätzliche Rollenbeschränkung und gewährt keine fachlichen Datenrechte. Datenzugriffe werden
+zusätzlich durch Backend und Firestore Rules abgesichert.
 
-Die App speichert keine direkten Firestore-Pfade als Berechtigung, sondern fachliche Berechtigungen. Daraus werden Navigation, Route Guards und Firestore-Abfragen abgeleitet.
+Die Auth-Rolle `mitarbeiter` und ein fachlicher Mitarbeiterdatensatz einer Firma sind getrennte Konzepte. Ein Mitarbeiterdatensatz
+kann ohne Mitarbeiterzugang bestehen. Soll ein Mitarbeiter Pur Mitarbeiter verwenden, wird sein Mitarbeiterzugang später eindeutig
+mit dem zugehörigen Mitarbeiterdatensatz verknüpft. Erst über diesen Mitarbeiterdatensatz und dessen noch festzulegende
+Filialzuordnungen entstehen fachliche Datenrechte, beispielsweise auf Dienstpläne bestimmter Filialen. `erlaubteBereiche` steuert
+dagegen ausschließlich, welche App-Funktionen über den Mitarbeiterzugang geöffnet werden dürfen.
 
-Die Firestore Rules erlauben aktiven Mastern das Lesen aller Collections samt Untercollections. Fachliche Daten dürfen sie vollständig schreiben; vorhandene Benutzerprofile dürfen sie nur in den ausdrücklich freigegebenen Feldern aktualisieren. Benutzerrolle, E-Mail-Adresse und Auth-Daten bleiben dabei unveränderlich. Office und Filiale lesen Geschäftsdaten direkt anhand der verschachtelten `zugriffe`-Map und weiterhin ihr eigenes Profil. Aktive Office-Konten dürfen ihre zugeordneten Firmen- und Filialdokumente aktualisieren, aber weder Firmen oder Filialen anlegen oder löschen noch Filial-Untercollections beschreiben. Filialkonten bleiben vorerst rein lesend. Ein separater Zugriffsindex wird nicht gespeichert. Bestätigte Altanwendungskonten ohne `benutzerprofil`-Dokument behalten ihren bisherigen Zugriff außerhalb von `benutzerprofil` und `unternehmer`. Clientseitige Guards ersetzen die Rules nicht.
+Bei der Anlage und Bearbeitung von Benutzerprofilen wird die Freigabe `systemverwaltung` in der Oberfläche aus der
+unveränderlichen Rolle abgeleitet: Für Master ist sie automatisch und fest aktiviert, für Office, Filiale und Mitarbeiterzugänge
+fest deaktiviert. Die Callable Function speichert das vom Formular übergebene Array `erlaubteBereiche` ohne eigene
+Bereichsvorgaben.
 
-Lokal zwischengespeicherte Berechtigungen und Daten bilden ausschließlich den
-zuletzt erfolgreich bestätigten Stand ab. Sie gewähren keine neuen Rechte. Nach
-Wiederherstellung der Verbindung entscheiden weiterhin die aktuellen Firestore
-Rules über jeden Serverzugriff. Zwischenzeitlich entzogene Rechte, deaktivierte
-Konten und serverseitig abgewiesene Offline-Änderungen müssen von der Anwendung
-erkannt und nachvollziehbar behandelt werden.
+### Datenrechte und Firestore Rules
 
-Eine Selbstregistrierung ist nicht vorgesehen. Benutzerzugänge werden im Zielablauf im Bereich `systemverwaltung` von einem `master` vorkonfiguriert. Die Angular-App ruft dafür eine geschützte Firebase Cloud Function auf. Die Function prüft die Rolle des aufrufenden Benutzers serverseitig, legt mit dem Firebase Admin SDK den Auth-Benutzer und anschließend das Dokument `benutzerprofil/{uid}` an. Der angemeldete `master` bleibt dabei eingeloggt.
+Welche App-Bereiche und welche Datenräume der Benutzer lesen darf, wird über `erlaubteBereiche` und `zugriffe` festgelegt. Die
+Zugriffe sind als verschachtelte Map `Unternehmer-ID -> Firma-ID -> Filial-IDs` gespeichert. Altprofile mit der früheren
+Array-Struktur bleiben für Login und Bereichsfreigaben lesbar, gewähren Office- und Filialkonten aber keinen Datenzugriff. Aktive
+Master bleiben davon unberührt.
 
-Der Master vergibt bei der Anlage ein Anfangspasswort mit mindestens 8 Zeichen. Der Benutzer kann dieses nach der Anmeldung über `/passwort` freiwillig ändern. Schlägt das Anlegen des Benutzerdokuments fehl, muss der zuvor erzeugte Auth-Benutzer wieder entfernt werden, damit kein unvollständiger Zugang bestehen bleibt.
+Die App speichert keine direkten Firestore-Pfade als Berechtigung, sondern fachliche Berechtigungen. Daraus werden Navigation,
+Route Guards und Firestore-Abfragen abgeleitet.
+
+Die Firestore Rules erlauben aktiven Mastern das Lesen aller Collections samt Untercollections. Fachliche Daten dürfen sie
+vollständig schreiben; vorhandene Benutzerprofile dürfen sie nur in den ausdrücklich freigegebenen Feldern aktualisieren.
+Benutzerrolle, E-Mail-Adresse und Auth-Daten bleiben dabei unveränderlich. Office und Filiale lesen Geschäftsdaten direkt anhand
+der verschachtelten `zugriffe`-Map und weiterhin ihr eigenes Profil. Aktive Office-Konten dürfen ihre zugeordneten Firmen- und
+Filialdokumente aktualisieren, aber weder Firmen oder Filialen anlegen oder löschen noch Filial-Untercollections beschreiben.
+Filialkonten bleiben vorerst rein lesend. Ein separater Zugriffsindex wird nicht gespeichert. Bestätigte Altanwendungskonten ohne
+`benutzerprofil`-Dokument behalten ihren bisherigen Zugriff außerhalb von `benutzerprofil` und `unternehmer`. Clientseitige Guards
+ersetzen die Rules nicht.
+
+Falls eine Fachfunktion später ausdrücklich für den Offline-Betrieb freigegeben wird, dürfen lokal gespeicherte Berechtigungen und
+Daten ausschließlich den zuletzt erfolgreich bestätigten Stand abbilden und keine neuen Rechte gewähren. Nach Wiederherstellung
+der Verbindung entscheiden weiterhin die aktuellen Firestore Rules über jeden Serverzugriff. Der konkrete Anwendungsfall muss dann
+auch zwischenzeitlich entzogene Rechte und deaktivierte Konten behandeln.
+
+### Kontoverwaltung
+
+Eine Selbstregistrierung ist nicht vorgesehen. Benutzerzugänge werden im Zielablauf im Bereich `systemverwaltung` von einem
+`master` vorkonfiguriert. Die Angular-App ruft dafür eine geschützte Firebase Cloud Function auf. Die Function prüft die Rolle des
+aufrufenden Benutzers serverseitig, legt mit dem Firebase Admin SDK den Auth-Benutzer und anschließend das Dokument
+`benutzerprofil/{uid}` an. Der angemeldete `master` bleibt dabei eingeloggt.
+
+Der Master vergibt bei der Anlage ein Anfangspasswort mit mindestens 8 Zeichen. Der Benutzer kann dieses nach der Anmeldung über
+`/passwort` freiwillig ändern. Schlägt das Anlegen des Benutzerdokuments fehl, muss der zuvor erzeugte Auth-Benutzer wieder
+entfernt werden, damit kein unvollständiger Zugang bestehen bleibt.
+
+Die Benutzeranlage erstellt Auth-Konten zunächst deaktiviert und aktiviert sie erst nach erfolgreicher Profilspeicherung. Bei
+unklaren Aktivierungsfehlern bleibt das Profil zur Absicherung vorhandener Tokens erhalten; fehlgeschlagene Bereinigungen werden
+für manuelle Administratorprüfung protokolliert.
 
 ### Vereinbartes Rollenmodell für Datenzugriffe
 
-- **Filiale:** Das Konto repräsentiert genau eine Filiale, in der Daten erzeugt werden. Bei der Anlage ist genau eine vollständige Zuordnung aus Unternehmer, Firma und Filiale erforderlich; alle drei Selects verwenden Einfachauswahl.
-- **Office:** Das Konto erhält Zugriff ausschließlich auf ausgewählte Firmen und deren ausdrücklich freigegebene Filialen. Mehrere Firmen und Filialen können zugeordnet werden; auch eine Beschränkung auf einzelne Filialen ist möglich. Office hat keinen pauschalen Lesezugriff auf alle Daten. Bestehende zugeordnete Firmen- und Filialdokumente dürfen aktualisiert, aber nicht angelegt oder gelöscht werden. Weitere Schreibaktionen, beispielsweise Mitarbeiter anlegen, müssen pro Datenart und Aktion innerhalb des freigegebenen Datenbereichs festgelegt werden.
-- **Master:** Keine Datenzuordnung erforderlich; aktive Master lesen und schreiben alle Collections und Untercollections auch mit `zugriffe: {}`. Bestehende Masterprofile mit der früheren leeren Liste bleiben ebenfalls funktionsfähig. Datenstruktur- und Benutzerverwaltung bleiben dem Master vorbehalten.
+- **Filiale:** Das Konto repräsentiert genau eine Filiale, in der Daten erzeugt werden. Bei der Anlage ist genau eine vollständige
+  Zuordnung aus Unternehmer, Firma und Filiale erforderlich; alle drei Selects verwenden Einfachauswahl.
+- **Office:** Das Konto erhält Zugriff ausschließlich auf ausgewählte Firmen und deren ausdrücklich freigegebene Filialen. Mehrere
+  Firmen und Filialen können zugeordnet werden; auch eine Beschränkung auf einzelne Filialen ist möglich. Office hat keinen
+  pauschalen Lesezugriff auf alle Daten. Bestehende zugeordnete Firmen- und Filialdokumente dürfen aktualisiert, aber nicht
+  angelegt oder gelöscht werden. Weitere Schreibaktionen, beispielsweise Mitarbeiter anlegen, müssen pro Datenart und Aktion
+  innerhalb des freigegebenen Datenbereichs festgelegt werden.
+- **Master:** Keine Datenzuordnung erforderlich; aktive Master lesen und schreiben alle Collections und Untercollections auch mit
+  `zugriffe: {}`. Bestehende Masterprofile mit der früheren leeren Liste bleiben ebenfalls funktionsfähig. Datenstruktur- und
+  Benutzerverwaltung bleiben dem Master vorbehalten.
+- **Mitarbeiter:** Vierte Auth-Rolle für die mobile Mitarbeiter-App. Ein Mitarbeiter kann optional einen eigenen, durch einen
+  Master angelegten Mitarbeiterzugang erhalten. Der Master weist die benötigten `erlaubteBereiche` zu; fachliche Datenrechte
+  entstehen daraus nicht. Ein fachlicher Mitarbeiterdatensatz kann ohne Mitarbeiterzugang bestehen. Seine mögliche spätere
+  Verknüpfung mit einem Zugang, Filialzuordnungen, fachliche Mitarbeiterrollen wie Service, Kasse oder Admin, Dienstplandaten,
+  persönliche Aktionen und Push-Benachrichtigungen werden bei konkretem fachlichem Bedarf separat geplant.
 
-Eine Firmenfreigabe gewährt nicht automatisch Zugriff auf alle aktuellen oder zukünftigen Filialen. Filialen werden weiterhin ausdrücklich in der verschachtelten Zugriffs-Map zugeordnet. Weitere Schreibrechte für Filial- und Office-Konten sind separat festzulegen und durch Rules abzusichern; die Altanwendung darf nicht beeinträchtigt werden.
+Eine Firmenfreigabe gewährt nicht automatisch Zugriff auf alle aktuellen oder zukünftigen Filialen. Filialen werden weiterhin
+ausdrücklich in der verschachtelten Zugriffs-Map zugeordnet. Weitere Schreibrechte für Filial- und Office-Konten sind separat
+festzulegen und durch Rules abzusichern; die Altanwendung darf nicht beeinträchtigt werden.
 
 ## Datenzugriff: Unternehmer, Firmen und Filialen
+
+### Datenmodell
 
 Pur Office verwendet für neue Benutzer die fachlich benannte Firebase-Struktur:
 
@@ -118,17 +215,40 @@ Pur Office verwendet für neue Benutzer die fachlich benannte Firebase-Struktur:
 unternehmer/{unternehmerId}/firma/{firmaId}/filiale/{filialId}
 ```
 
-Die Altanwendung verwendet weiterhin unverändert `purCustomers/{unternehmerId}/company/{firmaId}/branches/{filialId}`. Ihre Konten ohne `benutzerprofil`-Dokument behalten dort den bisherigen Zugriff, erhalten aber keinen Legacy-Zugriff auf die neue Top-Level-Collection `unternehmer`.
+Die Altanwendung verwendet weiterhin unverändert `purCustomers/{unternehmerId}/company/{firmaId}/branches/{filialId}`. Ihre Konten
+ohne `benutzerprofil`-Dokument behalten dort den bisherigen Zugriff, erhalten aber keinen Legacy-Zugriff auf die neue
+Top-Level-Collection `unternehmer`.
 
-Die Systemverwaltungsseite erzeugt für Filiale und Office getrennte Auswahlkomponenten mit festen Mehrfachauswahl-Einstellungen; bei Master entfällt die Auswahl. Ein Rollenwechsel setzt die bisherige Zuordnung zurück. Die Auswahlkomponente selbst schaltet ihre Modi nicht dynamisch um.
+### Auswahlverhalten
 
-Die Auswahl erfolgt abhängig voneinander: zuerst Unternehmer, danach dessen Firmen, danach deren Filialen. Das gemeinsame Auswahlmodell und die Firestore-Dokumente verwenden für alle Ebenen einheitlich `anzeigename`. Die Zuordnung verwendet die jeweiligen Dokument-IDs.
+Die Systemverwaltungsseite erzeugt für Filiale und Office getrennte Auswahlkomponenten mit festen Mehrfachauswahl-Einstellungen;
+bei Master entfällt die Auswahl. Ein Rollenwechsel setzt die bisherige Zuordnung zurück. Die Auswahlkomponente selbst schaltet
+ihre Modi nicht dynamisch um.
 
-Die wiederverwendbare Component `datenzugriff-auswahl` stellt drei Material-Selects bereit. Die Mehrfachauswahl ist je Ebene konfigurierbar und standardmäßig deaktiviert; damit verwenden alle drei Selects standardmäßig Einfachauswahl. Firmen werden nur bei aktivierter Unternehmer-Mehrfachauswahl und mehr als einem ausgewählten Unternehmer gruppiert; Filialen entsprechend bei Firmen-Mehrfachauswahl und mehr als einer ausgewählten Firma. Beim Abwählen eines übergeordneten Eintrags entfällt dessen abhängige Auswahl.
+Die Auswahl erfolgt abhängig voneinander: zuerst Unternehmer, danach dessen Firmen, danach deren Filialen. Das gemeinsame
+Auswahlmodell und die Firestore-Dokumente verwenden für alle Ebenen einheitlich `anzeigename`. Die Zuordnung verwendet die
+jeweiligen Dokument-IDs.
 
-Das Laden erfolgt nach der Anmeldung zentral über den `StammdatenStore`. Der `BenutzerVerwaltungStore` stellt daraus die abhängigen Auswahllisten zusammen; der `DatenzugriffService` bleibt als abgesicherter Ladeweg verfügbar, falls die Sitzungsinitialisierung nicht erfolgreich abgeschlossen wurde. Die Benutzeranlage muss Unternehmer-, Firmen- und Filialzuordnung serverseitig prüfen. Bestehende Benutzerprofile müssen bei der Erweiterung des Berechtigungsmodells berücksichtigt werden.
+Die wiederverwendbare Component `datenzugriff-auswahl` stellt drei Material-Selects bereit. Die Mehrfachauswahl ist je Ebene
+konfigurierbar und standardmäßig deaktiviert; damit verwenden alle drei Selects standardmäßig Einfachauswahl. Firmen werden nur
+bei aktivierter Unternehmer-Mehrfachauswahl und mehr als einem ausgewählten Unternehmer gruppiert; Filialen entsprechend bei
+Firmen-Mehrfachauswahl und mehr als einer ausgewählten Firma. Beim Abwählen eines übergeordneten Eintrags entfällt dessen
+abhängige Auswahl.
 
-Die Auswahl ist an lesende Firebase-Abfragen und den Anlage-Payload angebunden. Office-/Filialkonten benötigen bei der Anlage mindestens eine vollständige Datenzuordnung; Master dürfen mit einer leeren Zugriffs-Map angelegt werden. Die Function prüft die Existenz der vollständigen Unternehmer-/Firmen-/Filialpfade vor der Auth-Anlage. Die Formularsperre ist entfernt. Benutzeranlage, Anmeldung, Bereichsfreigabe und Passwortwechsel wurden grundsätzlich bestätigt. Ein reales Office-Testkonto konnte seine zugeordneten Firmen- und Filialdaten bearbeiten; die vereinbarten Schreibgrenzen sind zusätzlich durch Emulator-Tests abgesichert. Der genaue Implementierungsstand steht im [Projekt-Stand](./projekt-stand.md), die offenen Integrationsschritte in [Offene Todos](./next_todo.md).
+### Laden und Validierung
+
+Das Laden erfolgt nach der Anmeldung zentral über den `StammdatenStore`. Der `BenutzerVerwaltungStore` stellt daraus die
+abhängigen Auswahllisten zusammen; der `DatenzugriffService` bleibt als abgesicherter Ladeweg verfügbar, falls die
+Sitzungsinitialisierung nicht erfolgreich abgeschlossen wurde. Die Benutzeranlage muss Unternehmer-, Firmen- und Filialzuordnung
+serverseitig prüfen. Bestehende Benutzerprofile müssen bei der Erweiterung des Berechtigungsmodells berücksichtigt werden.
+
+Die Auswahl ist an lesende Firebase-Abfragen und den Anlage-Payload angebunden. Office-/Filialkonten benötigen bei der Anlage
+mindestens eine vollständige Datenzuordnung; Master dürfen mit einer leeren Zugriffs-Map angelegt werden. Die Function prüft die
+Existenz der vollständigen Unternehmer-/Firmen-/Filialpfade vor der Auth-Anlage. Die Formularsperre ist entfernt. Benutzeranlage,
+Anmeldung, Bereichsfreigabe und Passwortwechsel wurden grundsätzlich bestätigt. Ein reales Office-Testkonto konnte seine
+zugeordneten Firmen- und Filialdaten bearbeiten; die vereinbarten Schreibgrenzen sind zusätzlich durch Emulator-Tests abgesichert.
+Der genaue Implementierungsstand steht im [Projekt-Stand](./projekt-stand.md), die unmittelbar anstehenden Schritte in den
+[offenen Todos](./todo_next.md) und bewusst zurückgestellte Aufgaben in den [späteren Todos](./todo_spaeter.md).
 
 ## Projektstruktur
 
@@ -148,6 +268,8 @@ Die Auswahl ist an lesende Firebase-Abfragen und den Anlage-Payload angebunden. 
 
 ## Navigation
 
+### App-Shell
+
 Die App verwendet ein Angular-Material-Layout mit Toolbar und Sidebar.
 
 Die App-Shell wird in wiederverwendbare Components unter `src/app/components/app-shell` aufgeteilt:
@@ -155,31 +277,20 @@ Die App-Shell wird in wiederverwendbare Components unter `src/app/components/app
 - `app-sidenav` enthält die Sidebar mit Hauptnavigation.
 - `app-toolbar` enthält die obere Toolbar mit App-Aktionen.
 
-Aktuell vorgesehene Navigationslinks:
-
-```text
-/dashboard    -> Dashboard
-/schichtplan  -> Schichtplan
-/mitarbeiter  -> Mitarbeiter
-/verwaltung   -> Verwaltung
-/systemverwaltung -> Systemverwaltung
-```
+### Navigationsbereiche
 
 Die Sidebar enthält die Hauptnavigation der Anwendung. Aktuell sind fünf Bereiche vorgesehen:
 
-1. **Dashboard**
-   Noch zu bestimmende Daten der einzelnen Filialen.
+1. **Dashboard (`/dashboard`):** Noch zu bestimmende Daten der einzelnen Filialen.
 
-2. **Schichtplan**
-   Schichtpläne der Filialen.
+2. **Schichtplan (`/schichtplan`):** Schichtpläne der Filialen.
 
-3. **Mitarbeiter**
-   Stammdaten der Mitarbeiter.
+3. **Mitarbeiter (`/mitarbeiter`):** Stammdaten der Mitarbeiter.
 
-4. **Verwaltung**
-   Bereich für Office und Master zur Auswahl und Bearbeitung zugeordneter Firmen- und Filialdaten. Die Route erfordert zusätzlich die Bereichsfreigabe `verwaltung`; Filialkonten bleiben ausgeschlossen.
+4. **Verwaltung (`/verwaltung`):** Bereich für Office und Master zur Auswahl und Bearbeitung zugeordneter Firmen- und Filialdaten.
+   Die Route erfordert zusätzlich die Bereichsfreigabe `verwaltung`; Filialkonten bleiben ausgeschlossen.
 
-5. **Systemverwaltung**
-   Administrativer Bereich für `master`. Er umfasst die hierarchische Datenstruktur-Anlage, die Anlage vorkonfigurierter Benutzerzugänge und die Bearbeitung vorhandener Benutzerprofile. Die Auth-Benutzeranlage erfolgt serverseitig über eine geschützte Firebase Cloud Function mit Firebase Admin SDK; fachliche Stammdaten darf der Master direkt in Firestore schreiben.
-
-Die Benutzeranlage erstellt Auth-Konten zunächst deaktiviert und aktiviert sie erst nach erfolgreicher Profilspeicherung. Bei unklaren Aktivierungsfehlern bleibt das Profil zur Absicherung vorhandener Tokens erhalten; fehlgeschlagene Bereinigungen werden für manuelle Administratorprüfung protokolliert.
+5. **Systemverwaltung (`/systemverwaltung`):** Administrativer Bereich für `master`. Er umfasst die hierarchische
+   Datenstruktur-Anlage, die Anlage vorkonfigurierter Benutzerzugänge und die Bearbeitung vorhandener Benutzerprofile. Die
+   Auth-Benutzeranlage erfolgt serverseitig über eine geschützte Firebase Cloud Function mit Firebase Admin SDK; fachliche
+   Stammdaten darf der Master direkt in Firestore schreiben.

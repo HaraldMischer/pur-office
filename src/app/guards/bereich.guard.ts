@@ -7,6 +7,7 @@ import { firstValueFrom, take } from 'rxjs';
 import { TAppBereich } from '../commons/models/app/app-bereich';
 import { AuthService } from '../services/firebase/auth.service';
 import { BenutzerStore } from '../stores/app/benutzer.store';
+import { getErlaubteStartRoute } from './guard-navigation';
 
 export const bereichGuard: CanActivateFn = async (route) => {
   const authService = inject(AuthService);
@@ -29,5 +30,5 @@ export const bereichGuard: CanActivateFn = async (route) => {
     return true;
   }
 
-  return router.createUrlTree(['/dashboard']);
+  return router.createUrlTree([getErlaubteStartRoute(benutzerProfil) ?? '/login']);
 };

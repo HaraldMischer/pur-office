@@ -23,6 +23,17 @@
         </mat-form-field>
 
         <mat-form-field appearance="outline" class="pur-form__field">
+          <mat-label>Anmeldename</mat-label>
+          <input
+            matInput
+            name="anmeldename"
+            [value]="profil.anmeldename || 'Nicht verfügbar'"
+            type="text"
+            readonly
+          />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="pur-form__field">
           <mat-label>E-Mail-Adresse</mat-label>
           <input matInput [value]="profil.email" type="email" readonly />
         </mat-form-field>
@@ -53,7 +64,7 @@
       }
     </div>
 
-    @if (profil.userRole !== 'master') {
+    @if (profil.userRole === 'office' || profil.userRole === 'filiale') {
       <!-- Datenzugriff -->
       <div class="pur-form__group">
         <h2 class="pur-form__group-titel">Datenzugriff</h2>

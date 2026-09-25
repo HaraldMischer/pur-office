@@ -68,13 +68,17 @@ describe('AuthService', () => {
     expect(authStateMock).toHaveBeenCalledWith(authMock);
   });
 
-  it('should login with email and password', async () => {
+  it('should login with the technical address built from the login name', async () => {
     const service = TestBed.inject(AuthService);
 
-    await service.login('test@example.com', 'secret-password');
+    await service.login('HaraldMischer--MASTER', 'secret-password');
 
     expect(assertOnlineMock).toHaveBeenCalledOnce();
-    expect(signInMock).toHaveBeenCalledWith(authMock, 'test@example.com', 'secret-password');
+    expect(signInMock).toHaveBeenCalledWith(
+      authMock,
+      'haraldmischer-master@pur-system.invalid',
+      'secret-password',
+    );
   });
 
   it('should logout the current user', async () => {
@@ -130,7 +134,7 @@ describe('AuthService', () => {
     });
     const service = TestBed.inject(AuthService);
 
-    expect(() => service.login('test@example.com', 'secret-password')).toThrow(error);
+    expect(() => service.login('test-master', 'secret-password')).toThrow(error);
     expect(() => service.sendPasswordResetEmail('test@example.com')).toThrow(error);
     await expect(service.changePassword('altes-passwort', 'neues-passwort')).rejects.toBe(error);
     expect(signInMock).not.toHaveBeenCalled();

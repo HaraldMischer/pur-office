@@ -40,15 +40,25 @@ after(async () => {
   await testEnvironment.cleanup();
 });
 
-test('keeps authenticated access to legacy collections and subcollections', async () => {
+test('keeps authenticated access to explicit legacy collections and subcollections', async () => {
   const firestore = testEnvironment.authenticatedContext('legacy-user').firestore();
   const customer = doc(firestore, 'purCustomers/customer-1');
   const machine = doc(firestore, 'purCustomers/customer-1/machines/machine-1');
+  const user = doc(firestore, 'purUser/user-1');
 
   await assertSucceeds(setDoc(customer, { name: 'Customer' }));
   await assertSucceeds(getDoc(customer));
   await assertSucceeds(setDoc(machine, { name: 'Machine' }));
   await assertSucceeds(deleteDoc(machine));
+  await assertSucceeds(setDoc(user, { active: true }));
+  await assertSucceeds(getDoc(user));
+});
+
+test('rejects access by legacy accounts to unspecified collections', async () => {
+  const firestore = testEnvironment.authenticatedContext('legacy-user').firestore();
+
+  await assertFails(getDoc(doc(firestore, 'other/doc')));
+  await assertFails(setDoc(doc(firestore, 'futureCollection/doc'), { value: true }));
 });
 
 test('continues to reject unauthenticated access to legacy collections', async () => {
@@ -191,6 +201,20 @@ for (const role of ['office', 'filiale']) {
   });
 }
 
+test('active employee account reads only the own profile and no business data', async () => {
+  const db = await seedProfile('mitarbeiter', {
+    erlaubteBereiche: ['schichtplan'],
+    zugriffe: {},
+  });
+
+  await assertSucceeds(getDoc(doc(db, 'benutzerprofil/scoped')));
+  for (const path of [unternehmerPath, firmaPath, filialePath, legacyBranchPath, 'other/doc']) {
+    await assertFails(getDoc(doc(db, path)));
+  }
+  await assertFails(getDoc(doc(db, 'benutzerprofil/other')));
+  await assertFails(getDocs(collection(db, 'unternehmer')));
+});
+
 for (const role of ['master', 'office', 'filiale']) {
   test(`inactive ${role} reads own profile only and cannot write`, async () => {
     const db = await seedProfile(role, { aktiv: false });
@@ -202,7 +226,7 @@ for (const role of ['master', 'office', 'filiale']) {
   });
 }
 
-test('active master can write business data, profiles and nested data', async () => {
+test('active master can write business data and update profiles', async () => {
   const db = await seedProfile('master');
 
   await assertSucceeds(setDoc(doc(db, 'unternehmer/new'), { anzeigename: 'Unternehmer Neu' }));
@@ -218,7 +242,7 @@ test('active master can write business data, profiles and nested data', async ()
     setDoc(doc(db, 'benutzerprofil/other'), { anzeigename: 'updated' }, { merge: true }),
   );
   await assertSucceeds(deleteDoc(doc(db, 'other/doc')));
-  await assertSucceeds(deleteDoc(doc(db, 'benutzerprofil/other')));
+  await assertFails(deleteDoc(doc(db, 'benutzerprofil/other')));
 });
 
 test('active master cannot deactivate or delete the own profile', async () => {
@@ -239,6 +263,49 @@ test('active master cannot change immutable profile fields', async () => {
   );
   await assertFails(
     setDoc(doc(db, 'benutzerprofil/other'), { userRole: 'office' }, { merge: true }),
+  );
+});
+
+test('active master updates employee account areas while data scopes remain empty', async () => {
+  const db = await seedProfile('master');
+  await testEnvironment.withSecurityRulesDisabled(async (context) => {
+    await setDoc(doc(context.firestore(), 'benutzerprofil/mitarbeiter'), {
+      anzeigename: 'Mitarbeiter',
+      aktiv: true,
+      userRole: 'mitarbeiter',
+      erlaubteBereiche: ['schichtplan'],
+      zugriffe: {},
+    });
+  });
+  const profil = doc(db, 'benutzerprofil/mitarbeiter');
+
+  await assertSucceeds(setDoc(profil, { anzeigename: 'Mitarbeiter Neu' }, { merge: true }));
+  await assertSucceeds(setDoc(profil, { erlaubteBereiche: ['dashboard'] }, { merge: true }));
+  await assertFails(setDoc(profil, { zugriffe }, { merge: true }));
+});
+
+test('active master cannot create employee account profiles directly', async () => {
+  const db = await seedProfile('master');
+
+  await assertFails(
+    setDoc(doc(db, 'benutzerprofil/mitarbeiter-gueltig'), {
+      email: 'mitarbeiter@example.com',
+      anzeigename: 'Mitarbeiter',
+      aktiv: true,
+      userRole: 'mitarbeiter',
+      erlaubteBereiche: ['schichtplan'],
+      zugriffe: {},
+    }),
+  );
+  await assertFails(
+    setDoc(doc(db, 'benutzerprofil/mitarbeiter-ungueltig'), {
+      email: 'mitarbeiter@example.com',
+      anzeigename: 'Mitarbeiter',
+      aktiv: true,
+      userRole: 'mitarbeiter',
+      erlaubteBereiche: ['dashboard'],
+      zugriffe: {},
+    }),
   );
 });
 
@@ -317,20 +384,17 @@ test('empty branch lists grant neither company nor branch access', async () => {
   await assertFails(getDoc(doc(db, filialePath)));
 });
 
-test('legacy users retain old access but cannot access the new hierarchy', async () => {
+test('legacy users retain explicit old access but cannot access other collections or the new hierarchy', async () => {
   const db = testEnvironment.authenticatedContext('legacy').firestore();
-  for (const path of [
-    'purUser/old',
-    legacyBranchPath,
-    `${legacyBranchPath}/employee/e-1`,
-    'other/doc',
-  ]) {
+  for (const path of ['purUser/old', legacyBranchPath, `${legacyBranchPath}/employee/e-1`]) {
     await assertSucceeds(setDoc(doc(db, path), { value: 1 }));
     await assertSucceeds(setDoc(doc(db, path), { value: 2 }, { merge: true }));
     await assertSucceeds(getDoc(doc(db, path)));
     await assertSucceeds(deleteDoc(doc(db, path)));
   }
   await assertSucceeds(getDocs(collection(db, 'purCustomers')));
+  await assertFails(getDoc(doc(db, 'other/doc')));
+  await assertFails(setDoc(doc(db, 'other/doc'), { value: 1 }));
   await assertFails(getDoc(doc(db, unternehmerPath)));
   await assertFails(setDoc(doc(db, filialePath), { value: 1 }));
   await assertFails(getDocs(collection(db, 'unternehmer')));

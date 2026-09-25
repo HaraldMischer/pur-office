@@ -14,6 +14,7 @@ import { BenutzerBearbeitenDialog } from './benutzer-bearbeiten-dialog';
 describe('BenutzerBearbeitenDialog', () => {
   const profil: IBenutzerProfilEintrag = {
     uid: 'office-1',
+    anmeldename: 'officebenutzer-office',
     email: 'office@example.com',
     anzeigename: 'Office Benutzer',
     aktiv: true,
@@ -81,12 +82,15 @@ describe('BenutzerBearbeitenDialog', () => {
     }).compileComponents();
   });
 
-  it('should initialize editable profile data and preserve email and role as read-only', () => {
+  it('should initialize editable profile data and preserve login data and role as read-only', () => {
     const fixture = TestBed.createComponent(BenutzerBearbeitenDialog);
     fixture.detectChanges();
     const component = fixture.componentInstance;
     const emailInput = fixture.nativeElement.querySelector(
       'input[type="email"]',
+    ) as HTMLInputElement;
+    const anmeldenameInput = fixture.nativeElement.querySelector(
+      'input[name="anmeldename"]',
     ) as HTMLInputElement;
     const rollenInput = fixture.nativeElement.querySelector(
       'input[name="benutzerrolle"]',
@@ -103,6 +107,8 @@ describe('BenutzerBearbeitenDialog', () => {
         systemverwaltung: false,
       },
     });
+    expect(anmeldenameInput.readOnly).toBe(true);
+    expect(anmeldenameInput.value).toBe('officebenutzer-office');
     expect(emailInput.readOnly).toBe(true);
     expect(emailInput.value).toBe('office@example.com');
     expect(rollenInput.readOnly).toBe(true);
@@ -152,5 +158,54 @@ describe('BenutzerBearbeitenDialog', () => {
     expect(
       component.benutzerForm.controls.erlaubteBereiche.controls.systemverwaltung.getRawValue(),
     ).toBe(true);
+  });
+
+  it('should update selected employee account areas while keeping data scopes empty', async () => {
+    TestBed.overrideProvider(MAT_DIALOG_DATA, {
+      useValue: {
+        profil: {
+          ...profil,
+          uid: 'mitarbeiter-1',
+          userRole: 'mitarbeiter',
+          erlaubteBereiche: ['dashboard'],
+          zugriffe: { u: { f: ['b'] } },
+        },
+      },
+    });
+    const fixture = TestBed.createComponent(BenutzerBearbeitenDialog);
+    fixture.detectChanges();
+    const component = fixture.componentInstance;
+    const rollenInput = fixture.nativeElement.querySelector(
+      'input[name="benutzerrolle"]',
+    ) as HTMLInputElement;
+
+    expect(rollenInput.value).toBe('Mitarbeiter');
+    expect(component.benutzerForm.controls.erlaubteBereiche.getRawValue()).toEqual({
+      dashboard: true,
+      schichtplan: false,
+      mitarbeiter: false,
+      verwaltung: false,
+      systemverwaltung: false,
+    });
+    expect(component.benutzerForm.controls.erlaubteBereiche.controls.dashboard.enabled).toBe(true);
+    expect(component.benutzerForm.controls.erlaubteBereiche.controls.schichtplan.enabled).toBe(
+      true,
+    );
+    expect(fixture.nativeElement.querySelector('app-datenzugriff-auswahl')).toBeNull();
+
+    component.benutzerForm.controls.anzeigename.setValue('Mitarbeiter Neu');
+    component.benutzerForm.controls.erlaubteBereiche.patchValue({
+      dashboard: false,
+      schichtplan: true,
+      mitarbeiter: true,
+    });
+    await component.onSubmit();
+
+    expect(updateBenutzerProfilMock).toHaveBeenCalledWith({
+      anzeigename: 'Mitarbeiter Neu',
+      aktiv: true,
+      erlaubteBereiche: ['schichtplan', 'mitarbeiter'],
+      zugriffe: {},
+    });
   });
 });

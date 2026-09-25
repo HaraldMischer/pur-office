@@ -2,7 +2,13 @@
 
 import { HttpsError } from 'firebase-functions/v2/https';
 
-const USER_ROLES = ['filiale', 'office', 'master'] as const;
+import {
+  buildAnmeldename,
+  buildTechnischeAnmeldeadresse,
+  normalizeNamensbestandteil,
+} from './technische-anmeldeadresse';
+
+const USER_ROLES = ['filiale', 'office', 'master', 'mitarbeiter'] as const;
 const APP_BEREICHE = [
   'dashboard',
   'schichtplan',
@@ -17,7 +23,7 @@ type TAppBereich = (typeof APP_BEREICHE)[number];
 type TBenutzerZugriffe = Record<string, Record<string, string[]>>;
 
 export interface ICreateBenutzerData {
-  email: string;
+  namensbestandteil: string;
   anzeigename: string;
   userRole: TUserRole;
   erlaubteBereiche: TAppBereich[];
@@ -27,7 +33,21 @@ export interface ICreateBenutzerData {
 
 export interface ICreateBenutzerResult {
   uid: string;
+  anmeldename: string;
   email: string;
+}
+
+interface ICreateBenutzerProfilData {
+  anmeldename: string;
+  email: string;
+  anzeigename: string;
+  userRole: TUserRole;
+  erlaubteBereiche: TAppBereich[];
+  zugriffe: TBenutzerZugriffe;
+}
+
+interface IParsedCreateBenutzerData extends ICreateBenutzerProfilData {
+  passwort: string;
 }
 
 interface ICreateBenutzerRequest {
@@ -44,10 +64,7 @@ interface ICreateBenutzerDependencies {
     password: string;
     disabled: true;
   }): Promise<{ uid: string }>;
-  setBenutzerProfilDokument(
-    uid: string,
-    data: Omit<ICreateBenutzerData, 'passwort'>,
-  ): Promise<void>;
+  setBenutzerProfilDokument(uid: string, data: ICreateBenutzerProfilData): Promise<void>;
   setAuthBenutzerDisabled(uid: string, disabled: boolean): Promise<void>;
   deactivateBenutzerProfilDokument(uid: string): Promise<void>;
   logAnlageError(uid: string, schritt: string, error: unknown): void;
@@ -120,19 +137,22 @@ function parseZugriffe(value: unknown): TBenutzerZugriffe {
   );
 }
 
-function parseCreateBenutzerData(value: unknown): ICreateBenutzerData {
+function parseCreateBenutzerData(value: unknown): IParsedCreateBenutzerData {
   if (!isRecord(value)) {
     throw new HttpsError('invalid-argument', 'Benutzerdaten fehlen.');
   }
 
-  const email = typeof value['email'] === 'string' ? value['email'].trim().toLowerCase() : '';
+  const namensbestandteil =
+    typeof value['namensbestandteil'] === 'string'
+      ? normalizeNamensbestandteil(value['namensbestandteil'])
+      : '';
   const anzeigename = typeof value['anzeigename'] === 'string' ? value['anzeigename'].trim() : '';
   const userRole = value['userRole'];
   const erlaubteBereiche = value['erlaubteBereiche'];
   const passwort = typeof value['passwort'] === 'string' ? value['passwort'] : undefined;
 
-  if (!email || !email.includes('@')) {
-    throw new HttpsError('invalid-argument', 'Eine gültige E-Mail-Adresse ist erforderlich.');
+  if (!namensbestandteil) {
+    throw new HttpsError('invalid-argument', 'Ein gültiger Namensbestandteil ist erforderlich.');
   }
 
   if (!anzeigename) {
@@ -142,6 +162,9 @@ function parseCreateBenutzerData(value: unknown): ICreateBenutzerData {
   if (typeof userRole !== 'string' || !USER_ROLES.includes(userRole as TUserRole)) {
     throw new HttpsError('invalid-argument', 'Die Benutzerrolle ist ungültig.');
   }
+
+  const anmeldename = buildAnmeldename(namensbestandteil, userRole);
+  const email = buildTechnischeAnmeldeadresse(anmeldename);
 
   if (
     !isStringArray(erlaubteBereiche) ||
@@ -159,6 +182,7 @@ function parseCreateBenutzerData(value: unknown): ICreateBenutzerData {
   }
 
   return {
+    anmeldename,
     email,
     anzeigename,
     userRole: userRole as TUserRole,
@@ -174,12 +198,12 @@ function mapAuthError(error: unknown): HttpsError {
   if (code === 'auth/email-already-exists') {
     return new HttpsError(
       'already-exists',
-      'Für diese E-Mail-Adresse existiert bereits ein Konto.',
+      'Für diesen Anmeldenamen existiert bereits ein Konto. Bitte einen anderen Namensbestandteil verwenden.',
     );
   }
 
   if (code === 'auth/invalid-email') {
-    return new HttpsError('invalid-argument', 'Die E-Mail-Adresse ist ungültig.');
+    return new HttpsError('internal', 'Die technische Anmeldeadresse konnte nicht erzeugt werden.');
   }
 
   return new HttpsError('internal', 'Der Auth-Benutzer konnte nicht angelegt werden.');
@@ -211,7 +235,17 @@ export async function handleCreateBenutzer(
       filialIds,
     })),
   );
-  if (data.userRole !== 'master' && zugriffsEintraege.length === 0) {
+  if (data.userRole === 'mitarbeiter' && zugriffsEintraege.length > 0) {
+    throw new HttpsError(
+      'invalid-argument',
+      'Mitarbeiterzugänge dürfen noch keine fachliche Datenzuordnung besitzen.',
+    );
+  }
+  if (
+    data.userRole !== 'master' &&
+    data.userRole !== 'mitarbeiter' &&
+    zugriffsEintraege.length === 0
+  ) {
     throw new HttpsError(
       'invalid-argument',
       'Office- und Filialkonten benötigen mindestens eine vollständige Datenzuordnung.',
@@ -277,6 +311,7 @@ export async function handleCreateBenutzer(
 
     return {
       uid: authBenutzer.uid,
+      anmeldename: data.anmeldename,
       email: data.email,
     };
   } catch (error: unknown) {

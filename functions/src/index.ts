@@ -40,6 +40,7 @@ export const createBenutzer = onCall<ICreateBenutzerData, Promise<ICreateBenutze
           }),
         setBenutzerProfilDokument: async (uid, data) => {
           await firestore.doc(`benutzerprofil/${uid}`).set({
+            anmeldename: data.anmeldename,
             email: data.email,
             anzeigename: data.anzeigename,
             aktiv: true,

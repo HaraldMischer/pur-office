@@ -71,9 +71,10 @@ describe('AppSidenav', () => {
     expect(compiled.querySelector('.app-brand-toolbar')?.textContent).toContain('Pur-System');
   });
 
-  it('should show the account name and full email', () => {
+  it('should show the account name and login name', () => {
     benutzerStoreMock.benutzerProfil.mockReturnValue({
       anzeigename: 'Pur System Master',
+      anmeldename: 'pur-system-master',
       email: 'pur-system-master@example.com',
     });
     const fixture = TestBed.createComponent(AppSidenavHost);
@@ -81,7 +82,8 @@ describe('AppSidenav', () => {
     const card = (fixture.nativeElement as HTMLElement).querySelector('.pur-card--user');
 
     expect(card?.textContent).toContain('Pur System Master');
-    expect(card?.querySelector('small')?.textContent).toBe('pur-system-master@example.com');
+    expect(card?.querySelector('small')?.textContent).toBe('pur-system-master');
+    expect(card?.textContent).not.toContain('pur-system-master@example.com');
   });
 
   it('should show the fallback without a profile', () => {

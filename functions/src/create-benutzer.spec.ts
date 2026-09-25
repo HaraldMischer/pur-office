@@ -7,7 +7,7 @@ import { handleCreateBenutzer, ICreateBenutzerData } from './create-benutzer';
 
 describe('handleCreateBenutzer', () => {
   const data: ICreateBenutzerData = {
-    email: 'user@example.com',
+    namensbestandteil: 'Test Benutzer',
     anzeigename: 'Test Benutzer',
     userRole: 'office',
     erlaubteBereiche: ['dashboard', 'verwaltung'],
@@ -50,17 +50,24 @@ describe('handleCreateBenutzer', () => {
       'unternehmer/u-1/firma/firma-1/filiale/filiale-1',
     ]);
     expect(dependencies.createAuthBenutzer).toHaveBeenCalledWith({
-      email: data.email,
+      email: 'testbenutzer-office@pur-system.invalid',
       displayName: data.anzeigename,
       password: data.passwort,
       disabled: true,
     });
-    const { passwort, ...profil } = data;
-    expect(dependencies.setBenutzerProfilDokument).toHaveBeenCalledWith('neu-123', profil);
+    expect(dependencies.setBenutzerProfilDokument).toHaveBeenCalledWith('neu-123', {
+      anmeldename: 'testbenutzer-office',
+      email: 'testbenutzer-office@pur-system.invalid',
+      anzeigename: data.anzeigename,
+      userRole: data.userRole,
+      erlaubteBereiche: data.erlaubteBereiche,
+      zugriffe: data.zugriffe,
+    });
     expect(dependencies.setBenutzerProfilDokument.mock.calls[0][1]).not.toHaveProperty('passwort');
     expect(result).toEqual({
       uid: 'neu-123',
-      email: data.email,
+      anmeldename: 'testbenutzer-office',
+      email: 'testbenutzer-office@pur-system.invalid',
     });
   });
 
@@ -136,12 +143,16 @@ describe('handleCreateBenutzer', () => {
     );
 
     expect(dependencies.createAuthBenutzer).toHaveBeenCalledWith({
-      email: data.email,
+      email: 'testbenutzer-office@pur-system.invalid',
       displayName: data.anzeigename,
       password: passwordData.passwort,
       disabled: true,
     });
-    expect(result).toEqual({ uid: 'neu-123', email: data.email });
+    expect(result).toEqual({
+      uid: 'neu-123',
+      anmeldename: 'testbenutzer-office',
+      email: 'testbenutzer-office@pur-system.invalid',
+    });
   });
 
   it.each([undefined, '', 'short'])(
@@ -163,7 +174,7 @@ describe('handleCreateBenutzer', () => {
     },
   );
 
-  it('should return an understandable error for an existing email address', async () => {
+  it('should return an understandable error for an existing login name', async () => {
     const dependencies = createDependencies();
     dependencies.createAuthBenutzer.mockRejectedValue({
       code: 'auth/email-already-exists',
@@ -179,7 +190,24 @@ describe('handleCreateBenutzer', () => {
       ),
     ).rejects.toMatchObject<Partial<HttpsError>>({
       code: 'already-exists',
+      message: expect.stringContaining('anderen Namensbestandteil'),
     });
+  });
+
+  it.each([undefined, '', '---'])('should reject an invalid name part: %s', async (value) => {
+    const dependencies = createDependencies();
+
+    await expect(
+      handleCreateBenutzer(
+        {
+          auth: { uid: 'master-123' },
+          data: { ...data, namensbestandteil: value },
+        },
+        dependencies,
+      ),
+    ).rejects.toMatchObject({ code: 'invalid-argument' });
+
+    expect(dependencies.createAuthBenutzer).not.toHaveBeenCalled();
   });
 
   it('should delete the auth user when writing the user document fails', async () => {
@@ -302,6 +330,50 @@ describe('handleCreateBenutzer', () => {
     );
     expect(dependencies.existierenDokumente).not.toHaveBeenCalled();
     expect(dependencies.setBenutzerProfilDokument.mock.calls[0][1].zugriffe).toEqual({});
+  });
+
+  it('should allow an employee account with the selected areas and no data scopes', async () => {
+    const dependencies = createDependencies();
+    const mitarbeiterData: ICreateBenutzerData = {
+      ...data,
+      userRole: 'mitarbeiter',
+      erlaubteBereiche: ['dashboard', 'schichtplan'],
+      zugriffe: {},
+    };
+
+    await expect(
+      handleCreateBenutzer({ auth: { uid: 'master' }, data: mitarbeiterData }, dependencies),
+    ).resolves.toMatchObject({ uid: 'neu-123' });
+    expect(dependencies.existierenDokumente).not.toHaveBeenCalled();
+    expect(dependencies.setBenutzerProfilDokument).toHaveBeenCalledWith(
+      'neu-123',
+      expect.objectContaining({
+        userRole: 'mitarbeiter',
+        erlaubteBereiche: ['dashboard', 'schichtplan'],
+        zugriffe: {},
+      }),
+    );
+  });
+
+  it('should reject employee account data scopes', async () => {
+    const dependencies = createDependencies();
+
+    await expect(
+      handleCreateBenutzer(
+        {
+          auth: { uid: 'master' },
+          data: {
+            ...data,
+            userRole: 'mitarbeiter',
+            erlaubteBereiche: ['dashboard'],
+            zugriffe: { u: { f: ['b'] } },
+          },
+        },
+        dependencies,
+      ),
+    ).rejects.toMatchObject({ code: 'invalid-argument' });
+    expect(dependencies.createAuthBenutzer).not.toHaveBeenCalled();
+    expect(dependencies.setBenutzerProfilDokument).not.toHaveBeenCalled();
   });
   it('waits for the profile write before enabling the new account', async () => {
     const dependencies = createDependencies();

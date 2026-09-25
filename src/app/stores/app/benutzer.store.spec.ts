@@ -105,9 +105,9 @@ describe('BenutzerStore', () => {
   it('should login and load the user profile', async () => {
     const store = TestBed.inject(BenutzerStore);
 
-    await store.login('test@example.com', 'secret-password');
+    await store.login('test-master', 'secret-password');
 
-    expect(authServiceMock.login).toHaveBeenCalledWith('test@example.com', 'secret-password');
+    expect(authServiceMock.login).toHaveBeenCalledWith('test-master', 'secret-password');
     expect(benutzerServiceMock.getBenutzerProfil).toHaveBeenCalledWith('benutzer-123');
     expect(store.isAuthenticated()).toBe(true);
     expect(store.benutzerProfil()).toBe(profil);
@@ -172,11 +172,11 @@ describe('BenutzerStore', () => {
     authServiceMock.login.mockRejectedValue({ code: 'auth/invalid-credential' });
     const store = TestBed.inject(BenutzerStore);
 
-    await expect(store.login('test@example.com', 'wrong-password')).rejects.toEqual({
+    await expect(store.login('test-master', 'wrong-password')).rejects.toEqual({
       code: 'auth/invalid-credential',
     });
 
-    expect(store.error()).toBe('E-Mail-Adresse oder Passwort ist nicht korrekt.');
+    expect(store.error()).toBe('Anmeldename oder Passwort ist nicht korrekt.');
     expect(store.inProgress()).toBe(false);
   });
   it('should separate identical company IDs by entrepreneur and deny inactive profiles', () => {

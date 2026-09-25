@@ -3,13 +3,13 @@
 import { Timestamp } from 'firebase/firestore';
 import { TAppBereich } from '../app/app-bereich';
 
-export type TUserRole = 'filiale' | 'office' | 'master';
+export type TUserRole = 'filiale' | 'office' | 'mitarbeiter' | 'master';
 export type TBenutzerZugriffe = Record<string, Record<string, string[]>>;
 
 // ===== Anwendungs-Typen ====================
 
 export interface IBenutzerAnlage {
-  email: string;
+  namensbestandteil: string;
   anzeigename: string;
   userRole: TUserRole;
   erlaubteBereiche: TAppBereich[];
@@ -19,6 +19,7 @@ export interface IBenutzerAnlage {
 
 export interface IBenutzerAnlageErgebnis {
   uid: string;
+  anmeldename: string;
   email: string;
 }
 
@@ -37,6 +38,7 @@ export interface IBenutzerProfilAktualisierung {
 
 export interface IBenutzerProfilDokument {
   email: string;
+  anmeldename?: string;
   anzeigename: string;
   aktiv: boolean;
   userRole: TUserRole;

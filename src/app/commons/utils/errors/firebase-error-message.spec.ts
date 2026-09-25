@@ -6,7 +6,7 @@ describe('getFirebaseErrorMessage', () => {
   it('should return a friendly message for known Firebase auth errors', () => {
     const message = getFirebaseErrorMessage({ code: 'auth/invalid-credential' });
 
-    expect(message).toBe('E-Mail-Adresse oder Passwort ist nicht korrekt.');
+    expect(message).toBe('Anmeldename oder Passwort ist nicht korrekt.');
   });
 
   it('should return a friendly message for permission errors', () => {

@@ -114,6 +114,7 @@ export class BenutzerService {
   ): IBenutzerProfilDokument {
     return {
       email: profil.email,
+      anmeldename: profil.anmeldename,
       anzeigename: profil.anzeigename,
       aktiv: profil.aktiv,
       userRole: profil.userRole,

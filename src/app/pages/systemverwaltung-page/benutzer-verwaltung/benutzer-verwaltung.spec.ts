@@ -3,7 +3,9 @@
 import { signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { MatDialog } from '@angular/material/dialog';
+import { MatSelect } from '@angular/material/select';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
+import { By } from '@angular/platform-browser';
 
 import { IBenutzerProfilEintrag } from '../../../commons/models/domain/benutzer';
 import { BenutzerVerwaltungStore } from '../../../stores/domain/benutzer-verwaltung.store';
@@ -13,6 +15,7 @@ import { BenutzerVerwaltung } from './benutzer-verwaltung';
 describe('BenutzerVerwaltung', () => {
   const profil: IBenutzerProfilEintrag = {
     uid: 'office-1',
+    anmeldename: 'officebenutzer-office',
     email: 'office@example.com',
     anzeigename: 'Office Benutzer',
     aktiv: true,
@@ -84,5 +87,20 @@ describe('BenutzerVerwaltung', () => {
     expect(openMock).toHaveBeenCalledWith(BenutzerBearbeitenDialog, {
       data: { profil },
     });
+  });
+
+  it('should show the display name and role instead of technical login data', () => {
+    storeMock.benutzerprofile.set([profil]);
+    const fixture = TestBed.createComponent(BenutzerVerwaltung);
+    fixture.detectChanges();
+    const select = fixture.debugElement.query(By.directive(MatSelect))
+      .componentInstance as MatSelect;
+    const optionTexts = select.options.map((option) =>
+      option.viewValue.replace(/\s+/g, ' ').trim(),
+    );
+
+    expect(optionTexts).toContain('Office Benutzer - Office');
+    expect(optionTexts.join(' ')).not.toContain('officebenutzer-office');
+    expect(optionTexts.join(' ')).not.toContain('office@example.com');
   });
 });

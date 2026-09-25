@@ -8,6 +8,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatSelectModule } from '@angular/material/select';
 
+import { TUserRole } from '../../../commons/models/domain/benutzer';
 import { BenutzerVerwaltungStore } from '../../../stores/domain/benutzer-verwaltung.store';
 import { BenutzerBearbeitenDialog } from './benutzer-bearbeiten-dialog/benutzer-bearbeiten-dialog';
 
@@ -33,6 +34,12 @@ export class BenutzerVerwaltung {
   // ===== Öffentliche Werte ====================
 
   readonly benutzerUid = new FormControl('', { nonNullable: true });
+  readonly rollenLabels: Readonly<Record<TUserRole, string>> = {
+    filiale: 'Filiale',
+    office: 'Office',
+    mitarbeiter: 'Mitarbeiter',
+    master: 'Master',
+  };
 
   // ===== Öffentliche Aktionen =================
 

@@ -82,7 +82,9 @@ export class BenutzerBearbeitenDialog {
       ? 'Filiale'
       : this.profil.userRole === 'office'
         ? 'Office'
-        : 'Master';
+        : this.profil.userRole === 'mitarbeiter'
+          ? 'Mitarbeiter'
+          : 'Master';
   readonly bereiche: ReadonlyArray<{ value: TAppBereich; label: string }> = [
     { value: 'dashboard', label: 'Dashboard' },
     { value: 'schichtplan', label: 'Schichtplan' },
@@ -153,7 +155,7 @@ export class BenutzerBearbeitenDialog {
    */
   datenAuswahlGueltig(): boolean {
     const rolle = this.profil.userRole;
-    if (rolle === 'master') return true;
+    if (rolle === 'master' || rolle === 'mitarbeiter') return true;
 
     const zugriffe = this.getZugriffe();
     const firmen = Object.values(zugriffe).flatMap((eintrag) => Object.values(eintrag));
@@ -207,7 +209,10 @@ export class BenutzerBearbeitenDialog {
       anzeigename: value.anzeigename,
       aktiv: value.aktiv,
       erlaubteBereiche,
-      zugriffe: this.profil.userRole === 'master' ? {} : this.getZugriffe(),
+      zugriffe:
+        this.profil.userRole === 'master' || this.profil.userRole === 'mitarbeiter'
+          ? {}
+          : this.getZugriffe(),
     };
   }
 

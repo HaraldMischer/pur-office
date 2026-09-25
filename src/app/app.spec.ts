@@ -75,6 +75,15 @@ describe('App', () => {
     expect(compiled.querySelector('router-outlet')).toBeTruthy();
   });
 
+  it('should leave the initial toolbar title empty before route recognition', () => {
+    const fixture = TestBed.createComponent(App);
+    fixture.detectChanges();
+    const toolbar = fixture.debugElement.query(By.directive(AppToolbar))
+      .componentInstance as AppToolbar;
+
+    expect(toolbar.title()).toBe('');
+  });
+
   it('should show Pur-System in the toolbar without authentication', async () => {
     const router = TestBed.inject(Router);
     const fixture = TestBed.createComponent(App);

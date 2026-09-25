@@ -6,6 +6,7 @@ import { firstValueFrom, take } from 'rxjs';
 
 import { AuthService } from '../services/firebase/auth.service';
 import { BenutzerStore } from '../stores/app/benutzer.store';
+import { getErlaubteStartRoute } from './guard-navigation';
 
 export const verwaltungGuard: CanActivateFn = async () => {
   const authService = inject(AuthService);
@@ -26,5 +27,5 @@ export const verwaltungGuard: CanActivateFn = async () => {
   const darfVerwalten =
     benutzerProfil.userRole === 'office' || benutzerProfil.userRole === 'master';
 
-  return darfVerwalten || router.createUrlTree(['/dashboard']);
+  return darfVerwalten || router.createUrlTree([getErlaubteStartRoute(benutzerProfil) ?? '/login']);
 };

@@ -61,6 +61,7 @@ describe('masterGuard', () => {
     benutzerStoreMock.loadBenutzerProfil.mockResolvedValue({
       ...profil,
       userRole: 'office',
+      erlaubteBereiche: ['dashboard', 'systemverwaltung'],
     });
     routerMock.createUrlTree.mockReturnValue(dashboardUrlTree);
 
@@ -68,6 +69,21 @@ describe('masterGuard', () => {
 
     expect(result).toBe(dashboardUrlTree);
     expect(routerMock.createUrlTree).toHaveBeenCalledWith(['/dashboard']);
+  });
+
+  it('should redirect a non-master without dashboard to an allowed area', async () => {
+    const schichtplanUrlTree = {} as UrlTree;
+    benutzerStoreMock.loadBenutzerProfil.mockResolvedValue({
+      ...profil,
+      userRole: 'mitarbeiter',
+      erlaubteBereiche: ['systemverwaltung', 'schichtplan'],
+    });
+    routerMock.createUrlTree.mockReturnValue(schichtplanUrlTree);
+
+    const result = await TestBed.runInInjectionContext(() => masterGuard({} as never, {} as never));
+
+    expect(result).toBe(schichtplanUrlTree);
+    expect(routerMock.createUrlTree).toHaveBeenCalledWith(['/schichtplan']);
   });
 
   it('should redirect to login when no user is signed in', async () => {
