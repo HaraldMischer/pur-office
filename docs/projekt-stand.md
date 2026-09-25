@@ -65,13 +65,14 @@ Stand: 25.09.2026. Dieses Dokument beschreibt den aktuellen Umsetzungsstand im C
   übernommen.
 - Fachliche Daten werden derzeit in allen Auslieferungsvarianten ausschließlich online verwendet. Eine dauerhafte
   Offline-Speicherung fachlicher Daten, Offline-Änderungen und eine spätere Synchronisation sind nicht umgesetzt. Die
-  Offline-App-Shell von Pur Filiale und Pur Mitarbeiter bleibt davon getrennt.
+  Offline-App-Shell aller vier PWA-Builds bleibt davon getrennt.
 - Es gibt keine öffentliche Selbstregistrierung.
 
 ## Login und Benutzerberechtigungen
 
-- Die Loginseite verwendet ein Formular mit vollständigem Anmeldenamen und Passwort ohne Rollenauswahl. Der Anmeldename wird
-  normalisiert und für Firebase Auth intern um `@pur-system.invalid` ergänzt.
+- Die Loginseite verwendet ein Formular mit Anmeldename und Passwort ohne Rollenauswahl. Master-, Office-, Filial- und
+  Mitarbeiter-Build ergänzen den eingegebenen Namensbestandteil automatisch um ihr jeweiliges Rollensuffix und für Firebase Auth
+  intern um `@pur-system.invalid`. Die allgemeine Entwicklungsumgebung erwartet weiterhin den vollständigen Anmeldenamen.
 - Der neue Loginablauf ist technisch umgesetzt und mit den neu angelegten Rollen- und Hostingvarianten erfolgreich geprüft. Die
   bisherigen Testkonten werden bewusst nicht migriert; ein neuer Master und alle weiteren Zugänge werden nach dem neuen Modell
   angelegt.
@@ -309,19 +310,21 @@ Stand: 25.09.2026. Dieses Dokument beschreibt den aktuellen Umsetzungsstand im C
 
 ## Rules und Deployment
 
-- Das Firebase-Projekt `pur-system` verwendet getrennte Hosting-Sites: `pur-office.web.app` liefert den normalen
-  Web-Produktionsbuild ohne Service Worker aus; `pur-filiale.web.app` liefert den installierbaren PWA-Produktionsbuild mit Angular
-  Service Worker aus.
+- Das Firebase-Projekt `pur-system` verwendet getrennte Hosting-Sites für Master, Office, Filiale und Mitarbeiter. Die vier
+  Produktionsbuilds sind als installierbare PWAs mit Angular Service Worker konfiguriert.
+- Die Firebase-Hosting-Site `pur-master.web.app` wurde am 25.09.2026 angelegt. Hosting-Target, eigener Master-Build, Manifest und
+  Deployment-Skript sind eingerichtet; die Site wurde am 26.09.2026 erstmals erfolgreich veröffentlicht.
 - Die zusätzliche Firebase-Hosting-Site `pur-mitarbeiter.web.app` wurde am 25.09.2026 für die persönliche Mitarbeiter-PWA
   reserviert und erstmals erfolgreich veröffentlicht. Hosting-Target, eigener Build und Deployment-Skript sind eingerichtet.
-- Die Hosting-Targets `office`, `filiale` und `mitarbeiter` verwenden getrennte Build-Verzeichnisse. Eigene Deploy-Skripte bauen
-  vor dem Deployment jeweils die passende Variante und verlangen eine Bestätigung.
-- Der Office-Build verwendet im Web-App-Manifest die Produktkennung `Pur Office`; der Filial-Build erhält beim Build ein eigenes
-  Manifest mit der Produktkennung `Pur Filiale`.
+- Die Hosting-Targets `master`, `office`, `filiale` und `mitarbeiter` verwenden getrennte Build-Verzeichnisse. Eigene
+  Deploy-Skripte bauen vor dem Deployment jeweils die passende Variante und verlangen eine Bestätigung.
+- Master, Office, Filiale und Mitarbeiter wurden am 26.09.2026 mit ihren getrennten PWA-Builds erfolgreich auf die jeweils
+  zugehörige Firebase-Hosting-Site veröffentlicht.
+- Master-, Office-, Filial- und Mitarbeiter-Build verwenden jeweils eine eigene Produktkennung im Web-App-Manifest. Die
+  vorhandenen PWA- und Maskable-Icons werden gemeinsam genutzt.
 - Die neue Angular-Konfiguration `mitarbeiter` ergänzt den Produktionsbuild zur Kombination `production,mitarbeiter`. Sie erzeugt
   `dist/pur-mitarbeiter/browser` mit aktiviertem Angular Service Worker, eigenem Produktions-Environment und dem Manifest „Pur
-  Mitarbeiter“. Die vorhandenen PWA- und Maskable-Icons werden gemeinsam genutzt. `npm run pwa:pur-mitarbeiter` stellt den Build
-  lokal auf Port `8081` bereit.
+  Mitarbeiter“. `npm run pwa:pur-mitarbeiter` stellt den Build lokal auf Port `8083` bereit.
 - Das Hosting-Target `mitarbeiter` ist mit der Firebase-Site `pur-mitarbeiter` verbunden. Der Hosting-Block verwendet
   ausschließlich `dist/pur-mitarbeiter/browser`, eigene PWA-Cache-Header und das SPA-Rewrite. `build:mitarbeiter`,
   `pwa:pur-mitarbeiter` und `deploy:pur-mitarbeiter` sind eingerichtet; das Deploy-Skript nennt Projekt, Zieladresse und Service
@@ -334,12 +337,11 @@ Stand: 25.09.2026. Dieses Dokument beschreibt den aktuellen Umsetzungsstand im C
 - Eine Übersicht der tatsächlich eingerichteten lokalen und produktiven Varianten steht in den
   [PWA-Konfigurationen](./pwa-konfigurationen.md). Die vorgesehene Verwendung und das fachliche Online-/Offline-Verhalten stehen
   in den [PWA-Betriebsarten](./pwa-betriebsarten.md).
-- Bei einer fehlerhaften PWA-Version wird ausschließlich die betroffene Hosting-Site `pur-filiale` oder `pur-mitarbeiter` in der
-  Firebase Console auf die letzte funktionierende Veröffentlichung zurückgesetzt. Hilft dieses Rollback wegen eines fehlerhaften
-  Service Workers nicht, wird als letzte Notfallmaßnahme für die betroffene Site der von Angular erzeugte `safety-worker.js` unter
-  der bisherigen URL `ngsw-worker.js` ausgeliefert, bis die betroffenen Installationen den Service Worker deregistriert und ihre
-  Angular-Caches entfernt haben. Anschließend werden Start, Updateverhalten und Service-Worker-Status der betroffenen PWA geprüft.
-  Die Office-Site bleibt von diesem Ablauf unberührt.
+- Bei einer fehlerhaften PWA-Version wird ausschließlich die betroffene Hosting-Site in der Firebase Console auf die letzte
+  funktionierende Veröffentlichung zurückgesetzt. Hilft dieses Rollback wegen eines fehlerhaften Service Workers nicht, wird als
+  letzte Notfallmaßnahme für die betroffene Site der von Angular erzeugte `safety-worker.js` unter der bisherigen URL
+  `ngsw-worker.js` ausgeliefert, bis die betroffenen Installationen den Service Worker deregistriert und ihre Angular-Caches
+  entfernt haben. Anschließend werden Start, Updateverhalten und Service-Worker-Status der betroffenen PWA geprüft.
 
 - Functions-Deployment für die rollenabhängige Validierung (Office mindestens eine, Filiale genau eine vollständige Zuordnung)
   wurde vom Benutzer bestätigt. Benutzeranlage, Anmeldung, Bereichsfreigabe, Systemverwaltungssperre, Passwortwechsel und erneute
@@ -378,7 +380,7 @@ Stand: 25.09.2026. Dieses Dokument beschreibt den aktuellen Umsetzungsstand im C
 
 Am 25.09.2026 für den aktuellen Frontend-Stand erfolgreich geprüft:
 
-- 294 Frontend-Tests einschließlich vereinfachter Anmeldung, Benutzeranlage und -darstellung, der Rolle `mitarbeiter`,
+- 296 Frontend-Tests einschließlich vereinfachter Anmeldung, Benutzeranlage und -darstellung, der Rolle `mitarbeiter`,
   Bereichsfreigaben und sicherer Guard-Ausweichnavigation, PWA-Updatebehandlung, Netzwerkstatus, Store-Snapshots,
   Datenstruktur-Anlage, zentraler Stammdateninitialisierung sowie Firmen-, Filial- und Benutzerprofil-Bearbeitung.
 - 47 Functions-Tests einschließlich technischer Anmeldedaten, doppelter Anmeldenamen, Mitarbeiterzugangsanlage, Rollenprüfung,
@@ -386,12 +388,11 @@ Am 25.09.2026 für den aktuellen Frontend-Stand erfolgreich geprüft:
 - 28 Firestore-Emulator-Tests für die Begrenzung der Rolle `mitarbeiter`, bestehende Rollen, neue Hierarchie, Untercollections,
   eingeschränkte Queries, Office-Aktualisierungen, Profil-Selbstschutz, unveränderliche Profilfelder sowie die Trennung vom
   Legacy-Zugriff auf `purCustomers`.
-- Office-, Filial- und Mitarbeiter-Produktionsbuild erfolgreich. Der Office-Build enthält keinen Service Worker. Filial- und
-  Mitarbeiter-Build enthalten jeweils eine vollständige PWA-Ausgabe. Der Mitarbeiter-Build enthält Manifest, zehn erreichbare
-  App-Icons, lokale Roboto- und Material-Icon-Schriften, `ngsw.json`, `ngsw-worker.js` und die Ressourcengruppen `app`, `fonts`
-  und `assets`. Die Builds benötigen in der Codex-Umgebung Zugriff außerhalb der Sandbox, weil der native `esbuild`-Prozess
-  innerhalb der eingeschränkten Umgebung mit Exit-Code 134 beendet wird. Die bekannte Budgetwarnung beträgt rund 26 kB über dem
-  initialen Limit von 1,50 MB.
+- Master-, Office-, Filial- und Mitarbeiter-Produktionsbuild sind als vollständige PWA-Ausgaben konfiguriert. Sie enthalten das
+  jeweils passende Manifest, zehn erreichbare App-Icons, lokale Roboto- und Material-Icon-Schriften, `ngsw.json`,
+  `ngsw-worker.js` und die Ressourcengruppen `app`, `fonts` und `assets`. Die Builds benötigen in der Codex-Umgebung Zugriff
+  außerhalb der Sandbox, weil der native `esbuild`-Prozess innerhalb der eingeschränkten Umgebung mit Exit-Code 134 beendet wird.
+  Die bekannte Budgetwarnung beträgt rund 26 kB über dem initialen Limit von 1,50 MB.
 - Die Mitarbeiter-App-Shell wurde lokal nach vollständigem Beenden des Webservers in Desktop- und mobiler Viewport-Größe
   erfolgreich aus dem Service-Worker-Cache neu geladen. Die veröffentlichte Login-Seite wurde ohne Browserfehler geladen. Pur
   Mitarbeiter wurde anschließend erfolgreich auf dem Desktop und auf einem physischen iPhone installiert und jeweils als

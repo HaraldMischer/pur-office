@@ -9,9 +9,14 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { Router } from '@angular/router';
 
-import { normalizeAnmeldename } from '../../../commons/utils/auth/technische-anmeldeadresse';
+import {
+  buildAnmeldename,
+  normalizeAnmeldename,
+  normalizeNamensbestandteil,
+} from '../../../commons/utils/auth/technische-anmeldeadresse';
 import { NetzwerkStatusService } from '../../../services/core/netzwerk-status.service';
 import { BenutzerStore } from '../../../stores/app/benutzer.store';
+import { environment } from '../../../../environments/environment';
 
 type TLoginForm = {
   anmeldename: FormControl<string>;
@@ -66,7 +71,10 @@ export class LoginPage {
     }
 
     const anmeldenameControl = this.loginForm.controls.anmeldename;
-    const normalisierterAnmeldename = normalizeAnmeldename(anmeldenameControl.getRawValue());
+    const eingegebenerAnmeldename = anmeldenameControl.getRawValue();
+    const normalisierterAnmeldename = environment.loginUserRole
+      ? normalizeNamensbestandteil(eingegebenerAnmeldename)
+      : normalizeAnmeldename(eingegebenerAnmeldename);
     anmeldenameControl.setValue(normalisierterAnmeldename);
     anmeldenameControl.updateValueAndValidity();
 
@@ -76,7 +84,10 @@ export class LoginPage {
     }
 
     const { password } = this.loginForm.getRawValue();
-    await this._benutzerStore.login(normalisierterAnmeldename, password);
+    const vollstaendigerAnmeldename = environment.loginUserRole
+      ? buildAnmeldename(normalisierterAnmeldename, environment.loginUserRole)
+      : normalisierterAnmeldename;
+    await this._benutzerStore.login(vollstaendigerAnmeldename, password);
     await this._router.navigate(['/dashboard']);
   }
 

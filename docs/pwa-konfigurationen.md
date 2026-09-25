@@ -10,21 +10,23 @@ Die gemeinsame Gegenüberstellung von Auslieferungsvarianten, vorgesehenem Einsa
 | Variante               | Adresse oder Ziel                 | Befehl                        | Angular-Konfiguration    | Ausgabe                        | Service Worker | Manifest        | Offline-App-Shell |
 | ---------------------- | --------------------------------- | ----------------------------- | ------------------------ | ------------------------------ | -------------- | --------------- | ----------------- |
 | Entwicklung            | `http://localhost:4200`           | `npm run web:pur-office`      | `development`            | Angular Dev Server             | aus            | Pur Office      | nein              |
-| Lokale Filial-PWA      | `http://localhost:8080`           | `npm run pwa:pur-filiale`     | `production,pwa`         | `dist/pur-filiale/browser`     | an             | Pur Filiale     | ja                |
-| Mitarbeiter-Build      | `http://localhost:8081`           | `npm run pwa:pur-mitarbeiter` | `production,mitarbeiter` | `dist/pur-mitarbeiter/browser` | an             | Pur Mitarbeiter | ja                |
-| Office-Produktion      | `https://pur-office.web.app`      | `npm run build:office`        | `production`             | `dist/pur-office/browser`      | aus            | Pur Office      | nein              |
+| Lokale Master-PWA      | `http://localhost:8080`           | `npm run pwa:pur-master`      | `production,master`      | `dist/pur-master/browser`      | an             | Pur Master      | ja                |
+| Lokale Office-PWA      | `http://localhost:8081`           | `npm run pwa:pur-office`      | `production`             | `dist/pur-office/browser`      | an             | Pur Office      | ja                |
+| Lokale Filial-PWA      | `http://localhost:8082`           | `npm run pwa:pur-filiale`     | `production,pwa`         | `dist/pur-filiale/browser`     | an             | Pur Filiale     | ja                |
+| Lokale Mitarbeiter-PWA | `http://localhost:8083`           | `npm run pwa:pur-mitarbeiter` | `production,mitarbeiter` | `dist/pur-mitarbeiter/browser` | an             | Pur Mitarbeiter | ja                |
+| Master-Produktion      | `https://pur-master.web.app`      | `npm run build:master`        | `production,master`      | `dist/pur-master/browser`      | an             | Pur Master      | ja                |
+| Office-Produktion      | `https://pur-office.web.app`      | `npm run build:office`        | `production`             | `dist/pur-office/browser`      | an             | Pur Office      | ja                |
 | Filial-Produktion      | `https://pur-filiale.web.app`     | `npm run build:filiale`       | `production,pwa`         | `dist/pur-filiale/browser`     | an             | Pur Filiale     | ja                |
 | Mitarbeiter-Produktion | `https://pur-mitarbeiter.web.app` | `npm run build:mitarbeiter`   | `production,mitarbeiter` | `dist/pur-mitarbeiter/browser` | an             | Pur Mitarbeiter | ja                |
 
-Port `8080` liefert lokal denselben Filial-PWA-Build aus, der für `pur-filiale.web.app` vorgesehen ist. Alle drei vorgesehenen
-Produktionsvarianten verwenden im Manifest den Darstellungsmodus `standalone`. Beim Office-Build betrifft dies nur die
-browserabhängige Installation und Darstellung in einem eigenen Fenster; ohne Service Worker steht keine Offline-App-Shell zur
-Verfügung.
+Die Ports `8080` bis `8083` liefern lokal dieselben PWA-Builds aus, die für die jeweils gleichnamige Firebase-Hosting-Site
+vorgesehen sind. Alle vier Produktionsvarianten verwenden im Manifest den Darstellungsmodus `standalone` und besitzen eine
+Offline-App-Shell.
 
 `npm run start-web` bleibt als kurzer Alias für `npm run web:pur-office` verfügbar.
 
-`npm run pwa:pur-mitarbeiter` erzeugt den Mitarbeiter-Build und stellt ihn auf Port `8081` lokal bereit. Die Vorschau entspricht
-dem Build, der unter `pur-mitarbeiter.web.app` veröffentlicht ist.
+Jede PWA ergänzt bei der Anmeldung automatisch ihre Benutzerrolle. Benutzer geben nur den Namensbestandteil ein; Master, Office,
+Filiale und Mitarbeiter bilden daraus jeweils den vollständigen Anmeldenamen mit dem passenden Rollensuffix.
 
 ## Service-Worker-Ressourcen
 
@@ -35,13 +37,14 @@ dem Build, der unter `pur-mitarbeiter.web.app` veröffentlicht ist.
 | `assets`         | bei Verwendung                                     | bei neuer Version vorab | Icons und Bilddateien                      |
 | Firebase         | nicht durch den Angular Service Worker gespeichert | Serverzugriff           | Auth-, Firestore- und Functions-Anfragen   |
 
-Der Service Worker wird ausschließlich im Filial- und Mitarbeiter-PWA-Build registriert, sobald die Anwendung stabil ist,
-spätestens jedoch nach 30 Sekunden. Die Benutzerrolle hat keinen Einfluss auf seine Aktivierung.
+Der Service Worker wird in allen vier PWA-Builds registriert, sobald die Anwendung stabil ist, spätestens jedoch nach 30 Sekunden.
+Die Benutzerrolle hat keinen Einfluss auf seine Aktivierung.
 
 ## Hosting und Deployment
 
 | Hosting-Target | Firebase-Site     | Deployment                       |
 | -------------- | ----------------- | -------------------------------- |
+| `master`       | `pur-master`      | `npm run deploy:pur-master`      |
 | `office`       | `pur-office`      | `npm run deploy:pur-office`      |
 | `filiale`      | `pur-filiale`     | `npm run deploy:pur-filiale`     |
 | `mitarbeiter`  | `pur-mitarbeiter` | `npm run deploy:pur-mitarbeiter` |

@@ -5,7 +5,7 @@
 ## Produktidee
 
 Pur-System ist eine Angular-Anwendung zur Darstellung und Bearbeitung von Organisationsdaten sowie zur kontrollierten Verwaltung
-von Benutzerzugängen. Es wird in den technischen Auslieferungsvarianten Pur Office, Pur Filiale und Pur Mitarbeiter
+von Benutzerzugängen. Es wird in den technischen Auslieferungsvarianten Pur Master, Pur Office, Pur Filiale und Pur Mitarbeiter
 bereitgestellt.
 
 ## Zielrichtung
@@ -16,8 +16,8 @@ bereitgestellt.
   geschütztes Backend.
 - Fachliche Bereiche werden klar getrennt.
 - UI und Datenzugriff werden über Components, Stores und Services getrennt.
-- Das System wird getrennt ausgeliefert: Pur Office als normale Webanwendung sowie Pur Filiale und Pur Mitarbeiter als
-  installierbare Progressive Web Apps.
+- Das System wird als vier getrennte, installierbare Progressive Web Apps für Master, Office, Filiale und Mitarbeiter
+  ausgeliefert.
 
 ## Architektur
 
@@ -51,13 +51,15 @@ bereitgestellt.
 
 ### Auslieferungsvarianten
 
-- **Pur Office:** Normale Webanwendung ohne Service Worker.
+- **Pur Master:** Installierbare PWA für die zentrale Systemverwaltung mit eigener Hosting-Adresse `pur-master.web.app`.
+- **Pur Office:** Installierbare PWA für Büro und Verwaltung mit eigener Hosting-Adresse `pur-office.web.app`.
 - **Pur Filiale:** Installierbare Progressive Web App. Der Angular Service Worker stellt nach dem ersten erfolgreichen Laden die
   App-Shell und die zum Start erforderlichen statischen Ressourcen offline bereit.
 - **Pur Mitarbeiter:** Persönliche mobile PWA innerhalb desselben Angular- und Firebase-Projekts. Sie besitzt einen getrennten
   Build, die eigene Hosting-Adresse `pur-mitarbeiter.web.app` und eine App-Shell mit dem Titel „Pur Mitarbeiter“.
 
-Alle drei Auslieferungsvarianten verwenden eine eigene Produktkennung im Web-App-Manifest.
+Alle vier Auslieferungsvarianten verwenden eine eigene Produktkennung im Web-App-Manifest. Das jeweilige Login ergänzt den
+eingegebenen Namensbestandteil automatisch um das Rollensuffix `master`, `office`, `filiale` oder `mitarbeiter`.
 
 In Pur Mitarbeiter richten sich Anmeldung, App-Shell und Navigation nach den im Benutzerprofil zugewiesenen `erlaubteBereiche`.
 Welche fachlichen Mitarbeiterdaten und Funktionen später innerhalb dieser Umgebung angeboten werden, wird bei konkretem fachlichem
@@ -81,9 +83,9 @@ Firestore-Daten nicht automatisch offline verfügbar.
 
 ### Fachliche Online- und Offline-Nutzung
 
-Fachliche Daten werden in Pur Office, Pur Filiale und Pur Mitarbeiter zunächst ausschließlich online gelesen und geändert. Es
-werden keine fachlichen Daten bewusst dauerhaft für einen späteren Offline-Aufruf gespeichert und keine Offline-Änderungen zur
-späteren Synchronisation zugelassen.
+Fachliche Daten werden in Pur Master, Pur Office, Pur Filiale und Pur Mitarbeiter zunächst ausschließlich online gelesen und
+geändert. Es werden keine fachlichen Daten bewusst dauerhaft für einen späteren Offline-Aufruf gespeichert und keine
+Offline-Änderungen zur späteren Synchronisation zugelassen.
 
 Eine spätere Ausnahme wird erst bei einem konkreten fachlichen Bedarf einzeln für Datenart, Benutzerrolle, Auslieferungsvariante
 und Aktion entschieden. Dabei werden insbesondere Schutzbedarf, Benutzertrennung, veraltete Daten, Berechtigungsänderungen,
@@ -100,8 +102,9 @@ Jeder Benutzer besitzt zusätzlich einen unveränderlichen Anmeldenamen im Forma
 Firebase Auth verwendet intern die daraus gebildete technische Adresse `<anmeldename>@pur-system.invalid`. Der Rollenbestandteil
 im Anmeldenamen ist ausschließlich Teil der technischen Kennung und gewährt keine Berechtigungen.
 
-Das Loginformular fragt ausschließlich den vollständigen Anmeldenamen und das Passwort ab. Die Anwendung normalisiert den
-Anmeldenamen und ergänzt für den Firebase-Auth-Aufruf intern `@pur-system.invalid`. Eine Rollenauswahl gibt es im Login nicht;
+Das Loginformular der vier Produktionsvarianten fragt ausschließlich den Namensbestandteil und das Passwort ab. Die jeweilige
+Auslieferungsvariante ergänzt automatisch das passende Rollensuffix und für Firebase Auth intern `@pur-system.invalid`. Die
+allgemeine Entwicklungsumgebung erwartet weiterhin den vollständigen Anmeldenamen. Eine Rollenauswahl gibt es im Login nicht;
 Rolle, Aktivstatus und Bereichsfreigaben werden erst aus dem über die Firebase-UID geladenen Benutzerprofil abgeleitet.
 
 ### Benutzeranlage und technische Kennung

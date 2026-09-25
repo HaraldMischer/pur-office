@@ -25,6 +25,18 @@ describe('technische Anmeldeadresse', () => {
     },
   );
 
+  it.each([
+    ['Hagener Str.', 'filiale', 'hagenerstr-filiale@pur-system.invalid'],
+    ['Harald Mischer', 'mitarbeiter', 'haraldmischer-mitarbeiter@pur-system.invalid'],
+  ] as const)(
+    'bildet für %s und die Rolle %s die appabhängige technische Adresse',
+    (namensbestandteil, userRole, erwarteteAdresse) => {
+      const anmeldename = buildAnmeldename(namensbestandteil, userRole);
+
+      expect(buildTechnischeAnmeldeadresse(anmeldename)).toBe(erwarteteAdresse);
+    },
+  );
+
   it('normalisiert einen vollständigen Anmeldenamen und erhält den Rollentrenner', () => {
     expect(normalizeAnmeldename('  HaraldMischer--MASTER  ')).toBe('haraldmischer-master');
   });

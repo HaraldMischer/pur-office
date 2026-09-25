@@ -5,6 +5,7 @@
   "targets": {
     "pur-system": {
       "hosting": {
+        "master": ["pur-master"],
         "office": ["pur-office"],
         "filiale": ["pur-filiale"],
         "mitarbeiter": ["pur-mitarbeiter"]
