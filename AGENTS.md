@@ -188,6 +188,12 @@
 - Für eigene Layoutwerte werden grundsätzlich `px` verwendet, insbesondere für Breiten, Höhen, Abstände und Breakpoints.
 - `rem` wird nur verwendet, wenn eine Größe ausdrücklich mit der Root-Schriftgröße skalieren soll.
 - Vorhandene Angular-Material-Tokens bleiben von dieser Einheitenregel unberührt.
+- Safe-Area-Abstände werden nur an den Viewportkanten berücksichtigt, die das betreffende Element tatsächlich berührt.
+- `safe-area-inset-right` wird nicht pauschal verwendet, sondern nur bei Elementen am rechten Viewportrand.
+- Bei einer links verankerten, nicht vollbreiten Sidebar sind hauptsächlich `safe-area-inset-left` und für Inhalte am unteren Rand
+  `safe-area-inset-bottom` relevant.
+- Safe-Area-Werte werden mit dem regulären Abstand per `calc()` kombiniert.
+- Damit Safe-Area-Werte auf iOS greifen, verwendet der Viewport-Meta-Tag `viewport-fit=cover`.
 - Wiederverwendbare CSS-Klassen folgen BEM: `block__element` für Elemente und `block__element--modifier` für Varianten oder
   Zustände. Zusammengesetzte Elementnamen verwenden einfache Bindestriche.
 - Formulargruppen verwenden `pur-form__group`; ihre Überschriften verwenden `pur-form__group-titel` (in SCSS unter `&__group` als

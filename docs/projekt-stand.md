@@ -32,10 +32,12 @@ Stand: 26.09.2026. Dieses Dokument beschreibt den aktuellen Umsetzungsstand im C
 - Die Toolbar zeigt den Titel der aktiven Route und den Menübutton.
 - Die Toolbar bietet einen Dark-/Light-Mode-Umschalter und im Entwicklungsmodus einen Button für die Snapshots der aktiven Stores.
 - Die Toolbar zeigt während zentral registrierter Lese- und Schreibvorgänge eine globale unbestimmte Progress-Bar.
-- Die Loginseite verwendet eine reduzierte App-Shell ohne Sidebar und Navigationstaste und zeigt in der Toolbar die gemeinsame
-  Produktkennung `Pur-System`.
+- Die Loginseite verwendet eine reduzierte App-Shell ohne Sidebar und Navigationstaste. Die Toolbar zeigt abhängig von der
+  Auslieferungsvariante `Pur Master`, `Pur Office`, `Pur Filiale` oder `Pur Mitarbeiter`; die Entwicklungsumgebung verwendet
+  `Pur-System`.
 - Das Layout reagiert auf kleinere Bildschirmbreiten.
 - Die Sidebar enthält den Bereich Systemverwaltung für berechtigte Master-Benutzer.
+- Die Sidebar zeigt die zentral in `app-version.constant.ts` gepflegte Anwendungsversion. Der aktuelle Stand ist `1.0.0`.
 
 ## Seiten und Routen
 
@@ -55,7 +57,7 @@ Stand: 26.09.2026. Dieses Dokument beschreibt den aktuellen Umsetzungsstand im C
 
 - Firebase und AngularFire sind installiert.
 - Firebase-Konfiguration liegt unter `src/environments`.
-- Firebase App, Auth und Firestore werden in `app.config.ts` bereitgestellt.
+- Firebase App, Auth, Firestore und Functions werden in `app.config.ts` bereitgestellt.
 - Firestore verwendet derzeit ausschließlich den standardmäßigen nicht persistenten Speicher; eine dauerhafte lokale
   Firestore-Datenhaltung ist nicht aktiviert.
 - Firebase Tokens für Auth sowie lesende, beobachtende und schreibende Firestore-Zugriffe sind vorbereitet.
@@ -318,7 +320,7 @@ Stand: 26.09.2026. Dieses Dokument beschreibt den aktuellen Umsetzungsstand im C
   `benutzerprofil/{uid}` an. Die Sitzung des Masters bleibt erhalten.
 - Die Function normalisiert `erlaubteBereiche` unabhängig vom Client: `dashboard` wird immer gespeichert,
   `systemverwaltung` ausschließlich für Master. Die Firestore Rules erzwingen dieselbe Pflichtbereichsregel bei Änderungen
-  bestehender Profile. Function und Rules müssen für die produktive Wirksamkeit noch deployed werden.
+  bestehender Profile. Function und Rules sind produktiv deployed.
 - Das Backend verlangt für jeden Zugriff eine Unternehmer-ID und prüft vor der Auth-Anlage die Existenz von Unternehmer, Firma und
   Filialen unter ihren vollständigen Pfaden. Fehlende Dokumente, ungültige IDs oder fehlgeschlagene Prüfabfragen brechen die
   Anlage ab. Doppelte Firmenzugriffe werden nur innerhalb desselben Unternehmers zusammengeführt.
@@ -334,7 +336,7 @@ Stand: 26.09.2026. Dieses Dokument beschreibt den aktuellen Umsetzungsstand im C
   vollständige automatische Bereinigung nicht garantiert; die Fehlermeldung fordert die Administratorprüfung an.
 - Angemeldete Benutzer können ihr Passwort nach erneuter Authentifizierung über die Toolbar und `/passwort` ändern. Auf dieser
   separaten Seite werden neues Passwort und Bestätigung validiert; es gelten mindestens 8 Zeichen.
-- Die Functions-Codebase `pur-office` nutzt Node.js 22 und die Region `europe-west1`.
+- Die Functions-Codebase `pur-system` nutzt Node.js 22 und die Region `europe-west1`.
 
 ## Rules und Deployment
 
@@ -408,11 +410,11 @@ Stand: 26.09.2026. Dieses Dokument beschreibt den aktuellen Umsetzungsstand im C
 
 Am 26.09.2026 für den aktuellen Frontend-Stand erfolgreich geprüft:
 
-- 353 Frontend-Tests einschließlich rollenbezogener flacher und verschachtelter Navigation, Bereichsfreigaben und konsistenter
+- 354 Frontend-Tests einschließlich rollenbezogener flacher und verschachtelter Navigation, Bereichsfreigaben und konsistenter
   Guard-Ausweichnavigation, vereinfachter Anmeldung, Benutzeranlage und -darstellung, der Rolle `mitarbeiter`,
   PWA-Updatebehandlung, Netzwerkstatus, Store-Snapshots, Datenstruktur-Anlage, zentraler Stammdateninitialisierung sowie Firmen-,
   Filial- und Benutzerprofil-Bearbeitung, Echtzeitbeobachtung des eigenen Profils sowie globalem Banner-Service und
-  Inaktivhinweis.
+  Inaktivhinweis und sichtbarer Anwendungsversion.
 - Die rollenbezogene Navigation wurde zusätzlich manuell mit Tastatur, sichtbarem Fokus und zugänglichen Bezeichnungen geprüft.
 - Datenstruktur-Anlage und Benutzerverwaltung wurden unter ihren getrennten Systemverwaltungsrouten auf Desktop und einem
   kleinen Viewport erfolgreich manuell geprüft.
@@ -428,8 +430,8 @@ Am 26.09.2026 für den aktuellen Frontend-Stand erfolgreich geprüft:
   jeweils passende Manifest, zehn erreichbare App-Icons, lokale Roboto- und Material-Icon-Schriften, `ngsw.json`,
   `ngsw-worker.js` und die Ressourcengruppen `app`, `fonts` und `assets`. Die Builds benötigen in der Codex-Umgebung Zugriff
   außerhalb der Sandbox, weil der native `esbuild`-Prozess innerhalb der eingeschränkten Umgebung mit Exit-Code 134 beendet wird.
-  Der aktuelle Standard-Produktionsbuild ist erfolgreich. Die bekannte Budgetwarnung beträgt rund 73 kB über dem initialen
-  Limit von 1,50 MB.
+  Der aktuelle Standard-Produktionsbuild ist erfolgreich. Das initiale Bundle liegt bei rund 1,57 MB. Das zugehörige Warnlimit
+  beträgt 1,60 MB und das Fehlerlimit 1,70 MB.
 - Die Mitarbeiter-App-Shell wurde lokal nach vollständigem Beenden des Webservers in Desktop- und mobiler Viewport-Größe
   erfolgreich aus dem Service-Worker-Cache neu geladen. Die veröffentlichte Login-Seite wurde ohne Browserfehler geladen. Pur
   Mitarbeiter wurde anschließend erfolgreich auf dem Desktop und auf einem physischen iPhone installiert und jeweils als

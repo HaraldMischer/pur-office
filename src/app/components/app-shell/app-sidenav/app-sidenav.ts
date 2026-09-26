@@ -14,6 +14,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatTooltipModule } from '@angular/material/tooltip';
 
+import { APP_VERSION } from '../../../commons/constants/app-version.constant';
 import { INavigationLink, IRollenNavigation } from '../../../commons/models/app/navigation';
 import { getSichtbareRollenNavigation } from '../../../commons/utils/navigation/rollen-navigation';
 import { BenutzerStore } from '../../../stores/app/benutzer.store';
@@ -54,6 +55,7 @@ export class AppSidenav {
 
   // ===== Öffentliche Werte ====================
   readonly title = environment.appTitle;
+  readonly appVersion = APP_VERSION;
 
   // ===== Öffentliche Ableitungen ==============
   readonly navigation: Signal<IRollenNavigation | null> = computed(() => {

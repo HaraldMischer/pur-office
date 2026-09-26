@@ -7,17 +7,17 @@ Die gemeinsame Gegenüberstellung von Auslieferungsvarianten, vorgesehenem Einsa
 
 ## Konfigurationsmatrix
 
-| Variante               | Adresse oder Ziel                 | Befehl                        | Angular-Konfiguration    | Ausgabe                        | Service Worker | Manifest        | Offline-App-Shell |
-| ---------------------- | --------------------------------- | ----------------------------- | ------------------------ | ------------------------------ | -------------- | --------------- | ----------------- |
-| Entwicklung            | `http://localhost:4200`           | `npm run web:pur-system`      | `development`            | Angular Dev Server             | aus            | Pur-System      | nein              |
-| Lokale Master-PWA      | `http://localhost:8080`           | `npm run pwa:pur-master`      | `production,master`      | `dist/pur-master/browser`      | an             | Pur Master      | ja                |
-| Lokale Office-PWA      | `http://localhost:8081`           | `npm run pwa:pur-office`      | `production`             | `dist/pur-office/browser`      | an             | Pur Office      | ja                |
-| Lokale Filial-PWA      | `http://localhost:8082`           | `npm run pwa:pur-filiale`     | `production,pwa`         | `dist/pur-filiale/browser`     | an             | Pur Filiale     | ja                |
-| Lokale Mitarbeiter-PWA | `http://localhost:8083`           | `npm run pwa:pur-mitarbeiter` | `production,mitarbeiter` | `dist/pur-mitarbeiter/browser` | an             | Pur Mitarbeiter | ja                |
-| Master-Produktion      | `https://pur-master.web.app`      | `npm run build:master`        | `production,master`      | `dist/pur-master/browser`      | an             | Pur Master      | ja                |
-| Office-Produktion      | `https://pur-office.web.app`      | `npm run build:office`        | `production`             | `dist/pur-office/browser`      | an             | Pur Office      | ja                |
-| Filial-Produktion      | `https://pur-filiale.web.app`     | `npm run build:filiale`       | `production,pwa`         | `dist/pur-filiale/browser`     | an             | Pur Filiale     | ja                |
-| Mitarbeiter-Produktion | `https://pur-mitarbeiter.web.app` | `npm run build:mitarbeiter`   | `production,mitarbeiter` | `dist/pur-mitarbeiter/browser` | an             | Pur Mitarbeiter | ja                |
+| Variante               | Adresse oder Ziel                 | Befehl                           | Angular-Konfiguration    | Ausgabe                        | Service Worker | Manifest        | Offline-App-Shell |
+| ---------------------- | --------------------------------- | -------------------------------- | ------------------------ | ------------------------------ | -------------- | --------------- | ----------------- |
+| Entwicklung            | `http://localhost:4200`           | `npm run web:pur-system`         | `development`            | Angular Dev Server             | aus            | Pur Office      | nein              |
+| Lokale Master-PWA      | `http://localhost:8080`           | `npm run pwa:pur-master`         | `production,master`      | `dist/pur-master/browser`      | an             | Pur Master      | ja                |
+| Lokale Office-PWA      | `http://localhost:8081`           | `npm run pwa:pur-office`         | `production`             | `dist/pur-office/browser`      | an             | Pur Office      | ja                |
+| Lokale Filial-PWA      | `http://localhost:8082`           | `npm run pwa:pur-filiale`        | `production,pwa`         | `dist/pur-filiale/browser`     | an             | Pur Filiale     | ja                |
+| Lokale Mitarbeiter-PWA | `http://localhost:8083`           | `npm run pwa:pur-mitarbeiter`    | `production,mitarbeiter` | `dist/pur-mitarbeiter/browser` | an             | Pur Mitarbeiter | ja                |
+| Master-Produktion      | `https://pur-master.web.app`      | `npm run deploy:pur-master`      | `production,master`      | `dist/pur-master/browser`      | an             | Pur Master      | ja                |
+| Office-Produktion      | `https://pur-office.web.app`      | `npm run deploy:pur-office`      | `production`             | `dist/pur-office/browser`      | an             | Pur Office      | ja                |
+| Filial-Produktion      | `https://pur-filiale.web.app`     | `npm run deploy:pur-filiale`     | `production,pwa`         | `dist/pur-filiale/browser`     | an             | Pur Filiale     | ja                |
+| Mitarbeiter-Produktion | `https://pur-mitarbeiter.web.app` | `npm run deploy:pur-mitarbeiter` | `production,mitarbeiter` | `dist/pur-mitarbeiter/browser` | an             | Pur Mitarbeiter | ja                |
 
 Die Ports `8080` bis `8083` liefern lokal dieselben PWA-Builds aus, die für die jeweils gleichnamige Firebase-Hosting-Site
 vorgesehen sind. Alle vier Produktionsvarianten verwenden im Manifest den Darstellungsmodus `standalone` und besitzen eine
@@ -58,18 +58,18 @@ gespeichert. Dadurch kann eine neue App-Version erkannt werden, ohne bestehende 
 
 ## Mitarbeiter-PWA
 
-| Merkmal                     | Festgelegter Zielstand beziehungsweise aktueller Umsetzungsstand            |
-| --------------------------- | --------------------------------------------------------------------------- |
-| Hosting-Site                | `pur-mitarbeiter.web.app` ist im Firebase-Projekt `pur-system` reserviert   |
-| Benutzerrolle               | Auth-Rolle `mitarbeiter` migriert, deployed und mit realem Konto geprüft    |
-| Erlaubte App-Bereiche       | werden durch den Master im Benutzerprofil zugewiesen                        |
-| App-Shell                   | eigene mobile App-Shell mit der Produktkennung „Pur Mitarbeiter“            |
-| Build und Ausgabe           | `production,mitarbeiter` erzeugt `dist/pur-mitarbeiter/browser`             |
-| Hosting-Target              | `mitarbeiter` ist mit der Firebase-Site `pur-mitarbeiter` verbunden         |
-| Deployment                  | `npm run deploy:pur-mitarbeiter` wurde am 25.09.2026 erfolgreich ausgeführt |
-| Manifest und Service Worker | Manifest „Pur Mitarbeiter“ und Angular Offline-App-Shell sind eingerichtet  |
-| Veröffentlichung            | unter `https://pur-mitarbeiter.web.app` veröffentlicht                      |
-| Installationsprüfung        | auf Desktop und physischem iPhone erfolgreich                               |
+| Merkmal                     | Festgelegter Zielstand beziehungsweise aktueller Umsetzungsstand                   |
+| --------------------------- | ---------------------------------------------------------------------------------- |
+| Hosting-Site                | `pur-mitarbeiter.web.app` ist im Firebase-Projekt `pur-system` reserviert          |
+| Benutzerrolle               | Auth-Rolle `mitarbeiter` migriert, deployed und mit realem Konto geprüft           |
+| Erlaubte App-Bereiche       | werden durch den Master im Benutzerprofil zugewiesen                               |
+| App-Shell                   | eigene mobile App-Shell mit der Produktkennung „Pur Mitarbeiter“                   |
+| Build und Ausgabe           | `production,mitarbeiter` erzeugt `dist/pur-mitarbeiter/browser`                    |
+| Hosting-Target              | `mitarbeiter` ist mit der Firebase-Site `pur-mitarbeiter` verbunden                |
+| Deployment                  | erstmals am 25.09.2026 und gemeinsam mit allen Varianten am 26.09.2026 erfolgreich |
+| Manifest und Service Worker | Manifest „Pur Mitarbeiter“ und Angular Offline-App-Shell sind eingerichtet         |
+| Veröffentlichung            | unter `https://pur-mitarbeiter.web.app` veröffentlicht                             |
+| Installationsprüfung        | auf Desktop und physischem iPhone erfolgreich                                      |
 
 Die Hosting-Variante erzeugt keine zusätzliche Rollenbeschränkung. Aktive Benutzer verwenden auch in Pur Mitarbeiter die in ihrem
 Profil zugewiesenen `erlaubteBereiche`. Administrative Routen bleiben unabhängig vom Hosting durch ihre vorhandenen Rollenguards

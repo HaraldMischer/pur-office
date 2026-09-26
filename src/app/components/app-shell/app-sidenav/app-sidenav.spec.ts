@@ -4,6 +4,7 @@ import { Component } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 
+import { APP_VERSION } from '../../../commons/constants/app-version.constant';
 import { IBenutzerProfilDokument, TUserRole } from '../../../commons/models/domain/benutzer';
 import { BenutzerStore } from '../../../stores/app/benutzer.store';
 import { AppSidenav } from './app-sidenav';
@@ -60,6 +61,14 @@ describe('AppSidenav', () => {
     const compiled = fixture.nativeElement as HTMLElement;
 
     expect(compiled.querySelector('.app-brand-toolbar')?.textContent).toContain('Pur-System');
+  });
+
+  it('should render the application version from the central application constant', () => {
+    const fixture = TestBed.createComponent(AppSidenavHost);
+    fixture.detectChanges();
+    const compiled = fixture.nativeElement as HTMLElement;
+
+    expect(compiled.querySelector('.app-sidenav__version')?.textContent).toBe(`v${APP_VERSION}`);
   });
 
   it('should show the account name and login name', () => {

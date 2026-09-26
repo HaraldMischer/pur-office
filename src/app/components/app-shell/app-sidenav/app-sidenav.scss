@@ -6,6 +6,14 @@
   min-height: 100%;
 }
 
+.app-sidenav__version {
+  align-self: flex-end;
+  margin-block-start: auto;
+  padding: 16px calc(16px + env(safe-area-inset-right)) calc(4px + env(safe-area-inset-bottom)) 16px;
+  color: color-mix(in srgb, var(--mat-sys-on-surface-variant) 62%, transparent);
+  font: var(--mat-sys-label-small);
+}
+
 .app-brand-toolbar {
   gap: 12px;
   border-block-end: 1px solid var(--mat-sys-outline-variant);

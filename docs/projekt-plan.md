@@ -287,6 +287,7 @@ Der genaue Implementierungsstand steht im [Projekt-Stand](./projekt-stand.md), d
 - Services liegen unter `src/app/services`.
 - Allgemeine technische Services liegen unter `src/app/services/core`.
 - Firebase-nahe Services liegen unter `src/app/services/firebase`.
+- Fachliche Services für konkrete Domänen liegen unter `src/app/services/domain`.
 - Stores liegen unter `src/app/stores`.
 - App-weite Stores liegen unter `src/app/stores/app`, z. B. `src/app/stores/app/benutzer.store.ts`.
 - Fachliche Domain-Stores liegen unter `src/app/stores/domain`.
@@ -301,6 +302,9 @@ Die App-Shell wird in wiederverwendbare Components unter `src/app/components/app
 
 - `app-sidenav` enthält die Sidebar mit Hauptnavigation.
 - `app-toolbar` enthält die obere Toolbar mit App-Aktionen.
+
+Die Sidebar zeigt zusätzlich eine zentral gepflegte Anwendungsversion, damit der eingesetzte Frontend-Stand bei Support und
+Fehleranalyse eindeutig erkennbar ist.
 
 Die Toolbar zeigt zentral registrierte Lese- und Schreibvorgänge über eine globale unbestimmte Progress-Bar an. Parallele Vorgänge
 werden gezählt, damit die Anzeige erst nach Abschluss der letzten laufenden Operation ausgeblendet wird.
