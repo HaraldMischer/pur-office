@@ -346,10 +346,14 @@ export const BenutzerVerwaltungStore = signalStore(
           updateSuccess: null,
         });
         try {
-          await benutzerService.updateBenutzerProfil(profil.uid, aktualisierung);
+          const gespeicherteAktualisierung = await benutzerService.updateBenutzerProfil(
+            profil.uid,
+            profil.userRole,
+            aktualisierung,
+          );
           const aktualisiertesProfil: IBenutzerProfilEintrag = {
             ...profil,
-            ...aktualisierung,
+            ...gespeicherteAktualisierung,
           };
           stammdatenStore.upsertBenutzerprofil(aktualisiertesProfil);
           if (istEigenesProfil) {

@@ -11,7 +11,9 @@ import {
   IBenutzerProfilDokument,
   IBenutzerProfilEintrag,
   TBenutzerZugriffe,
+  TUserRole,
 } from '../../commons/models/domain/benutzer';
+import { buildErlaubteBereiche } from '../../commons/utils/benutzer/erlaubte-bereiche';
 import { FirestoreDbService } from '../firebase/firestore-db.service';
 
 @Injectable({
@@ -66,18 +68,27 @@ export class BenutzerService {
    * Aktualisiert die direkt bearbeitbaren Felder eines Benutzerprofils.
    *
    * @param uid - UID des zu aktualisierenden Benutzerprofils.
+   * @param userRole - Unveränderliche Rolle des Benutzerprofils.
    * @param aktualisierung - Die bearbeitbaren Profilfelder.
-   * @returns Ein Promise, das nach dem bestätigten Schreibvorgang abgeschlossen ist.
+   * @returns Die tatsächlich gespeicherte Profilaktualisierung.
    * @throws Gibt Fehler des Firestore-Zugriffs an die aufrufende Stelle weiter.
    */
   async updateBenutzerProfil(
     uid: string,
+    userRole: TUserRole,
     aktualisierung: IBenutzerProfilAktualisierung,
-  ): Promise<void> {
-    await this.firestoreDbService.updateDocument(FIRESTORE_DOCUMENT_PATHS.benutzerprofil(uid), {
+  ): Promise<IBenutzerProfilAktualisierung> {
+    const gespeicherteAktualisierung: IBenutzerProfilAktualisierung = {
       ...aktualisierung,
+      erlaubteBereiche: buildErlaubteBereiche(userRole, aktualisierung.erlaubteBereiche),
+    };
+
+    await this.firestoreDbService.updateDocument(FIRESTORE_DOCUMENT_PATHS.benutzerprofil(uid), {
+      ...gespeicherteAktualisierung,
       aktualisiertAm: this.firestoreDbService.createServerTimestamp(),
     });
+
+    return gespeicherteAktualisierung;
   }
 
   // ===== Interne Helfer =======================
@@ -118,7 +129,7 @@ export class BenutzerService {
       anzeigename: profil.anzeigename,
       aktiv: profil.aktiv,
       userRole: profil.userRole,
-      erlaubteBereiche: profil.erlaubteBereiche,
+      erlaubteBereiche: buildErlaubteBereiche(profil.userRole, profil.erlaubteBereiche),
       zugriffe: this.parseZugriffe(profil.zugriffe),
       erstelltAm: profil.erstelltAm,
       aktualisiertAm: profil.aktualisiertAm,

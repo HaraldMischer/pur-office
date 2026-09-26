@@ -126,8 +126,9 @@ benutzerprofil/{uid}
 ```
 
 Das Benutzerprofil enthält mit `userRole` die Rollen `filiale`, `office`, `master` und `mitarbeiter`. Die allgemeinen
-Bereichsfreigaben richten sich nach `erlaubteBereiche`. Der administrative Bereich `systemverwaltung` erfordert zusätzlich die
-Rolle `master`.
+Bereichsfreigaben richten sich nach `erlaubteBereiche`. `dashboard` ist für jede Rolle verpflichtend und bildet die dauerhaft
+erreichbare Hauptseite für den später rollenabhängig dargestellten Hauptinhalt. `systemverwaltung` ist ausschließlich für die
+Rolle `master` verpflichtend und für alle anderen Rollen unzulässig.
 
 Ein Mitarbeiter kann für die Mitarbeiter-App optional einen eigenen Mitarbeiterzugang mit Firebase Auth und eigener `uid`
 erhalten. Der Zugang wird ausschließlich durch einen Master angelegt; eine Selbstregistrierung ist nicht vorgesehen. Benutzer mit
@@ -144,10 +145,12 @@ mit dem zugehörigen Mitarbeiterdatensatz verknüpft. Erst über diesen Mitarbei
 Filialzuordnungen entstehen fachliche Datenrechte, beispielsweise auf Dienstpläne bestimmter Filialen. `erlaubteBereiche` steuert
 dagegen ausschließlich, welche App-Funktionen über den Mitarbeiterzugang geöffnet werden dürfen.
 
-Bei der Anlage und Bearbeitung von Benutzerprofilen wird die Freigabe `systemverwaltung` in der Oberfläche aus der
-unveränderlichen Rolle abgeleitet: Für Master ist sie automatisch und fest aktiviert, für Office, Filiale und Mitarbeiterzugänge
-fest deaktiviert. Die Callable Function speichert das vom Formular übergebene Array `erlaubteBereiche` ohne eigene
-Bereichsvorgaben.
+Bei der Anlage und Bearbeitung von Benutzerprofilen zeigt die Oberfläche nur die optional wählbaren Bereiche `schichtplan`,
+`mitarbeiter` und `verwaltung`. `dashboard` und `systemverwaltung` werden nicht als Checkboxen angeboten. Die Anwendung ergänzt
+`dashboard` immer und `systemverwaltung` ausschließlich für Master. Die Callable Function setzt diese Pflichtbereiche bei der
+Anlage verbindlich durch; bei Profilaktualisierungen normalisiert der fachliche Service die Bereiche entsprechend. Die Firestore
+Rules lehnen Aktualisierungen ohne `dashboard`, Masterprofile ohne `systemverwaltung` und Nicht-Masterprofile mit
+`systemverwaltung` ab.
 
 ### Datenrechte und Firestore Rules
 
@@ -282,11 +285,15 @@ Die App-Shell wird in wiederverwendbare Components unter `src/app/components/app
 - `app-sidenav` enthält die Sidebar mit Hauptnavigation.
 - `app-toolbar` enthält die obere Toolbar mit App-Aktionen.
 
-Die Navigation wird für jede `userRole` zentral mit ihrer Darstellungsart konfiguriert. Flache Navigationen und verschachtelte
-Navigationen mit nicht navigierbaren, ausklappbaren Gruppen verwenden getrennte Darstellungskomponenten. Maßgeblich ist die Rolle
-aus dem geladenen Benutzerprofil; sichtbar werden nur die für diese Rolle vorgesehenen Links, deren Bereich zusätzlich in
-`erlaubteBereiche` freigegeben ist. Dieselbe Auswertung bestimmt die erreichbaren Start- und Ausweichrouten. Die vorhandenen
-Routenguards bleiben unabhängig davon die verbindliche Zugriffskontrolle.
+Die Navigation wird für jede `userRole` zentral mit der ausdrücklich festgelegten Darstellungsart `flat` oder `nested`
+konfiguriert. Die App leitet die Darstellungsart nicht automatisch aus der Anzahl oder Verschachtelung der Navigationseinträge ab.
+Benötigt eine weitere Rolle später ausklappbare Gruppen, wird ihre zentrale Rollenkonfiguration auf `nested` umgestellt. Flache
+Navigationen und verschachtelte Navigationen mit nicht navigierbaren, ausklappbaren Gruppen verwenden getrennte
+Darstellungskomponenten.
+
+Maßgeblich ist die Rolle aus dem geladenen Benutzerprofil. `erlaubteBereiche` filtert ausschließlich die sichtbaren Einträge und
+verändert die für die Rolle konfigurierte Darstellungsart nicht. Dieselbe Rollen- und Bereichsauswertung bestimmt die erreichbaren
+Start- und Ausweichrouten. Die vorhandenen Routenguards bleiben unabhängig davon die verbindliche Zugriffskontrolle.
 
 ### Navigationsbereiche
 

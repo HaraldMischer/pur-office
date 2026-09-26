@@ -4,8 +4,8 @@ import { ChangeDetectionStrategy, Component, OnDestroy, inject } from '@angular/
 import { MatDivider } from '@angular/material/list';
 
 import { BenutzerVerwaltungStore } from '../../../stores/domain/benutzer-verwaltung.store';
-import { BenutzerAnlage } from '../benutzer-anlage/benutzer-anlage';
-import { BenutzerVerwaltung } from '../benutzer-verwaltung/benutzer-verwaltung';
+import { BenutzerAnlage } from './benutzer-anlage/benutzer-anlage';
+import { BenutzerVerwaltung } from './benutzer-verwaltung/benutzer-verwaltung';
 
 @Component({
   selector: 'app-benutzer-page',

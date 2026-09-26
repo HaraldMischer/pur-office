@@ -71,8 +71,8 @@ export const routes: Routes = [
         path: 'datenstruktur',
         title: 'Datenstruktur anlegen',
         loadComponent: () =>
-          import('./pages/systemverwaltung-page/datenstruktur-anlage/datenstruktur-anlage').then(
-            (m) => m.DatenstrukturAnlage,
+          import('./pages/systemverwaltung-page/datenstruktur-page/datenstruktur-page').then(
+            (m) => m.DatenstrukturPage,
           ),
       },
       {

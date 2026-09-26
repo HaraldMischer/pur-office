@@ -113,6 +113,7 @@ async function seedProfile(userRole, overrides = {}) {
     await setDoc(doc(db, 'benutzerprofil/scoped'), {
       aktiv: true,
       userRole,
+      erlaubteBereiche: userRole === 'master' ? ['dashboard', 'systemverwaltung'] : ['dashboard'],
       zugriffe,
       ...overrides,
     });
@@ -127,11 +128,17 @@ async function seedProfile(userRole, overrides = {}) {
       legacyBranchPath,
       'purUser/old',
       'other/doc',
-      'benutzerprofil/other',
       'benutzerprofil/other/private/doc',
     ]) {
       await setDoc(doc(db, path), { name: path });
     }
+    await setDoc(doc(db, 'benutzerprofil/other'), {
+      anzeigename: 'Other',
+      aktiv: true,
+      userRole: 'office',
+      erlaubteBereiche: ['dashboard'],
+      zugriffe,
+    });
   });
   return testEnvironment.authenticatedContext('scoped').firestore();
 }
@@ -203,7 +210,7 @@ for (const role of ['office', 'filiale']) {
 
 test('active employee account reads only the own profile and no business data', async () => {
   const db = await seedProfile('mitarbeiter', {
-    erlaubteBereiche: ['schichtplan'],
+    erlaubteBereiche: ['dashboard', 'schichtplan'],
     zugriffe: {},
   });
 
@@ -262,7 +269,22 @@ test('active master cannot change immutable profile fields', async () => {
     setDoc(doc(db, 'benutzerprofil/other'), { email: 'neu@example.com' }, { merge: true }),
   );
   await assertFails(
-    setDoc(doc(db, 'benutzerprofil/other'), { userRole: 'office' }, { merge: true }),
+    setDoc(doc(db, 'benutzerprofil/other'), { userRole: 'filiale' }, { merge: true }),
+  );
+});
+
+test('active master must preserve mandatory profile areas', async () => {
+  const db = await seedProfile('master');
+  const eigenesProfil = doc(db, 'benutzerprofil/scoped');
+  const anderesProfil = doc(db, 'benutzerprofil/other');
+
+  await assertFails(setDoc(eigenesProfil, { erlaubteBereiche: ['dashboard'] }, { merge: true }));
+  await assertFails(setDoc(anderesProfil, { erlaubteBereiche: ['verwaltung'] }, { merge: true }));
+  await assertFails(
+    setDoc(anderesProfil, { erlaubteBereiche: ['dashboard', 'systemverwaltung'] }, { merge: true }),
+  );
+  await assertSucceeds(
+    setDoc(anderesProfil, { erlaubteBereiche: ['dashboard', 'verwaltung'] }, { merge: true }),
   );
 });
 
@@ -273,7 +295,7 @@ test('active master updates employee account areas while data scopes remain empt
       anzeigename: 'Mitarbeiter',
       aktiv: true,
       userRole: 'mitarbeiter',
-      erlaubteBereiche: ['schichtplan'],
+      erlaubteBereiche: ['dashboard', 'schichtplan'],
       zugriffe: {},
     });
   });
@@ -293,7 +315,7 @@ test('active master cannot create employee account profiles directly', async () 
       anzeigename: 'Mitarbeiter',
       aktiv: true,
       userRole: 'mitarbeiter',
-      erlaubteBereiche: ['schichtplan'],
+      erlaubteBereiche: ['dashboard', 'schichtplan'],
       zugriffe: {},
     }),
   );

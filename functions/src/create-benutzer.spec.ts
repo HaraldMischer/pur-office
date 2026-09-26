@@ -118,7 +118,7 @@ describe('handleCreateBenutzer', () => {
           auth: { uid: 'master-123' },
           data: {
             ...data,
-            erlaubteBereiche: [],
+            erlaubteBereiche: ['ungueltig'],
           },
         },
         dependencies,
@@ -128,6 +128,40 @@ describe('handleCreateBenutzer', () => {
     });
 
     expect(dependencies.createAuthBenutzer).not.toHaveBeenCalled();
+  });
+
+  it('should always add dashboard and remove system administration for non-master accounts', async () => {
+    const dependencies = createDependencies();
+
+    await handleCreateBenutzer(
+      {
+        auth: { uid: 'master-123' },
+        data: { ...data, erlaubteBereiche: ['systemverwaltung', 'verwaltung'] },
+      },
+      dependencies,
+    );
+
+    expect(dependencies.setBenutzerProfilDokument).toHaveBeenCalledWith(
+      'neu-123',
+      expect.objectContaining({ erlaubteBereiche: ['dashboard', 'verwaltung'] }),
+    );
+  });
+
+  it('should always add dashboard and system administration for master accounts', async () => {
+    const dependencies = createDependencies();
+
+    await handleCreateBenutzer(
+      {
+        auth: { uid: 'master-123' },
+        data: { ...data, userRole: 'master', erlaubteBereiche: [], zugriffe: {} },
+      },
+      dependencies,
+    );
+
+    expect(dependencies.setBenutzerProfilDokument).toHaveBeenCalledWith(
+      'neu-123',
+      expect.objectContaining({ erlaubteBereiche: ['dashboard', 'systemverwaltung'] }),
+    );
   });
 
   it('should create a user with a password chosen by the master', async () => {

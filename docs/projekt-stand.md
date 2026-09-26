@@ -20,9 +20,11 @@ Stand: 26.09.2026. Dieses Dokument beschreibt den aktuellen Umsetzungsstand im C
 - Material-Sidenav-Layout ist in der App-Shell eingebaut.
 - `app-sidenav` liegt unter `src/app/components/app-shell/app-sidenav`.
 - `app-toolbar` liegt unter `src/app/components/app-shell/app-toolbar`.
-- Für jede `userRole` ist eine eigene Navigationsstruktur einschließlich der Darstellung `flat` oder `nested` zentral
-  konfiguriert. Die Rolle aus dem geladenen Benutzerprofil und dessen `erlaubteBereiche` bestimmen gemeinsam die sichtbaren
-  Links.
+- Für jede `userRole` ist eine eigene Navigationsstruktur einschließlich der ausdrücklich festgelegten Darstellung `flat` oder
+  `nested` zentral konfiguriert. Die Darstellungsart wird nicht automatisch aus den enthaltenen Navigationseinträgen abgeleitet.
+  Master verwendet aktuell `nested`; Office, Filiale und Mitarbeiter verwenden `flat`.
+- Die Rolle aus dem geladenen Benutzerprofil wählt die Navigationskonfiguration. `erlaubteBereiche` filtert anschließend nur die
+  sichtbaren Einträge und verändert die konfigurierte Darstellungsart nicht.
 - Flache und verschachtelte Navigationen verwenden getrennte Darstellungskomponenten. Die verschachtelte Component unterstützt
   direkte Links, nicht navigierbare ausklappbare Gruppen, eingerückte Unterpunkte und das automatische Öffnen der Gruppe einer
   aktiven Unterroute. Die Master-Navigation stellt `Systemverwaltung` als solche Gruppe mit den Unterpunkten
@@ -44,7 +46,7 @@ Stand: 26.09.2026. Dieses Dokument beschreibt den aktuellen Umsetzungsstand im C
 - `/` leitet auf `/dashboard` weiter.
 - Die komponentenlose Route `/systemverwaltung` ist der geschützte Elternpfad für `/systemverwaltung/datenstruktur` und
   `/systemverwaltung/benutzer` und leitet ohne Unterpfad auf die Datenstruktur-Anlage weiter.
-- Die Datenstruktur-Anlage ist unter ihrer eigenen Unterroute erreichbar. Die `BenutzerPage` bündelt unter der zweiten Unterroute
+- Die `DatenstrukturPage` ist unter ihrer eigenen Unterroute erreichbar. Die `BenutzerPage` bündelt unter der zweiten Unterroute
   weiterhin Benutzeranlage und Benutzerverwaltung.
 - Die Route `/verwaltung` enthält die Auswahl zugeordneter Stammdaten und die Bearbeitung bestehender Firmen- und Filialdaten.
 - Die geschützte Route `/passwort` ermöglicht angemeldeten Benutzern eine Passwortänderung.
@@ -195,7 +197,7 @@ Stand: 26.09.2026. Dieses Dokument beschreibt den aktuellen Umsetzungsstand im C
 
 ## Bestehende Benutzer verwalten
 
-- Unter `systemverwaltung-page/benutzer-verwaltung` ist die Bearbeitung vorhandener Benutzerprofile umgesetzt.
+- Unter `systemverwaltung-page/benutzer-page/benutzer-verwaltung` ist die Bearbeitung vorhandener Benutzerprofile umgesetzt.
 - Das Benutzer-Select verwendet die UID als Wert und zeigt Anzeigename sowie Rollenbezeichnung. Der Bearbeiten-Button wird erst
   nach einer gültigen Auswahl aktiviert.
 - Es werden keine produktiven Mockprofile verwendet. Die für Master zentral geladenen Benutzerprofile werden direkt aus dem
@@ -206,10 +208,10 @@ Stand: 26.09.2026. Dieses Dokument beschreibt den aktuellen Umsetzungsstand im C
 - Der Bearbeitungsdialog verwendet die vorhandene Datenzugriffsauswahl mit rollenabhängiger Validierung. Erfolgreiche
   Aktualisierungen setzen `aktualisiertAm` serverseitig und werden ohne erneutes Laden in den Stammdaten- und Verwaltungsbestand
   übernommen.
-- Die Bereichsfreigabe `systemverwaltung` ist weder bei der Anlage noch im Bearbeitungsdialog frei wählbar: Bei Auswahl der
-  Masterrolle wird sie automatisch aktiviert und gegen Abwahl gesperrt; bei Office, Filiale und Mitarbeiter bleibt sie
-  deaktiviert. Die Callable Function verändert das übergebene Array `erlaubteBereiche` nicht. Die vorhandenen Rollen-Guards
-  bleiben die funktionale Zugriffssicherung.
+- In Benutzeranlage und Bearbeitungsdialog werden nur die optionalen Bereiche `schichtplan`, `mitarbeiter` und `verwaltung` als
+  Checkboxen angezeigt. `dashboard` wird für jede Rolle verbindlich ergänzt; `systemverwaltung` wird ausschließlich für Master
+  ergänzt und bei allen anderen Rollen entfernt. Ein gemeinsamer Frontend-Helfer normalisiert die Bereiche beim Laden sowie vor
+  einer Profilaktualisierung. Die vorhandenen Rollen-Guards bleiben die funktionale Zugriffssicherung.
 - Das eigene Masterprofil kann nicht deaktiviert werden. Die Benutzerrolle ist für sämtliche Profile unveränderlich. Dieser
   Selbstschutz sowie die weiteren unveränderlichen Profilfelder sind zusätzlich durch Firestore Rules abgesichert.
 - Änderungen am aktuell angemeldeten Masterprofil werden unmittelbar in den lokalen Benutzer-Store übernommen. Andere bereits
@@ -301,6 +303,9 @@ Stand: 26.09.2026. Dieses Dokument beschreibt den aktuellen Umsetzungsstand im C
   AngularFire-Aufrufe korrekt im Angular-Injection-Kontext ausgeführt werden.
 - Die Function prüft Anmeldung, aktives Profil und `userRole: master` serverseitig und legt per Admin SDK Auth-Benutzer und
   `benutzerprofil/{uid}` an. Die Sitzung des Masters bleibt erhalten.
+- Die Function normalisiert `erlaubteBereiche` unabhängig vom Client: `dashboard` wird immer gespeichert,
+  `systemverwaltung` ausschließlich für Master. Die Firestore Rules erzwingen dieselbe Pflichtbereichsregel bei Änderungen
+  bestehender Profile. Function und Rules müssen für die produktive Wirksamkeit noch deployed werden.
 - Das Backend verlangt für jeden Zugriff eine Unternehmer-ID und prüft vor der Auth-Anlage die Existenz von Unternehmer, Firma und
   Filialen unter ihren vollständigen Pfaden. Fehlende Dokumente, ungültige IDs oder fehlgeschlagene Prüfabfragen brechen die
   Anlage ab. Doppelte Firmenzugriffe werden nur innerhalb desselben Unternehmers zusammengeführt.
@@ -390,16 +395,16 @@ Stand: 26.09.2026. Dieses Dokument beschreibt den aktuellen Umsetzungsstand im C
 
 Am 26.09.2026 für den aktuellen Frontend-Stand erfolgreich geprüft:
 
-- 329 Frontend-Tests einschließlich rollenbezogener flacher und verschachtelter Navigation, Bereichsfreigaben und konsistenter
+- 335 Frontend-Tests einschließlich rollenbezogener flacher und verschachtelter Navigation, Bereichsfreigaben und konsistenter
   Guard-Ausweichnavigation, vereinfachter Anmeldung, Benutzeranlage und -darstellung, der Rolle `mitarbeiter`,
   PWA-Updatebehandlung, Netzwerkstatus, Store-Snapshots, Datenstruktur-Anlage, zentraler Stammdateninitialisierung sowie Firmen-,
   Filial- und Benutzerprofil-Bearbeitung.
 - Die rollenbezogene Navigation wurde zusätzlich manuell mit Tastatur, sichtbarem Fokus und zugänglichen Bezeichnungen geprüft.
 - Datenstruktur-Anlage und Benutzerverwaltung wurden unter ihren getrennten Systemverwaltungsrouten auf Desktop und einem
   kleinen Viewport erfolgreich manuell geprüft.
-- 47 Functions-Tests einschließlich technischer Anmeldedaten, doppelter Anmeldenamen, Mitarbeiterzugangsanlage, Rollenprüfung,
+- 52 Functions-Tests einschließlich technischer Anmeldedaten, doppelter Anmeldenamen, Mitarbeiterzugangsanlage, Rollenprüfung,
   Hierarchievalidierung und sicherer Kontoaktivierung.
-- 28 Firestore-Emulator-Tests für die Begrenzung der Rolle `mitarbeiter`, bestehende Rollen, neue Hierarchie, Untercollections,
+- 29 Firestore-Emulator-Tests für die Begrenzung der Rolle `mitarbeiter`, bestehende Rollen, neue Hierarchie, Untercollections,
   eingeschränkte Queries, Office-Aktualisierungen, Profil-Selbstschutz, unveränderliche Profilfelder sowie die Trennung vom
   Legacy-Zugriff auf `purCustomers`.
 - Master-, Office-, Filial- und Mitarbeiter-Produktionsbuild sind als vollständige PWA-Ausgaben konfiguriert. Sie enthalten das

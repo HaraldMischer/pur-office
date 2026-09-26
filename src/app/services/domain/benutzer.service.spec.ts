@@ -68,7 +68,10 @@ describe('BenutzerService', () => {
     });
     const service = TestBed.inject(BenutzerService);
 
-    await expect(service.getBenutzerProfil('alt')).resolves.toMatchObject({ zugriffe: {} });
+    await expect(service.getBenutzerProfil('alt')).resolves.toMatchObject({
+      erlaubteBereiche: ['dashboard', 'systemverwaltung'],
+      zugriffe: {},
+    });
   });
 
   it('should discard malformed and empty access entries', async () => {
@@ -79,13 +82,14 @@ describe('BenutzerService', () => {
         anzeigename: 'Test',
         aktiv: true,
         userRole: 'office',
-        erlaubteBereiche: ['dashboard'],
+        erlaubteBereiche: ['systemverwaltung'],
         zugriffe: { u: { leer: [], falsch: 'b', gueltig: ['b'] } },
       },
     });
     const service = TestBed.inject(BenutzerService);
 
     await expect(service.getBenutzerProfil('test')).resolves.toMatchObject({
+      erlaubteBereiche: ['dashboard'],
       zugriffe: { u: { gueltig: ['b'] } },
     });
   });
@@ -149,15 +153,17 @@ describe('BenutzerService', () => {
     const aktualisierung: IBenutzerProfilAktualisierung = {
       anzeigename: 'Office Neu',
       aktiv: true,
-      erlaubteBereiche: ['dashboard', 'verwaltung'],
+      erlaubteBereiche: ['systemverwaltung', 'verwaltung'],
       zugriffe: { u: { f: ['b'] } },
     };
 
-    await service.updateBenutzerProfil('office-1', aktualisierung);
+    const ergebnis = await service.updateBenutzerProfil('office-1', 'office', aktualisierung);
 
     expect(firestoreDbServiceMock.updateDocument).toHaveBeenCalledWith('benutzerprofil/office-1', {
       ...aktualisierung,
+      erlaubteBereiche: ['dashboard', 'verwaltung'],
       aktualisiertAm: 'server-timestamp',
     });
+    expect(ergebnis.erlaubteBereiche).toEqual(['dashboard', 'verwaltung']);
   });
 });

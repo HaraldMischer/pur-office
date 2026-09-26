@@ -2,7 +2,11 @@
 
 import { TestBed } from '@angular/core/testing';
 
-import { IBenutzerAnlage } from '../../commons/models/domain/benutzer';
+import {
+  IBenutzerAnlage,
+  IBenutzerProfilAktualisierung,
+  TUserRole,
+} from '../../commons/models/domain/benutzer';
 import { DatenzugriffService } from '../../services/domain/datenzugriff.service';
 import { BenutzerService } from '../../services/domain/benutzer.service';
 import { AuthService } from '../../services/firebase/auth.service';
@@ -34,7 +38,13 @@ describe('BenutzerVerwaltungStore', () => {
       }),
     };
     benutzerServiceMock = {
-      updateBenutzerProfil: vi.fn().mockResolvedValue(undefined),
+      updateBenutzerProfil: vi
+        .fn()
+        .mockImplementation(
+          (_uid: string, _userRole: TUserRole, aktualisierung: IBenutzerProfilAktualisierung) => {
+            return Promise.resolve(aktualisierung);
+          },
+        ),
     };
     authServiceMock = {
       getAktuelleBenutzerId: vi.fn().mockReturnValue('master-1'),
@@ -140,6 +150,7 @@ describe('BenutzerVerwaltungStore', () => {
 
     expect(benutzerServiceMock.updateBenutzerProfil).toHaveBeenCalledWith(
       'office-1',
+      'office',
       expect.objectContaining({ anzeigename: 'Office Neu' }),
     );
     expect(result.anzeigename).toBe('Office Neu');

@@ -43,6 +43,21 @@ service cloud.firestore {
         );
     }
 
+    function hatGueltigePflichtbereiche() {
+      return request.resource.data.erlaubteBereiche is list
+        && 'dashboard' in request.resource.data.erlaubteBereiche
+        && (
+          (
+            request.resource.data.userRole == 'master'
+            && 'systemverwaltung' in request.resource.data.erlaubteBereiche
+          )
+          || (
+            request.resource.data.userRole != 'master'
+            && !('systemverwaltung' in request.resource.data.erlaubteBereiche)
+          )
+        );
+    }
+
     function istEigenesProfil(uid) {
       return isAuthenticated() && request.auth.uid == uid;
     }
@@ -57,6 +72,7 @@ service cloud.firestore {
           'aktualisiertAm'
         ])
         && isValidMitarbeiterProfilWrite()
+        && hatGueltigePflichtbereiche()
         && (request.auth.uid != uid || request.resource.data.aktiv == true);
     }
 

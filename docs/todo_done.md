@@ -217,7 +217,7 @@ Schritt ausgewählt.
 - src/app/stores/domain/unternehmer.store.ts
 - src/app/stores/domain/firma.store.ts
 - src/app/stores/domain/filiale.store.ts
-- src/app/pages/systemverwaltung-page/datenstruktur-anlage/
+- src/app/pages/systemverwaltung-page/datenstruktur-page/
 - firestore.rules
 - rules-tests/
 - docs/projekt-stand.md
@@ -298,7 +298,7 @@ bleibt ausgeschlossen und die Sitzung des Masters bleibt erhalten.
 - src/app/commons/models/domain/benutzer.ts
 - src/app/commons/models/domain/datenzugriff.ts
 - src/app/components/datenzugriff-auswahl/
-- src/app/pages/systemverwaltung-page/benutzer-anlage/
+- src/app/pages/systemverwaltung-page/benutzer-page/benutzer-anlage/
 - src/app/services/domain/benutzer.service.ts
 - src/app/stores/app/stammdaten.store.ts
 - src/app/services/domain/datenzugriff.service.ts
@@ -390,8 +390,8 @@ verändert.
 - src/app/pages/systemverwaltung-page/systemverwaltung-page.ts
 - src/app/pages/systemverwaltung-page/systemverwaltung-page.html
 - src/app/pages/systemverwaltung-page/systemverwaltung-page.spec.ts
-- src/app/pages/systemverwaltung-page/benutzer-verwaltung/
-- src/app/pages/systemverwaltung-page/benutzer-verwaltung/benutzer-bearbeiten-dialog/
+- src/app/pages/systemverwaltung-page/benutzer-page/benutzer-verwaltung/
+- src/app/pages/systemverwaltung-page/benutzer-page/benutzer-verwaltung/benutzer-bearbeiten-dialog/
 - firestore.rules
 - rules-tests/
 - docs/projekt-stand.md
@@ -410,7 +410,7 @@ verändert.
 
 #### Schritt 3: Benutzerprofil auswählen
 
-- [x] Eigenständigen UI-Dummy unter `systemverwaltung-page/benutzer-verwaltung` anlegen.
+- [x] Eigenständigen UI-Dummy unter `systemverwaltung-page/benutzer-page/benutzer-verwaltung` anlegen.
 - [x] Leeres Benutzer-Select und deaktivierten Button `Benutzer bearbeiten` ohne produktive Mockdaten vorbereiten.
 - [x] Benutzer über ein `mat-select` auswählen und die `uid` als Select-Wert verwenden.
 - [x] Anzeigename und E-Mail-Adresse als verständliche Bezeichnung im Benutzer-Select anzeigen.
@@ -821,8 +821,8 @@ Mitarbeiterdaten oder Funktionen und keine Rechte von Filiale, Office oder Maste
 - src/app/commons/models/app/app-bereich.ts
 - src/app/commons/models/domain/benutzer.ts
 - src/app/guards/
-- src/app/pages/systemverwaltung-page/benutzer-anlage/
-- src/app/pages/systemverwaltung-page/benutzer-verwaltung/
+- src/app/pages/systemverwaltung-page/benutzer-page/benutzer-anlage/
+- src/app/pages/systemverwaltung-page/benutzer-page/benutzer-verwaltung/
 - src/app/services/domain/benutzer.service.ts
 - src/app/services/firebase/auth.service.ts
 - src/app/services/firebase/benutzer-verwaltung.service.ts
@@ -951,8 +951,8 @@ nach dem neuen Modell angelegt.
 - src/app/commons/utils/errors/firebase-error-message.spec.ts
 - src/app/components/app-shell/app-sidenav/
 - src/app/pages/auth/login-page/
-- src/app/pages/systemverwaltung-page/benutzer-anlage/
-- src/app/pages/systemverwaltung-page/benutzer-verwaltung/
+- src/app/pages/systemverwaltung-page/benutzer-page/benutzer-anlage/
+- src/app/pages/systemverwaltung-page/benutzer-page/benutzer-verwaltung/
 - src/app/pages/systemverwaltung-page/systemverwaltung-page.spec.ts
 - src/app/services/domain/benutzer.service.ts
 - src/app/services/firebase/auth.service.ts
@@ -1154,8 +1154,8 @@ Bereichsschlüssel `systemverwaltung` und bleiben ausschließlich für aktive Ma
 - src/app/commons/constants/navigation.constants.ts
 - src/app/guards/guard-navigation.ts
 - src/app/guards/guard-navigation.spec.ts
-- src/app/pages/systemverwaltung-page/datenstruktur-anlage/datenstruktur-anlage.ts
-- src/app/pages/systemverwaltung-page/datenstruktur-anlage/datenstruktur-anlage.spec.ts
+- src/app/pages/systemverwaltung-page/datenstruktur-page/datenstruktur-page.ts
+- src/app/pages/systemverwaltung-page/datenstruktur-page/datenstruktur-page.spec.ts
 
 Neu hinzuzufügen:
 

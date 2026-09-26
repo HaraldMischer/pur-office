@@ -16,7 +16,7 @@ import { BenutzerVerwaltungStore } from '../../../stores/domain/benutzer-verwalt
 import { FirmaStore } from '../../../stores/domain/firma.store';
 import { FilialeStore } from '../../../stores/domain/filiale.store';
 import { UnternehmerStore } from '../../../stores/domain/unternehmer.store';
-import { BenutzerAnlage } from '../benutzer-anlage/benutzer-anlage';
+import { BenutzerAnlage } from './benutzer-anlage/benutzer-anlage';
 import { BenutzerPage } from './benutzer-page';
 
 describe('BenutzerPage', () => {
@@ -120,10 +120,9 @@ describe('BenutzerPage', () => {
     ).toEqual(['Benutzer anlegen', 'Benutzer verwalten']);
     expect(compiled.querySelectorAll('mat-divider')).toHaveLength(1);
     expect(compiled.querySelector('mat-select')).toBeTruthy();
-    expect(compiled.querySelectorAll('mat-checkbox')).toHaveLength(5);
+    expect(compiled.querySelectorAll('mat-checkbox')).toHaveLength(3);
     const bereichCheckboxen = compiled.querySelectorAll<HTMLInputElement>('input[type="checkbox"]');
-    expect(bereichCheckboxen).toHaveLength(5);
-    expect(bereichCheckboxen[4].disabled).toBe(true);
+    expect(bereichCheckboxen).toHaveLength(3);
   });
 
   it('should create normalized input data from a valid form', () => {
@@ -135,11 +134,9 @@ describe('BenutzerPage', () => {
       userRole: 'master',
       passwort: 'SicheresPasswort123!',
       erlaubteBereiche: {
-        dashboard: true,
         schichtplan: true,
         mitarbeiter: false,
         verwaltung: true,
-        systemverwaltung: false,
       },
     });
     expect(component.getBenutzerAnlage()).toEqual({
@@ -198,14 +195,12 @@ describe('BenutzerPage', () => {
       userRole: 'mitarbeiter',
       passwort: 'SicheresPasswort123!',
       erlaubteBereiche: {
-        dashboard: true,
         schichtplan: true,
       },
     });
     fixture.detectChanges();
 
     expect(component.rollen).toContainEqual({ value: 'mitarbeiter', label: 'Mitarbeiter' });
-    expect(component.benutzerForm.controls.erlaubteBereiche.controls.dashboard.enabled).toBe(true);
     expect(component.benutzerForm.controls.erlaubteBereiche.controls.schichtplan.enabled).toBe(
       true,
     );
@@ -224,20 +219,16 @@ describe('BenutzerPage', () => {
     const component = TestBed.createComponent(BenutzerAnlage).componentInstance;
 
     component.benutzerForm.controls.erlaubteBereiche.patchValue({
-      dashboard: false,
       schichtplan: true,
     });
     component.benutzerForm.controls.userRole.setValue('mitarbeiter');
     component.benutzerForm.controls.userRole.setValue('office');
 
     expect(component.benutzerForm.controls.erlaubteBereiche.getRawValue()).toEqual({
-      dashboard: false,
       schichtplan: true,
       mitarbeiter: false,
       verwaltung: false,
-      systemverwaltung: false,
     });
-    expect(component.benutzerForm.controls.erlaubteBereiche.controls.dashboard.enabled).toBe(true);
     expect(component.benutzerForm.controls.erlaubteBereiche.controls.schichtplan.enabled).toBe(
       true,
     );
@@ -245,27 +236,20 @@ describe('BenutzerPage', () => {
       true,
     );
     expect(component.benutzerForm.controls.erlaubteBereiche.controls.verwaltung.enabled).toBe(true);
-    expect(
-      component.benutzerForm.controls.erlaubteBereiche.controls.systemverwaltung.disabled,
-    ).toBe(true);
   });
 
-  it('should always lock system administration and derive its value from the role', () => {
+  it('should derive mandatory areas without exposing them as form controls', () => {
     const component = TestBed.createComponent(BenutzerAnlage).componentInstance;
-    const systemverwaltung =
-      component.benutzerForm.controls.erlaubteBereiche.controls.systemverwaltung;
+    component.benutzerForm.patchValue({
+      anzeigename: 'Test Master',
+      userRole: 'master',
+      passwort: 'SicheresPasswort123!',
+    });
 
-    expect(systemverwaltung.getRawValue()).toBe(false);
-    expect(systemverwaltung.disabled).toBe(true);
-
-    component.benutzerForm.controls.userRole.setValue('master');
-
-    expect(systemverwaltung.getRawValue()).toBe(true);
-    expect(systemverwaltung.disabled).toBe(true);
-    systemverwaltung.setValue(false);
-    component.benutzerForm.controls.userRole.setValue('office');
-    expect(systemverwaltung.getRawValue()).toBe(false);
-    expect(systemverwaltung.disabled).toBe(true);
+    expect(component.getBenutzerAnlage()?.erlaubteBereiche).toEqual([
+      'dashboard',
+      'systemverwaltung',
+    ]);
   });
 
   it.each(['', 'short'])(
@@ -363,52 +347,22 @@ describe('BenutzerPage', () => {
     expect(TestBed.inject(BenutzerVerwaltungService).createBenutzer).not.toHaveBeenCalled();
   });
 
-  it('should show the area error immediately when the last checkbox is unchecked without blur', async () => {
-    const fixture = TestBed.createComponent(BenutzerAnlage);
-    fixture.detectChanges();
-    await fixture.whenStable();
-    fixture.detectChanges();
-    const gruppe = fixture.nativeElement.querySelector(
-      '[formGroupName="erlaubteBereiche"]',
-    ) as HTMLElement;
-    const dashboard = gruppe.querySelector('input[type="checkbox"]') as HTMLInputElement;
-    const bereiche = fixture.componentInstance.benutzerForm.controls.erlaubteBereiche;
-    expect(dashboard.checked).toBe(true);
-    expect(gruppe.querySelector('[role="alert"]')).toBeNull();
-
-    dashboard.focus();
-    dashboard.click();
-    fixture.detectChanges();
-    expect(bereiche.touched).toBe(false);
-    expect(bereiche.dirty).toBe(true);
-    expect(gruppe.querySelector('[role="alert"]')?.textContent).toContain(
-      'Mindestens ein Bereich ist erforderlich.',
-    );
-
-    dashboard.click();
-    fixture.detectChanges();
-    expect(gruppe.querySelector('[role="alert"]')).toBeNull();
-  });
-
-  it('should require at least one allowed area', () => {
+  it('should allow all optional areas to remain unselected', async () => {
     const fixture = TestBed.createComponent(BenutzerAnlage);
     const component = fixture.componentInstance;
     component.benutzerForm.patchValue({
       namensbestandteil: 'testbenutzer',
       anzeigename: 'Test Benutzer',
+      userRole: 'mitarbeiter',
+      passwort: 'SicheresPasswort123!',
       erlaubteBereiche: {
-        dashboard: false,
         schichtplan: false,
         mitarbeiter: false,
         verwaltung: false,
-        systemverwaltung: false,
       },
     });
 
-    expect(component.getBenutzerAnlage()).toBeNull();
-    expect(component.benutzerForm.controls.erlaubteBereiche.hasError('mindestensEinBereich')).toBe(
-      true,
-    );
+    expect(component.getBenutzerAnlage()?.erlaubteBereiche).toEqual(['dashboard']);
   });
   it('should submit the selected hierarchy only after the selection is complete', async () => {
     const daten = TestBed.inject(DatenzugriffService);

@@ -16,6 +16,7 @@ const APP_BEREICHE = [
   'verwaltung',
   'systemverwaltung',
 ] as const;
+const WAEHLBARE_APP_BEREICHE = ['schichtplan', 'mitarbeiter', 'verwaltung'] as const;
 
 type TUserRole = (typeof USER_ROLES)[number];
 type TAppBereich = (typeof APP_BEREICHE)[number];
@@ -168,10 +169,9 @@ function parseCreateBenutzerData(value: unknown): IParsedCreateBenutzerData {
 
   if (
     !isStringArray(erlaubteBereiche) ||
-    erlaubteBereiche.length === 0 ||
     erlaubteBereiche.some((bereich) => !APP_BEREICHE.includes(bereich as TAppBereich))
   ) {
-    throw new HttpsError('invalid-argument', 'Mindestens ein gültiger Bereich ist erforderlich.');
+    throw new HttpsError('invalid-argument', 'Die erlaubten Bereiche sind ungültig.');
   }
 
   if (!passwort || passwort.length < 8) {
@@ -181,12 +181,21 @@ function parseCreateBenutzerData(value: unknown): IParsedCreateBenutzerData {
     );
   }
 
+  const ausgewaehlteBereiche = new Set(erlaubteBereiche);
+  const normalisierteBereiche: TAppBereich[] = [
+    'dashboard',
+    ...WAEHLBARE_APP_BEREICHE.filter((bereich) => ausgewaehlteBereiche.has(bereich)),
+  ];
+  if (userRole === 'master') {
+    normalisierteBereiche.push('systemverwaltung');
+  }
+
   return {
     anmeldename,
     email,
     anzeigename,
     userRole: userRole as TUserRole,
-    erlaubteBereiche: [...new Set(erlaubteBereiche)] as TAppBereich[],
+    erlaubteBereiche: normalisierteBereiche,
     zugriffe: parseZugriffe(value['zugriffe']),
     passwort,
   };

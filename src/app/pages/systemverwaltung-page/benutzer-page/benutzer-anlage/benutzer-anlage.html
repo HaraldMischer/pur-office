@@ -1,0 +1,167 @@
+<!-- pur-office/src/app/pages/systemverwaltung-page/benutzer-page/benutzer-anlage/benutzer-anlage.html -->
+
+<section class="pur-page-section">
+  <header class="pur-page-section__header">
+    <h2 class="pur-page-section__title">Benutzer anlegen</h2>
+  </header>
+
+  <form
+    class="pur-form pur-form--grid"
+    [formGroup]="benutzerForm"
+    aria-label="Benutzerzugang vorbereiten"
+    (ngSubmit)="onSubmit()"
+  >
+    <!-- Zugangsdaten -->
+    <div class="pur-form__group zugangsdaten">
+      <h2 class="pur-form__group-titel">Zugangsdaten</h2>
+
+      <div class="pur-form pur-form--grid">
+        <!-- Anzeigename -->
+        <mat-form-field appearance="outline" class="pur-form__field">
+          <mat-label>Anzeigename</mat-label>
+          <input formControlName="anzeigename" matInput type="text" autocomplete="off" />
+
+          @if (benutzerForm.controls.anzeigename.hasError('required')) {
+            <mat-error>Anzeigename ist erforderlich.</mat-error>
+          }
+        </mat-form-field>
+
+        <!-- Benutzerrolle -->
+        <mat-form-field appearance="outline" class="pur-form__field">
+          <mat-label>Benutzerrolle</mat-label>
+          <mat-select formControlName="userRole">
+            @for (rolle of rollen; track rolle.value) {
+              <mat-option [value]="rolle.value">{{ rolle.label }}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+
+        <!-- Anmeldename -->
+        <mat-form-field appearance="outline" class="pur-form__field">
+          <mat-label>Anmeldename</mat-label>
+          <input matInput type="text" [value]="getAnmeldenameVorschau()" readonly />
+        </mat-form-field>
+
+        <!-- Passwort -->
+        <mat-form-field appearance="outline" class="pur-form__field">
+          <mat-label>Passwort min. 8 Zeichen</mat-label>
+          <input
+            formControlName="passwort"
+            matInput
+            [type]="passwortSichtbar() ? 'text' : 'password'"
+            autocomplete="new-password"
+          />
+          <button
+            matIconButton
+            matSuffix
+            type="button"
+            [attr.aria-label]="passwortSichtbar() ? 'Passwort ausblenden' : 'Passwort anzeigen'"
+            [matTooltip]="passwortSichtbar() ? 'Passwort ausblenden' : 'Passwort anzeigen'"
+            (click)="togglePasswortSichtbarkeit()"
+          >
+            <mat-icon aria-hidden="true">{{
+              passwortSichtbar() ? 'visibility_off' : 'visibility'
+            }}</mat-icon>
+          </button>
+          @if (benutzerForm.controls.passwort.hasError('required')) {
+            <mat-error>Ein Anfangspasswort ist erforderlich.</mat-error>
+          }
+        </mat-form-field>
+      </div>
+    </div>
+
+    <!-- Erlaubte Bereiche -->
+    <div class="pur-form__group" formGroupName="erlaubteBereiche">
+      <h2 class="pur-form__group-titel">Erlaubte Bereiche</h2>
+
+      <div class="pur-form__row">
+        @for (bereich of bereiche; track bereich.value) {
+          <mat-checkbox [formControlName]="bereich.value">{{ bereich.label }}</mat-checkbox>
+        }
+      </div>
+    </div>
+
+    @if (
+      benutzerForm.controls.userRole.value !== 'master' &&
+      benutzerForm.controls.userRole.value !== 'mitarbeiter'
+    ) {
+      <!-- Datenzugriff -->
+      <div class="pur-form__group">
+        <h2 class="pur-form__group-titel">Datenzugriff</h2>
+        @if (benutzerForm.controls.userRole.value === 'filiale') {
+          <app-datenzugriff-auswahl
+            [unternehmer]="verwaltungStore.unternehmer()"
+            [firmenLaden]="verwaltungStore.firmenDownload()"
+            [filialenLaden]="verwaltungStore.filialenDownload()"
+            [unternehmerIds]="verwaltungStore.unternehmerIds()"
+            (unternehmerIdsChange)="verwaltungStore.selectUnternehmer($event)"
+            [firmaIds]="verwaltungStore.firmaIds()"
+            (firmaIdsChange)="verwaltungStore.selectFirmen($event)"
+            [filialen]="verwaltungStore.filialen()"
+            (filialenChange)="verwaltungStore.selectFilialen($event)"
+            [unternehmerMehrfach]="false"
+            [firmenMehrfach]="false"
+            [filialenMehrfach]="false"
+          />
+        } @else {
+          <app-datenzugriff-auswahl
+            [unternehmer]="verwaltungStore.unternehmer()"
+            [firmenLaden]="verwaltungStore.firmenDownload()"
+            [filialenLaden]="verwaltungStore.filialenDownload()"
+            [unternehmerIds]="verwaltungStore.unternehmerIds()"
+            (unternehmerIdsChange)="verwaltungStore.selectUnternehmer($event)"
+            [firmaIds]="verwaltungStore.firmaIds()"
+            (firmaIdsChange)="verwaltungStore.selectFirmen($event)"
+            [filialen]="verwaltungStore.filialen()"
+            (filialenChange)="verwaltungStore.selectFilialen($event)"
+            [unternehmerMehrfach]="false"
+            [firmenMehrfach]="true"
+            [filialenMehrfach]="true"
+          />
+        }
+        @if (verwaltungStore.unternehmerIds().length > 0 && !datenAuswahlGueltig()) {
+          <p>
+            Wähle für jeden Unternehmer mindestens eine Firma und für jede Firma mindestens eine
+            Filiale.
+          </p>
+        }
+
+        <!-- Ladestatus -->
+        @for (status of verwaltungStore.datenStatus(); track status.key) {
+          @if (status.error) {
+            <p class="pur-form__error" role="alert">{{ status.name }}: {{ status.error }}</p>
+            <button matButton type="button" (click)="verwaltungStore.loadAuswahl()">
+              Erneut laden
+            </button>
+          } @else if (status.isLoaded && status.daten.length === 0) {
+            <p role="status">{{ status.name }}: Keine Einträge vorhanden.</p>
+          }
+        }
+      </div>
+    }
+
+    <!-- Fehlermeldung -->
+    @if (verwaltungStore.error(); as error) {
+      <p class="pur-form__error" role="alert">{{ error }}</p>
+    }
+
+    <!-- Ergebnis -->
+    @if (verwaltungStore.createdBenutzer(); as benutzer) {
+      <p class="pur-form__success" role="status">
+        Benutzer {{ benutzer.anmeldename }} wurde angelegt.
+      </p>
+    }
+
+    <!-- Benutzer anlegen -->
+    <div class="pur-form__row pur-form__row--actions-end">
+      <button
+        matButton="filled"
+        type="submit"
+        [disabled]="benutzerForm.invalid || !datenAuswahlGueltig() || verwaltungStore.inProgress()"
+      >
+        <mat-icon aria-hidden="true">person_add</mat-icon>
+        {{ verwaltungStore.inProgress() ? 'Benutzer wird angelegt' : 'Benutzer anlegen' }}
+      </button>
+    </div>
+  </form>
+</section>
