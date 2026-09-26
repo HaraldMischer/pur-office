@@ -22,7 +22,9 @@ describe('AppToolbar', () => {
   let storeSnapshotServiceMock: {
     logStoreSnapshots: ReturnType<typeof vi.fn>;
   };
+  const isActive = signal(false);
   const isLoading = signal(false);
+  const isWriting = signal(false);
   const isOnline = signal(true);
   const wiederOnline = signal(false);
   const updateVerfuegbar = signal(false);
@@ -41,7 +43,9 @@ describe('AppToolbar', () => {
     storeSnapshotServiceMock = {
       logStoreSnapshots: vi.fn(),
     };
+    isActive.set(false);
     isLoading.set(false);
+    isWriting.set(false);
     isOnline.set(true);
     wiederOnline.set(false);
     updateVerfuegbar.set(false);
@@ -54,7 +58,7 @@ describe('AppToolbar', () => {
       providers: [
         provideRouter([]),
         { provide: BenutzerStore, useValue: benutzerStoreMock },
-        { provide: LoadingService, useValue: { isLoading } },
+        { provide: LoadingService, useValue: { isActive, isLoading, isWriting } },
         { provide: NetzwerkStatusService, useValue: { isOnline, wiederOnline } },
         {
           provide: PwaUpdateService,
@@ -88,12 +92,36 @@ describe('AppToolbar', () => {
 
     expect(fixture.nativeElement.querySelector('mat-progress-bar')).toBeNull();
 
+    isActive.set(true);
     isLoading.set(true);
     fixture.detectChanges();
 
     const progressBar = fixture.nativeElement.querySelector('mat-progress-bar');
     expect(progressBar).not.toBeNull();
     expect(progressBar?.getAttribute('aria-label')).toBe('Daten werden geladen');
+  });
+
+  it('should show the global progress bar while data is being written', () => {
+    isActive.set(true);
+    isWriting.set(true);
+    const fixture = TestBed.createComponent(AppToolbar);
+    fixture.detectChanges();
+
+    const progressBar = fixture.nativeElement.querySelector('mat-progress-bar');
+    expect(progressBar).not.toBeNull();
+    expect(progressBar?.getAttribute('aria-label')).toBe('Daten werden gespeichert');
+  });
+
+  it('should describe overlapping load and write operations', () => {
+    isActive.set(true);
+    isLoading.set(true);
+    isWriting.set(true);
+    const fixture = TestBed.createComponent(AppToolbar);
+    fixture.detectChanges();
+
+    expect(
+      fixture.nativeElement.querySelector('mat-progress-bar')?.getAttribute('aria-label'),
+    ).toBe('Daten werden verarbeitet');
   });
 
   it('should render and toggle the theme mode', () => {

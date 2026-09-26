@@ -70,6 +70,9 @@
   `$event.preventDefault()`.
 - Liegt der Submit-Button außerhalb des Formulars, wird er mit `type="submit"` und `form="<formular-id>"` eindeutig dem Formular
   zugeordnet.
+- Während eines laufenden Schreibvorgangs (`inProgress`) wird das gesamte betroffene Formular einschließlich eigenständig
+  verwalteter Unterkomponenten und weiterer datenverändernder Aktionen deaktiviert. Der Submit-Handler verhindert zusätzlich
+  wiederholte Aufrufe. Nach Erfolg oder Fehler wird das Formular wieder aktiviert.
 
 ## Naming
 

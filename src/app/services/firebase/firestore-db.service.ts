@@ -107,12 +107,14 @@ export class FirestoreDbService {
   async createDocument<T extends DocumentData>(collectionPath: string, daten: T): Promise<string> {
     this.netzwerkStatusService.assertOnline();
 
-    const dokumentRef = await this.runInContext(() => {
-      const collectionRef = this.collection(this.firestore, collectionPath);
-      return this.addDoc(collectionRef, daten);
-    });
+    return this.loadingService.trackWrite(async () => {
+      const dokumentRef = await this.runInContext(() => {
+        const collectionRef = this.collection(this.firestore, collectionPath);
+        return this.addDoc(collectionRef, daten);
+      });
 
-    return dokumentRef.id;
+      return dokumentRef.id;
+    });
   }
 
   /**
@@ -126,9 +128,11 @@ export class FirestoreDbService {
   async updateDocument<T extends DocumentData>(documentPath: string, daten: T): Promise<void> {
     this.netzwerkStatusService.assertOnline();
 
-    await this.runInContext(() => {
-      const documentRef = this.doc(this.firestore, documentPath);
-      return this.setDoc(documentRef, daten, { merge: true });
+    await this.loadingService.trackWrite(async () => {
+      await this.runInContext(() => {
+        const documentRef = this.doc(this.firestore, documentPath);
+        return this.setDoc(documentRef, daten, { merge: true });
+      });
     });
   }
 

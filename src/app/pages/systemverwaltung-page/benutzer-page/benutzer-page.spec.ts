@@ -434,12 +434,24 @@ describe('BenutzerPage', () => {
     );
     const pending = component.onSubmit();
     fixture.detectChanges();
+    const form = fixture.nativeElement.querySelector('form') as HTMLFormElement;
+    const anzeigename = fixture.nativeElement.querySelector(
+      'input[formControlName="anzeigename"]',
+    ) as HTMLInputElement;
+    expect(component.benutzerForm.disabled).toBe(true);
+    expect(anzeigename.disabled).toBe(true);
+    expect(form.hasAttribute('inert')).toBe(true);
+    expect(form.getAttribute('aria-busy')).toBe('true');
     expect(fixture.nativeElement.querySelector('button[type="submit"]').disabled).toBe(true);
     await component.onSubmit();
     expect(service.createBenutzer).toHaveBeenCalledTimes(1);
     rejectSave(new Error('Speichern fehlgeschlagen'));
     await pending;
     fixture.detectChanges();
+    expect(component.benutzerForm.enabled).toBe(true);
+    expect(anzeigename.disabled).toBe(false);
+    expect(form.hasAttribute('inert')).toBe(false);
+    expect(form.getAttribute('aria-busy')).toBe('false');
     expect(component.benutzerForm.controls.namensbestandteil.value).toBe('test');
     expect(component.verwaltungStore.error()).toBeTruthy();
     expect(fixture.nativeElement.querySelector('button[type="submit"]').disabled).toBe(false);

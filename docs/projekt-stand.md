@@ -31,7 +31,7 @@ Stand: 26.09.2026. Dieses Dokument beschreibt den aktuellen Umsetzungsstand im C
   `Datenstruktur anlegen` und `Benutzerverwaltung` dar.
 - Die Toolbar zeigt den Titel der aktiven Route und den Menübutton.
 - Die Toolbar bietet einen Dark-/Light-Mode-Umschalter und im Entwicklungsmodus einen Button für die Snapshots der aktiven Stores.
-- Die Toolbar zeigt während zentral registrierter Datenabfragen eine globale unbestimmte Progress-Bar.
+- Die Toolbar zeigt während zentral registrierter Lese- und Schreibvorgänge eine globale unbestimmte Progress-Bar.
 - Die Loginseite verwendet eine reduzierte App-Shell ohne Sidebar und Navigationstaste und zeigt in der Toolbar die gemeinsame
   Produktkennung `Pur-System`.
 - Das Layout reagiert auf kleinere Bildschirmbreiten.
@@ -126,10 +126,12 @@ Stand: 26.09.2026. Dieses Dokument beschreibt den aktuellen Umsetzungsstand im C
 - `zugangsdaten` ist ein lokaler CSS-Container. Das bestehende `pur-form--grid` zeigt zwei Spalten, bei maximal 600 Pixel
   Containerbreite eine Spalte. `pur-form__row` verwendet standardmäßig Flex mit Umbruch; die Bereiche-Checkboxen umbrechen nach
   verfügbarem Platz. Der Aktionsbutton ist rechts ausgerichtet.
-- Gültige Formulare mit gültiger Datenzugriffsauswahl können abgesendet werden; während der Anlage werden weitere Aufrufe
-  verhindert. Nach Erfolg werden Formular, Auswahl und der Absendezustand der FormGroupDirective zurückgesetzt; leere
-  Pflichtfelder zeigen dadurch keine Fehler. Erfolgs- und Fehlermeldungen werden beim Start einer neuen Aktion sowie beim
-  Verlassen der Seite zurückgesetzt; bei Fehlern bleiben die Eingaben erhalten.
+- Gültige Formulare mit gültiger Datenzugriffsauswahl können abgesendet werden. Während der Anlage ist das gesamte Reactive Form
+  deaktiviert; `inert` sperrt zusätzlich die eigenständig verwaltete Datenzugriffsauswahl und weitere Formularaktionen. Der
+  Submit-Handler verhindert weiterhin doppelte Aufrufe. Nach Erfolg werden Formular, Auswahl und der Absendezustand der
+  FormGroupDirective zurückgesetzt; leere Pflichtfelder zeigen dadurch keine Fehler. Nach Erfolg oder Fehler wird das Formular
+  wieder aktiviert. Erfolgs- und Fehlermeldungen werden beim Start einer neuen Aktion sowie beim Verlassen der Seite
+  zurückgesetzt; bei Fehlern bleiben die Eingaben erhalten.
 - Die Benutzerauswahl zeigt Anzeigename und Rollenbezeichnung. Im Bearbeitungsdialog bleiben Anmeldename und technische
   Firebase-Adresse einsehbar; die Profilkarte der App-Shell zeigt unter dem Anzeigenamen den Anmeldenamen.
 - Die Rolle `mitarbeiter` kann in der Benutzeranlage mit der Anzeige „Mitarbeiter“ ausgewählt werden. Der Master weist ihre
@@ -241,13 +243,16 @@ Stand: 26.09.2026. Dieses Dokument beschreibt den aktuellen Umsetzungsstand im C
 - Nach erfolgreichem Speichern werden Verwaltungs- und Stammdatenbestand unmittelbar aktualisiert. Eine weitere Firestore-Abfrage
   ist nicht erforderlich.
 
-## Globaler Ladeindikator
+## Globaler Aktivitätsindikator
 
-- Der globale `LoadingService` zählt parallele Ladevorgänge und blendet den Ladeindikator erst nach Abschluss des letzten
-  registrierten Vorgangs aus.
-- Die App-Toolbar zeigt während aktiver Ladevorgänge eine schmale unbestimmte Material-Progress-Bar an ihrem unteren Rand.
+- Der globale `LoadingService` zählt parallele Lese- und Schreibvorgänge getrennt und blendet den Aktivitätsindikator erst nach
+  Abschluss des letzten registrierten Vorgangs aus.
+- Die App-Toolbar zeigt während aktiver Lese- oder Schreibvorgänge eine schmale unbestimmte Material-Progress-Bar an ihrem unteren
+  Rand. Ihre zugängliche Beschriftung unterscheidet Laden, Speichern und gleichzeitig laufende Vorgänge.
 - Die aktuellen Firestore-Lesevorgänge für Benutzerprofile, Unternehmer, Firmen und Filialen werden im `FirestoreDbService`
   zentral an die Ladeanzeige angebunden. Damit werden auch die davon abhängigen Datenzugriffslisten und Verwaltungslisten erfasst.
+- Das Anlegen und Aktualisieren von Firestore-Dokumenten sowie die Benutzeranlage über die Callable Function werden zentral als
+  Schreibvorgänge registriert.
 - Seiten zeigen keine zusätzlichen allgemeinen Ladetexte mehr. Fachliche Fehler- und Leerzustände bleiben direkt im jeweiligen
   Seitenbereich sichtbar.
 
@@ -411,7 +416,7 @@ Am 26.09.2026 für den aktuellen Frontend-Stand erfolgreich geprüft:
   jeweils passende Manifest, zehn erreichbare App-Icons, lokale Roboto- und Material-Icon-Schriften, `ngsw.json`,
   `ngsw-worker.js` und die Ressourcengruppen `app`, `fonts` und `assets`. Die Builds benötigen in der Codex-Umgebung Zugriff
   außerhalb der Sandbox, weil der native `esbuild`-Prozess innerhalb der eingeschränkten Umgebung mit Exit-Code 134 beendet wird.
-  Der aktuelle Standard-Produktionsbuild ist erfolgreich. Die bekannte Budgetwarnung beträgt rund 67 kB über dem initialen
+  Der aktuelle Standard-Produktionsbuild ist erfolgreich. Die bekannte Budgetwarnung beträgt rund 69 kB über dem initialen
   Limit von 1,50 MB.
 - Die Mitarbeiter-App-Shell wurde lokal nach vollständigem Beenden des Webservers in Desktop- und mobiler Viewport-Größe
   erfolgreich aus dem Service-Worker-Cache neu geladen. Die veröffentlichte Login-Seite wurde ohne Browserfehler geladen. Pur

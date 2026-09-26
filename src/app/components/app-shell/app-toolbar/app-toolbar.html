@@ -98,12 +98,12 @@
     </mat-menu>
   }
 
-  <!-- Globaler Ladeindikator -->
-  @if (isLoading()) {
+  <!-- Globaler Aktivitätsindikator -->
+  @if (isActive()) {
     <mat-progress-bar
       class="app-toolbar__progress"
       mode="indeterminate"
-      aria-label="Daten werden geladen"
+      [attr.aria-label]="progressLabel()"
     />
   }
 </mat-toolbar>

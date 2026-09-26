@@ -314,6 +314,8 @@ bleibt ausgeschlossen und die Sitzung des Masters bleibt erhalten.
 - [x] Formular mit Zugangsdaten, Bereichs-Checkboxen und Datenzugriff-Auswahl anlegen.
 - [x] Anfangspasswort mit mindestens acht Zeichen und Ein-/Ausblendfunktion erfassen, aber nicht in Firestore speichern.
 - [x] Formularvalidierung und Schutz vor doppeltem Absenden umsetzen.
+- [x] Während der Benutzeranlage das vollständige Formular einschließlich eigenständig verwalteter Unterkomponenten sperren und
+      nach Erfolg oder Fehler wieder aktivieren.
 - [x] Formular und Absendezustand nach erfolgreicher Anlage zurücksetzen und die Erfolgsmeldung erhalten.
 - [x] Passwortänderung unter `/passwort` mit erneuter Authentifizierung und Passwortbestätigung umsetzen.
 
@@ -522,6 +524,9 @@ hier weder angelegt noch gelöscht werden.
 - [x] Globalen Lade-Service mit Zähler für parallele Ladevorgänge anlegen.
 - [x] Eine unbestimmte Progress-Bar am unteren Rand der App-Toolbar anzeigen.
 - [x] Aktuelle Firestore-Lesevorgänge für Benutzerprofil, Unternehmer, Firmen und Filialen zentral registrieren.
+- [x] Parallele Schreibvorgänge getrennt zählen und Firestore-Anlagen, Firestore-Aktualisierungen sowie die Benutzeranlage zentral
+      registrieren.
+- [x] Die zugängliche Beschriftung der Progress-Bar zwischen Laden, Speichern und überlappenden Vorgängen unterscheiden.
 - [x] Lokale Ladetexte entfernen; lokale Fehler- und Leerzustände erhalten.
 - [x] Service-, Toolbar- und Seitentests für den globalen Ladeindikator ergänzen.
 

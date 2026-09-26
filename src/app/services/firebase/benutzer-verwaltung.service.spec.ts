@@ -6,6 +6,7 @@ import { Functions } from '@angular/fire/functions';
 
 import { IBenutzerAnlage } from '../../commons/models/domain/benutzer';
 import { HTTPS_CALLABLE } from '../../commons/tokens/firebase.tokens';
+import { LoadingService } from '../core/loading.service';
 import { NetzwerkStatusService } from '../core/netzwerk-status.service';
 import { BenutzerVerwaltungService } from './benutzer-verwaltung.service';
 
@@ -21,6 +22,7 @@ describe('BenutzerVerwaltungService', () => {
   };
   let callableMock: ReturnType<typeof vi.fn>;
   let httpsCallableMock: ReturnType<typeof vi.fn>;
+  let trackWriteMock: ReturnType<typeof vi.fn>;
   let assertOnlineMock: ReturnType<typeof vi.fn>;
 
   beforeEach(() => {
@@ -40,12 +42,16 @@ describe('BenutzerVerwaltungService', () => {
 
       return callableMock;
     });
+    trackWriteMock = vi.fn().mockImplementation(async (aktion: () => Promise<unknown>) => {
+      return aktion();
+    });
     assertOnlineMock = vi.fn();
     TestBed.configureTestingModule({
       providers: [
         BenutzerVerwaltungService,
         { provide: Functions, useValue: functionsMock },
         { provide: HTTPS_CALLABLE, useValue: httpsCallableMock },
+        { provide: LoadingService, useValue: { trackWrite: trackWriteMock } },
         { provide: NetzwerkStatusService, useValue: { assertOnline: assertOnlineMock } },
       ],
     });
@@ -60,6 +66,7 @@ describe('BenutzerVerwaltungService', () => {
       email: 'testbenutzer-office@pur-system.invalid',
     });
     expect(assertOnlineMock).toHaveBeenCalledOnce();
+    expect(trackWriteMock).toHaveBeenCalledWith(expect.any(Function));
     expect(httpsCallableMock).toHaveBeenCalledWith(functionsMock, 'createBenutzer');
     expect(callableMock).toHaveBeenCalledWith(anlage);
   });
@@ -82,5 +89,6 @@ describe('BenutzerVerwaltungService', () => {
     await expect(service.createBenutzer(anlage)).rejects.toBe(error);
     expect(httpsCallableMock).not.toHaveBeenCalled();
     expect(callableMock).not.toHaveBeenCalled();
+    expect(trackWriteMock).not.toHaveBeenCalled();
   });
 });

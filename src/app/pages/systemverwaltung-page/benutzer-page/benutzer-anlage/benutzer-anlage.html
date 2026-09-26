@@ -8,6 +8,8 @@
   <form
     class="pur-form pur-form--grid"
     [formGroup]="benutzerForm"
+    [attr.aria-busy]="verwaltungStore.inProgress()"
+    [attr.inert]="verwaltungStore.inProgress() ? '' : null"
     aria-label="Benutzerzugang vorbereiten"
     (ngSubmit)="onSubmit()"
   >

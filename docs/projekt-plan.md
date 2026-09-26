@@ -252,9 +252,11 @@ serverseitig prüfen. Bestehende Benutzerprofile müssen bei der Erweiterung des
 
 Die Auswahl ist an lesende Firebase-Abfragen und den Anlage-Payload angebunden. Office-/Filialkonten benötigen bei der Anlage
 mindestens eine vollständige Datenzuordnung; Master dürfen mit einer leeren Zugriffs-Map angelegt werden. Die Function prüft die
-Existenz der vollständigen Unternehmer-/Firmen-/Filialpfade vor der Auth-Anlage. Die Formularsperre ist entfernt. Benutzeranlage,
-Anmeldung, Bereichsfreigabe und Passwortwechsel wurden grundsätzlich bestätigt. Ein reales Office-Testkonto konnte seine
-zugeordneten Firmen- und Filialdaten bearbeiten; die vereinbarten Schreibgrenzen sind zusätzlich durch Emulator-Tests abgesichert.
+Existenz der vollständigen Unternehmer-/Firmen-/Filialpfade vor der Auth-Anlage. Während der Benutzeranlage ist das vollständige
+Formular einschließlich eigenständig verwalteter Unterkomponenten gesperrt; nach Erfolg oder Fehler wird es wieder freigegeben.
+Benutzeranlage, Anmeldung, Bereichsfreigabe und Passwortwechsel wurden grundsätzlich bestätigt. Ein reales Office-Testkonto konnte
+seine zugeordneten Firmen- und Filialdaten bearbeiten; die vereinbarten Schreibgrenzen sind zusätzlich durch Emulator-Tests
+abgesichert.
 Der genaue Implementierungsstand steht im [Projekt-Stand](./projekt-stand.md), die unmittelbar anstehenden Schritte in den
 [offenen Todos](./todo_next.md) und bewusst zurückgestellte Aufgaben in den [späteren Todos](./todo_spaeter.md).
 
@@ -284,6 +286,9 @@ Die App-Shell wird in wiederverwendbare Components unter `src/app/components/app
 
 - `app-sidenav` enthält die Sidebar mit Hauptnavigation.
 - `app-toolbar` enthält die obere Toolbar mit App-Aktionen.
+
+Die Toolbar zeigt zentral registrierte Lese- und Schreibvorgänge über eine globale unbestimmte Progress-Bar an. Parallele Vorgänge
+werden gezählt, damit die Anzeige erst nach Abschluss der letzten laufenden Operation ausgeblendet wird.
 
 Die Navigation wird für jede `userRole` zentral mit der ausdrücklich festgelegten Darstellungsart `flat` oder `nested`
 konfiguriert. Die App leitet die Darstellungsart nicht automatisch aus der Anzahl oder Verschachtelung der Navigationseinträge ab.

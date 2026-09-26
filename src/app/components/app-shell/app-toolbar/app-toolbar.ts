@@ -3,6 +3,7 @@
 import {
   ChangeDetectionStrategy,
   Component,
+  computed,
   inject,
   input,
   isDevMode,
@@ -50,7 +51,13 @@ export class AppToolbar {
   readonly isAuthenticated = input(false);
   readonly inProgress = input(false);
   readonly isDevelopmentMode = isDevMode();
-  readonly isLoading = this._loadingService.isLoading;
+  readonly isActive = this._loadingService.isActive;
+  readonly progressLabel = computed(() => {
+    if (this._loadingService.isLoading() && this._loadingService.isWriting()) {
+      return 'Daten werden verarbeitet';
+    }
+    return this._loadingService.isWriting() ? 'Daten werden gespeichert' : 'Daten werden geladen';
+  });
   readonly isOnline = this._netzwerkStatusService.isOnline;
   readonly navigationToggle = output<void>();
   readonly neuladenErforderlich = this._pwaUpdateService.neuladenErforderlich;

@@ -4,6 +4,7 @@ import {
   ChangeDetectionStrategy,
   Component,
   OnInit,
+  effect,
   inject,
   signal,
   viewChild,
@@ -117,6 +118,13 @@ export class BenutzerAnlage implements OnInit {
   });
 
   constructor() {
+    effect(() => {
+      if (this.verwaltungStore.inProgress()) {
+        this.benutzerForm.disable({ emitEvent: false });
+      } else {
+        this.benutzerForm.enable({ emitEvent: false });
+      }
+    });
     this.benutzerForm.controls.anzeigename.valueChanges
       .pipe(distinctUntilChanged(), takeUntilDestroyed())
       .subscribe((anzeigename) => {

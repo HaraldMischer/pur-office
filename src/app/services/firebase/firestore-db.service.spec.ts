@@ -28,6 +28,9 @@ describe('FirestoreDbService', () => {
   const trackLoadMock = vi.fn(async <T>(aktion: () => Promise<T>): Promise<T> => {
     return aktion();
   });
+  const trackWriteMock = vi.fn(async <T>(aktion: () => Promise<T>): Promise<T> => {
+    return aktion();
+  });
   const assertOnlineMock = vi.fn();
 
   beforeEach(() => {
@@ -48,7 +51,10 @@ describe('FirestoreDbService', () => {
         { provide: FIRESTORE_GET_DOCS, useValue: getDocsMock },
         { provide: FIRESTORE_SERVER_TIMESTAMP, useValue: serverTimestampMock },
         { provide: FIRESTORE_SET_DOC, useValue: setDocMock },
-        { provide: LoadingService, useValue: { trackLoad: trackLoadMock } },
+        {
+          provide: LoadingService,
+          useValue: { trackLoad: trackLoadMock, trackWrite: trackWriteMock },
+        },
         { provide: NetzwerkStatusService, useValue: { assertOnline: assertOnlineMock } },
       ],
     });
@@ -143,6 +149,7 @@ describe('FirestoreDbService', () => {
 
     await expect(service.createDocument('unternehmer', { aktiv: true })).resolves.toBe('neu-123');
     expect(assertOnlineMock).toHaveBeenCalledOnce();
+    expect(trackWriteMock).toHaveBeenCalledWith(expect.any(Function));
     expect(addDocMock).toHaveBeenCalledWith('collection-ref', { aktiv: true });
   });
 
@@ -152,6 +159,7 @@ describe('FirestoreDbService', () => {
     await service.updateDocument('unternehmer/dokument-1', { aktiv: false });
 
     expect(assertOnlineMock).toHaveBeenCalledOnce();
+    expect(trackWriteMock).toHaveBeenCalledWith(expect.any(Function));
     expect(setDocMock).toHaveBeenCalledWith('document-ref', { aktiv: false }, { merge: true });
   });
 
@@ -168,6 +176,7 @@ describe('FirestoreDbService', () => {
     );
     expect(addDocMock).not.toHaveBeenCalled();
     expect(setDocMock).not.toHaveBeenCalled();
+    expect(trackWriteMock).not.toHaveBeenCalled();
   });
 
   it('should create a server timestamp', () => {
