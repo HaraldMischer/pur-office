@@ -2,7 +2,7 @@
 
 # Projekt-Stand: Pur-System
 
-Stand: 25.09.2026. Dieses Dokument beschreibt den aktuellen Umsetzungsstand im Code. Das fachliche Zielbild steht separat im
+Stand: 26.09.2026. Dieses Dokument beschreibt den aktuellen Umsetzungsstand im Code. Das fachliche Zielbild steht separat im
 [Projekt-Plan](./projekt-plan.md).
 
 ## Projektbasis
@@ -285,9 +285,10 @@ Stand: 25.09.2026. Dieses Dokument beschreibt den aktuellen Umsetzungsstand im C
 
 ## Backend und Passwortänderung
 
-- Store und Service übergeben den erweiterten Anlage-Payload an die Callable Function `createBenutzer`. Eine gültige
-  Benutzeranlage kann direkt über das Formular gestartet werden; während eines laufenden Aufrufs werden weitere Aufrufe
-  verhindert.
+- Store und Service übergeben Namensbestandteil, Anzeigename, Rolle, Anfangspasswort, Bereiche und Datenzugriffe an die Callable
+  Function `createBenutzer`. Die Function normalisiert den Namensbestandteil erneut und erzeugt daraus Anmeldename und technische
+  Firebase-Adresse verbindlich. Eine gültige Benutzeranlage kann direkt über das Formular gestartet werden; während eines
+  laufenden Aufrufs werden weitere Aufrufe verhindert.
 - Der `BenutzerVerwaltungService` erzeugt und startet die Callable Function innerhalb von `runInInjectionContext`, damit
   AngularFire-Aufrufe korrekt im Angular-Injection-Kontext ausgeführt werden.
 - Die Function prüft Anmeldung, aktives Profil und `userRole: master` serverseitig und legt per Admin SDK Auth-Benutzer und

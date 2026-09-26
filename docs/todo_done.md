@@ -288,9 +288,10 @@ Schritt ausgewählt.
 
 #### Ziel
 
-Ein serverseitig bestätigter Master kann einen Benutzer mit Anzeigename, Rolle, E-Mail, Anfangspasswort, erlaubten Bereichen und
-Datenzugriffen anlegen. Die Datenzugriffe folgen der Hierarchie `unternehmer/{unternehmerId}/firma/{firmaId}/filiale/{filialId}`.
-Eine Selbstregistrierung bleibt ausgeschlossen und die Sitzung des Masters bleibt erhalten.
+Ein serverseitig bestätigter Master kann einen Benutzer mit Anzeigename, automatisch gebildetem Anmeldenamen, Rolle,
+Anfangspasswort, erlaubten Bereichen und Datenzugriffen anlegen. Die technische Firebase-Adresse wird dabei automatisch erzeugt.
+Die Datenzugriffe folgen der Hierarchie `unternehmer/{unternehmerId}/firma/{firmaId}/filiale/{filialId}`. Eine Selbstregistrierung
+bleibt ausgeschlossen und die Sitzung des Masters bleibt erhalten.
 
 #### Betroffene Dateien
 
@@ -934,7 +935,7 @@ Neu hinzuzufügen:
 
 Benutzer melden sich mit einem kurzen Anmeldenamen und ihrem Passwort an. Die technische Firebase-E-Mail-Adresse wird intern aus
 dem normalisierten Namen, der Benutzerrolle und der gemeinsamen technischen Domain `@pur-system.invalid` gebildet. Beispielsweise
-verwendet der sichtbare Anmeldename `haraldmischer-master` intern die Adresse `haraldmischer-master@pur-system.invalid`.
+verwendet der sichtbare Anmeldename `harald.mischer-master` intern die Adresse `harald.mischer-master@pur-system.invalid`.
 
 Im Login wird keine Rolle ausgewählt. Der Rollenbestandteil ist ein fester Teil des Anmeldenamens und dient ausschließlich der
 eindeutigen technischen Kennung. Maßgeblich für Berechtigungen bleiben die in Firebase gespeicherte Benutzerrolle, der Aktivstatus
@@ -979,8 +980,9 @@ Neu hinzugefügt:
 
 - [x] Einen eigenständigen und unveränderlichen `anmeldename` im Profilmodell festlegen; der davon unabhängige Anzeigename darf
       weiterhin geändert werden.
-- [x] Den Anmeldenamen nach dem Format `<normalisierter-name>-<rolle>` bilden, beispielsweise `haraldmischer-master`.
-- [x] Den Namen kleinschreiben, Leerzeichen entfernen sowie Umlaute und Sonderzeichen nach einer eindeutigen Regel normalisieren.
+- [x] Den Anmeldenamen nach dem Format `<normalisierter-name>-<rolle>` bilden, beispielsweise `harald.mischer-master`.
+- [x] Den Namen kleinschreiben, Leerzeichen als Punkte normalisieren, vorhandene Punkte und Bindestriche erhalten, andere
+      Sonderzeichen entfernen sowie Umlaute und `ß` nach einer eindeutigen Regel umschreiben.
 - [x] Für alle Rollen die gemeinsame technische Domain `@pur-system.invalid` verwenden.
 - [x] Vollständige Anmeldenamen rollenübergreifend eindeutig halten.
 - [x] Sicherstellen, dass der Rollenbestandteil im Anmeldenamen keine Berechtigung gewährt.
@@ -989,8 +991,8 @@ Neu hinzugefügt:
 
 - [x] Den Anmeldenamen automatisch und nicht bearbeitbar aus Anzeigename und Benutzerrolle bilden.
 - [x] Den vollständigen Anmeldenamen im Anlageformular anzeigen und die technische Firebase-Adresse dort ausblenden.
-- [x] Anzeigename und Benutzerrolle an die Callable Function übergeben und dort Anmeldename sowie technische Adresse verbindlich
-      erzeugen.
+- [x] Den aus dem Anzeigenamen abgeleiteten Namensbestandteil zusammen mit Anzeigename und Benutzerrolle an die Callable
+      Function übergeben, dort erneut normalisieren und Anmeldename sowie technische Adresse verbindlich erzeugen.
 - [x] `anmeldename` im Benutzerprofil speichern und `email` ausschließlich als technische Firebase-Auth-Adresse führen.
 - [x] Doppelte Anmeldenamen serverseitig ablehnen und verständlich melden.
 - [x] Bei der Anlage eines Masterkontos `systemverwaltung` automatisch aktivieren und im Formular gegen Abwahl sperren.
