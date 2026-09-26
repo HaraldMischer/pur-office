@@ -9,6 +9,7 @@ import {
   FIRESTORE_DOC,
   FIRESTORE_GET_DOC,
   FIRESTORE_GET_DOCS,
+  FIRESTORE_ON_SNAPSHOT,
   FIRESTORE_SERVER_TIMESTAMP,
   FIRESTORE_SET_DOC,
 } from '../../commons/tokens/firebase.tokens';
@@ -23,7 +24,9 @@ describe('FirestoreDbService', () => {
   const getDocsMock = vi.fn();
   const getDocMock = vi.fn();
   const addDocMock = vi.fn();
+  const onSnapshotMock = vi.fn();
   const setDocMock = vi.fn();
+  const unsubscribeMock = vi.fn();
   const serverTimestampMock = vi.fn().mockReturnValue('server-zeitstempel');
   const trackLoadMock = vi.fn(async <T>(aktion: () => Promise<T>): Promise<T> => {
     return aktion();
@@ -32,12 +35,25 @@ describe('FirestoreDbService', () => {
     return aktion();
   });
   const assertOnlineMock = vi.fn();
+  let snapshotNext: (snapshot: {
+    id: string;
+    exists: () => boolean;
+    data: () => Record<string, unknown>;
+  }) => void;
+  let snapshotError: (error: unknown) => void;
 
   beforeEach(() => {
     vi.clearAllMocks();
     getDocsMock.mockResolvedValue({ docs: [] });
     getDocMock.mockResolvedValue({ exists: () => false });
     addDocMock.mockResolvedValue({ id: 'neu-123' });
+    onSnapshotMock.mockImplementation(
+      (_documentRef: unknown, next: typeof snapshotNext, error: typeof snapshotError) => {
+        snapshotNext = next;
+        snapshotError = error;
+        return unsubscribeMock;
+      },
+    );
     setDocMock.mockResolvedValue(undefined);
 
     TestBed.configureTestingModule({
@@ -49,6 +65,7 @@ describe('FirestoreDbService', () => {
         { provide: FIRESTORE_DOC, useValue: docMock },
         { provide: FIRESTORE_GET_DOC, useValue: getDocMock },
         { provide: FIRESTORE_GET_DOCS, useValue: getDocsMock },
+        { provide: FIRESTORE_ON_SNAPSHOT, useValue: onSnapshotMock },
         { provide: FIRESTORE_SERVER_TIMESTAMP, useValue: serverTimestampMock },
         { provide: FIRESTORE_SET_DOC, useValue: setDocMock },
         {
@@ -142,6 +159,41 @@ describe('FirestoreDbService', () => {
 
     expect(trackLoadMock).toHaveBeenCalledOnce();
     expect(getDocMock).toHaveBeenCalledOnce();
+  });
+
+  it('should observe document updates and return the unsubscribe function', () => {
+    const next = vi.fn();
+    const error = vi.fn();
+    const service = TestBed.inject(FirestoreDbService);
+
+    const unsubscribe = service.observeDocument('benutzerprofil/benutzer-123', next, error);
+    snapshotNext({
+      id: 'benutzer-123',
+      exists: () => true,
+      data: () => ({ aktiv: false }),
+    });
+    snapshotNext({
+      id: 'benutzer-123',
+      exists: () => false,
+      data: () => ({}),
+    });
+    const listenerError = { code: 'permission-denied' };
+    snapshotError(listenerError);
+    unsubscribe();
+
+    expect(docMock).toHaveBeenCalledWith(firestoreMock, 'benutzerprofil/benutzer-123');
+    expect(onSnapshotMock).toHaveBeenCalledWith(
+      'document-ref',
+      expect.any(Function),
+      expect.any(Function),
+    );
+    expect(next).toHaveBeenNthCalledWith(1, {
+      id: 'benutzer-123',
+      daten: { aktiv: false },
+    });
+    expect(next).toHaveBeenNthCalledWith(2, null);
+    expect(error).toHaveBeenCalledWith(listenerError);
+    expect(unsubscribeMock).toHaveBeenCalledOnce();
   });
 
   it('should create a document and return its id', async () => {

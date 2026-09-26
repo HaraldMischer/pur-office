@@ -14,6 +14,7 @@ describe('BenutzerService', () => {
     createServerTimestamp: vi.fn(),
     loadCollection: vi.fn(),
     loadDocument: vi.fn(),
+    observeDocument: vi.fn(),
     updateDocument: vi.fn(),
   };
 
@@ -21,6 +22,7 @@ describe('BenutzerService', () => {
     vi.clearAllMocks();
     firestoreDbServiceMock.loadCollection.mockResolvedValue([]);
     firestoreDbServiceMock.loadDocument.mockResolvedValue(null);
+    firestoreDbServiceMock.observeDocument.mockReturnValue(vi.fn());
     firestoreDbServiceMock.createServerTimestamp.mockReturnValue('server-timestamp');
     firestoreDbServiceMock.updateDocument.mockResolvedValue(undefined);
 
@@ -100,6 +102,49 @@ describe('BenutzerService', () => {
     const result = await service.getBenutzerProfil('benutzer-123');
 
     expect(result).toBeNull();
+  });
+
+  it('should observe and normalize the user profile', () => {
+    const next = vi.fn();
+    const error = vi.fn();
+    const unsubscribe = vi.fn();
+    firestoreDbServiceMock.observeDocument.mockReturnValue(unsubscribe);
+    const service = TestBed.inject(BenutzerService);
+
+    const result = service.observeBenutzerProfil('benutzer-123', next, error);
+    const [, dokumentNext, dokumentError] = firestoreDbServiceMock.observeDocument.mock.calls[0];
+    dokumentNext({
+      id: 'benutzer-123',
+      daten: {
+        anmeldename: 'test-office',
+        anzeigename: 'Test',
+        email: 'test@example.com',
+        aktiv: false,
+        userRole: 'office',
+        erlaubteBereiche: ['systemverwaltung'],
+        zugriffe: [],
+      },
+    });
+    dokumentNext(null);
+    const listenerError = { code: 'permission-denied' };
+    dokumentError(listenerError);
+
+    expect(firestoreDbServiceMock.observeDocument).toHaveBeenCalledWith(
+      'benutzerprofil/benutzer-123',
+      expect.any(Function),
+      error,
+    );
+    expect(next).toHaveBeenNthCalledWith(
+      1,
+      expect.objectContaining({
+        aktiv: false,
+        erlaubteBereiche: ['dashboard'],
+        zugriffe: {},
+      }),
+    );
+    expect(next).toHaveBeenNthCalledWith(2, null);
+    expect(error).toHaveBeenCalledWith(listenerError);
+    expect(result).toBe(unsubscribe);
   });
 
   it('should load, normalize and sort all user profiles', async () => {

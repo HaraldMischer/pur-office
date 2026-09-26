@@ -1,10 +1,18 @@
 // pur-office/src/app/pages/auth/passwort-page/passwort-page.ts
 
-import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  effect,
+  inject,
+  signal,
+  viewChild,
+} from '@angular/core';
 import {
   AbstractControl,
   FormControl,
   FormGroup,
+  FormGroupDirective,
   ReactiveFormsModule,
   ValidationErrors,
   ValidatorFn,
@@ -15,6 +23,7 @@ import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
+import { MatTooltipModule } from '@angular/material/tooltip';
 
 import { PasswortStore } from '../../../stores/domain/passwort.store';
 
@@ -23,6 +32,7 @@ type TPasswortForm = {
   neuesPasswort: FormControl<string>;
   passwortBestaetigung: FormControl<string>;
 };
+type TPasswortFeld = keyof TPasswortForm;
 
 const passwoerterGleichValidator: ValidatorFn = (
   control: AbstractControl,
@@ -43,6 +53,7 @@ const passwoerterGleichValidator: ValidatorFn = (
     MatFormFieldModule,
     MatIconModule,
     MatInputModule,
+    MatTooltipModule,
     ReactiveFormsModule,
   ],
   providers: [PasswortStore],
@@ -52,6 +63,8 @@ const passwoerterGleichValidator: ValidatorFn = (
 })
 export class PasswortPage {
   readonly passwortStore = inject(PasswortStore);
+  private readonly formDirective = viewChild.required(FormGroupDirective);
+  readonly sichtbarePasswortFelder = signal<ReadonlySet<TPasswortFeld>>(new Set());
   readonly passwortForm = new FormGroup<TPasswortForm>(
     {
       aktuellesPasswort: new FormControl('', {
@@ -70,6 +83,19 @@ export class PasswortPage {
     { validators: [passwoerterGleichValidator] },
   );
 
+  constructor() {
+    effect(() => {
+      if (this.passwortStore.inProgress()) {
+        this.passwortForm.disable({ emitEvent: false });
+      } else {
+        this.passwortForm.enable({ emitEvent: false });
+      }
+    });
+  }
+
+  /**
+   * Ändert das Passwort nach erfolgreicher Formularvalidierung.
+   */
   async onSubmit(): Promise<void> {
     if (this.passwortForm.invalid || this.passwortStore.inProgress()) {
       this.passwortForm.markAllAsTouched();
@@ -80,9 +106,37 @@ export class PasswortPage {
 
     try {
       await this.passwortStore.savePasswort(value.aktuellesPasswort, value.neuesPasswort);
-      this.passwortForm.reset();
+      this.sichtbarePasswortFelder.set(new Set());
+      this.formDirective().resetForm();
     } catch {
       // Der Store stellt die benutzerfreundliche Fehlermeldung bereit.
     }
+  }
+
+  /**
+   * Prüft, ob das angegebene Passwortfeld im Klartext angezeigt wird.
+   *
+   * @param feld - Das zu prüfende Passwortfeld.
+   * @returns `true`, wenn das Passwort sichtbar ist.
+   */
+  istPasswortSichtbar(feld: TPasswortFeld): boolean {
+    return this.sichtbarePasswortFelder().has(feld);
+  }
+
+  /**
+   * Wechselt die Sichtbarkeit des angegebenen Passwortfelds.
+   *
+   * @param feld - Das umzuschaltende Passwortfeld.
+   */
+  togglePasswortSichtbarkeit(feld: TPasswortFeld): void {
+    this.sichtbarePasswortFelder.update((sichtbareFelder) => {
+      const aktualisierteFelder = new Set(sichtbareFelder);
+      if (aktualisierteFelder.has(feld)) {
+        aktualisierteFelder.delete(feld);
+      } else {
+        aktualisierteFelder.add(feld);
+      }
+      return aktualisierteFelder;
+    });
   }
 }

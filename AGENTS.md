@@ -73,6 +73,11 @@
 - Während eines laufenden Schreibvorgangs (`inProgress`) wird das gesamte betroffene Formular einschließlich eigenständig
   verwalteter Unterkomponenten und weiterer datenverändernder Aktionen deaktiviert. Der Submit-Handler verhindert zusätzlich
   wiederholte Aufrufe. Nach Erfolg oder Fehler wird das Formular wieder aktiviert.
+- Nach einem erfolgreichen Submit wird ein erneut verwendbares Reactive Form einschließlich des nativen Submitstatus über die
+  `FormGroupDirective` zurückgesetzt. Leere Pflichtfelder bleiben dadurch fachlich ungültig, sind aber wieder `pristine` und
+  `untouched` und werden nicht unmittelbar als fehlerhaft dargestellt. Bei einem Fehler bleiben die Eingaben erhalten.
+- Erfolgsmeldungen innerhalb von Formularen verwenden die globale Klasse `pur-form__success`; dafür werden keine lokalen
+  Erfolgsfarben oder formularspezifischen Erfolgsklassen angelegt.
 
 ## Naming
 

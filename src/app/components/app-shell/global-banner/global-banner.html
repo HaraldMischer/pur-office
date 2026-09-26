@@ -1,0 +1,14 @@
+<!-- pur-office/src/app/components/app-shell/global-banner/global-banner.html -->
+
+@if (active()) {
+  <div
+    class="global-banner"
+    [class.global-banner--info]="state().kind === 'info'"
+    [class.global-banner--warn]="state().kind === 'warn'"
+    [class.global-banner--error]="state().kind === 'error'"
+    [attr.role]="liveRole()"
+  >
+    <mat-icon class="global-banner__icon" aria-hidden="true">{{ icon() }}</mat-icon>
+    <span class="global-banner__text">{{ state().text }}</span>
+  </div>
+}

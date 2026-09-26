@@ -14,16 +14,20 @@
   }
 
   <mat-sidenav-content class="app-content">
-    <!-- app-toolbar -->
-    <app-toolbar
-      [title]="routenKontext().toolbarTitel"
-      [brandVisible]="routenKontext().authLayout"
-      [navigationVisible]="!routenKontext().authLayout"
-      [sidenavOpened]="isSidenavOpened"
-      [isAuthenticated]="benutzerStore.isAuthenticated() && !routenKontext().authLayout"
-      [inProgress]="benutzerStore.inProgress()"
-      (navigationToggle)="toggleSidenav()"
-    />
+    <header class="app-header">
+      <!-- app-toolbar -->
+      <app-toolbar
+        [title]="routenKontext().toolbarTitel"
+        [brandVisible]="routenKontext().authLayout"
+        [navigationVisible]="!routenKontext().authLayout"
+        [sidenavOpened]="isSidenavOpened"
+        [isAuthenticated]="benutzerStore.isAuthenticated() && !routenKontext().authLayout"
+        [inProgress]="benutzerStore.inProgress()"
+        (navigationToggle)="toggleSidenav()"
+      />
+
+      <app-global-banner />
+    </header>
 
     <main class="app-main">
       <router-outlet />

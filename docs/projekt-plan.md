@@ -36,10 +36,13 @@ bereitgestellt.
 - Components enthalten UI und einfache Formular- oder Interaktionslogik.
 - Stores halten App-State, Lade- und Fehlerzustände und orchestrieren Service-Aufrufe.
 - Fachliche Services kapseln Domänen-Mapping, Sortierung und fachlich benannte Datenoperationen.
-- Der technische `FirestoreDbService` kapselt direkte AngularFire-Aufrufe, den Angular-Injection-Kontext und die globale
-  Registrierung lesender Ladevorgänge.
+- Der technische `FirestoreDbService` kapselt direkte AngularFire-Aufrufe, den Angular-Injection-Kontext, die globale
+  Registrierung lesender Ladevorgänge und Echtzeit-Listener für einzelne Dokumente.
 - Firestore-Collection- und Dokumentpfade werden zentral erzeugt und nicht in fachlichen Services zusammengesetzt.
 - Der bevorzugte Datenfluss ist `Component -> Store -> fachlicher Service -> FirestoreDbService -> Firebase/Firestore`.
+- Der app-weite `GlobalBannerService` verwaltet genau einen globalen Hinweis. Die zugehörige App-Shell-Component stellt Art,
+  Text und semantische Live-Rolle unterhalb der Toolbar dar. Fachliche Zustände bleiben in ihren Stores und werden in der
+  App-Shell auf den Banner-Zustand abgebildet.
 - Der app-weite `StammdatenStore` lädt nach dem Benutzerprofil einmalig die für die Sitzung erlaubten Unternehmer, Firmen und
   Filialen. Für Master werden zusätzlich alle Benutzerprofile geladen. Feature-Stores verwenden diesen Sitzungsbestand und lösen
   bei Routenwechseln keine erneuten Stammdatenabfragen aus.
@@ -87,6 +90,12 @@ Fachliche Daten werden in Pur Master, Pur Office, Pur Filiale und Pur Mitarbeite
 geändert. Es werden keine fachlichen Daten bewusst dauerhaft für einen späteren Offline-Aufruf gespeichert und keine
 Offline-Änderungen zur späteren Synchronisation zugelassen.
 
+Das eigene Dokument `benutzerprofil/{uid}` wird während einer wiederhergestellten oder neu gestarteten Anmeldung in Echtzeit
+beobachtet. Diese Beobachtung verwendet nur den nicht persistenten Firestore-Speicher. Startet die Anwendung ohne Verbindung,
+bleibt die von Firebase Auth wiederhergestellte Anmeldung bestehen; nach der nächsten Serververbindung übernimmt der Listener den
+aktuellen Profilstand. Ein inaktives eigenes Profil wird über den globalen Banner-Service app-weit durch einen nicht
+ausblendbaren Hinweis angezeigt. Ein Listenerfehler allein ändert den zuletzt bestätigten Aktivstatus nicht.
+
 Eine spätere Ausnahme wird erst bei einem konkreten fachlichen Bedarf einzeln für Datenart, Benutzerrolle, Auslieferungsvariante
 und Aktion entschieden. Dabei werden insbesondere Schutzbedarf, Benutzertrennung, veraltete Daten, Berechtigungsänderungen,
 Synchronisation und Konfliktbehandlung berücksichtigt.
@@ -129,6 +138,12 @@ Das Benutzerprofil enthält mit `userRole` die Rollen `filiale`, `office`, `mast
 Bereichsfreigaben richten sich nach `erlaubteBereiche`. `dashboard` ist für jede Rolle verpflichtend und bildet die dauerhaft
 erreichbare Hauptseite für den später rollenabhängig dargestellten Hauptinhalt. `systemverwaltung` ist ausschließlich für die
 Rolle `master` verpflichtend und für alle anderen Rollen unzulässig.
+
+Die Anwendung beobachtet das eigene Benutzerprofil während der Sitzung. Bei Abmeldung oder Benutzerwechsel wird der bisherige
+Listener beendet. Wird das Profil deaktiviert, werden die sitzungsbezogenen Stammdaten zurückgesetzt und der globale Hinweis
+„Dieses Profil ist inaktiv. Bitte wende dich an einen Administrator.“ angezeigt. Eine Deaktivierung meldet den Benutzer nicht
+automatisch aus. Die vorhandenen Bereichs- und Rollenguards verhindern neue fachliche Navigationen mit einem inaktiven Profil;
+die ausschließlich durch Authentifizierung geschützte Passwortseite bleibt erreichbar.
 
 Ein Mitarbeiter kann für die Mitarbeiter-App optional einen eigenen Mitarbeiterzugang mit Firebase Auth und eigener `uid`
 erhalten. Der Zugang wird ausschließlich durch einen Master angelegt; eine Selbstregistrierung ist nicht vorgesehen. Benutzer mit

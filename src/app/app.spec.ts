@@ -1,7 +1,7 @@
 // pur-office/src/app/app.spec.ts
 
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
-import { Component } from '@angular/core';
+import { Component, WritableSignal, signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 import { Router, provideRouter } from '@angular/router';
@@ -23,6 +23,7 @@ describe('App', () => {
     inProgress: ReturnType<typeof vi.fn>;
     logout: ReturnType<typeof vi.fn>;
     darfBereichNutzen: ReturnType<typeof vi.fn>;
+    istInaktiv: WritableSignal<boolean>;
     istMaster: ReturnType<typeof vi.fn>;
   };
 
@@ -34,6 +35,7 @@ describe('App', () => {
       inProgress: vi.fn().mockReturnValue(false),
       logout: vi.fn().mockResolvedValue(undefined),
       darfBereichNutzen: vi.fn().mockReturnValue(true),
+      istInaktiv: signal(false),
       istMaster: vi.fn().mockReturnValue(true),
     };
 
@@ -95,5 +97,26 @@ describe('App', () => {
       .componentInstance as AppToolbar;
 
     expect(toolbar.title()).toBe('Pur-System');
+  });
+
+  it('should show the global notice only for an inactive own profile', () => {
+    const fixture = TestBed.createComponent(App);
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.querySelector('.global-banner')).toBeNull();
+
+    benutzerStoreMock.istInaktiv.set(true);
+    fixture.detectChanges();
+    const banner = fixture.nativeElement.querySelector('.global-banner') as HTMLElement;
+
+    expect(banner.getAttribute('role')).toBe('alert');
+    expect(banner.querySelector('.global-banner__text')?.textContent?.trim()).toBe(
+      'Dieses Profil ist inaktiv. Bitte wende dich an einen Administrator.',
+    );
+
+    benutzerStoreMock.istInaktiv.set(false);
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.querySelector('.global-banner')).toBeNull();
   });
 });

@@ -56,12 +56,13 @@ Stand: 26.09.2026. Dieses Dokument beschreibt den aktuellen Umsetzungsstand im C
 - Firebase und AngularFire sind installiert.
 - Firebase-Konfiguration liegt unter `src/environments`.
 - Firebase App, Auth und Firestore werden in `app.config.ts` bereitgestellt.
-- Firestore ist mit lokalem Cache vorbereitet.
-- Firebase Tokens für Auth sowie lesende und schreibende Firestore-Zugriffe sind vorbereitet.
+- Firestore verwendet derzeit ausschließlich den standardmäßigen nicht persistenten Speicher; eine dauerhafte lokale
+  Firestore-Datenhaltung ist nicht aktiviert.
+- Firebase Tokens für Auth sowie lesende, beobachtende und schreibende Firestore-Zugriffe sind vorbereitet.
 - Technische Firebase-Anbindungen liegen unter `src/app/services/firebase`; fachliche Services liegen getrennt unter
   `src/app/services/domain`.
-- Der technische `FirestoreDbService` kapselt Collection-Lesen, Dokument-Lesen, Anlegen, Merge-Aktualisieren, Server-Zeitstempel
-  und den Angular-Injection-Kontext.
+- Der technische `FirestoreDbService` kapselt Collection-Lesen, Dokument-Lesen, Dokumentbeobachtung, Anlegen,
+  Merge-Aktualisieren, Server-Zeitstempel und den Angular-Injection-Kontext.
 - Firestore-Collection- und Dokumentpfade für Benutzerprofile, Unternehmer, Firmen und Filialen werden zentral in
   `firebase.constants.ts` erzeugt.
 - `BenutzerService`, `UnternehmerService`, `FirmaService` und `FilialeService` verwenden keine direkten AngularFire-Aufrufe mehr,
@@ -70,6 +71,9 @@ Stand: 26.09.2026. Dieses Dokument beschreibt den aktuellen Umsetzungsstand im C
   Firmen- und Filialdaten; Master laden zusätzlich alle Benutzerprofile.
 - Verwaltung, Systemverwaltung und Datenzugriffsauswahl verwenden den gemeinsamen Sitzungsbestand. Er wird bei Neuanlagen direkt
   aktualisiert und bei Logout oder Benutzerwechsel zurückgesetzt.
+- Der `GlobalBannerService` verwaltet einen zentralen Bannerzustand mit Darstellungsart, Text und Quelle. Die
+  `GlobalBanner`-Component ist unterhalb der Toolbar in die App-Shell eingebunden. Ein neuer Banner ersetzt den bisherigen;
+  `clearIfSource()` verhindert, dass eine fachliche Quelle den Hinweis einer anderen Quelle entfernt.
 - Offline-Ladestrategien, Pending-Sync, Migrationen und Batch-Schreibvorgänge aus der Altanwendung wurden bewusst noch nicht
   übernommen.
 - Fachliche Daten werden derzeit in allen Auslieferungsvarianten ausschließlich online verwendet. Eine dauerhafte
@@ -85,8 +89,10 @@ Stand: 26.09.2026. Dieses Dokument beschreibt den aktuellen Umsetzungsstand im C
 - Der neue Loginablauf ist technisch umgesetzt und mit den neu angelegten Rollen- und Hostingvarianten erfolgreich geprüft. Die
   bisherigen Testkonten werden bewusst nicht migriert; ein neuer Master und alle weiteren Zugänge werden nach dem neuen Modell
   angelegt.
-- Benutzerprofile werden aus `benutzerprofil/{uid}` geladen. Aktive Master dürfen die ausdrücklich bearbeitbaren Felder
-  vorhandener Profile direkt aktualisieren.
+- Benutzerprofile werden aus `benutzerprofil/{uid}` geladen. Das eigene Profil wird zusätzlich während der gesamten
+  Auth-Sitzung in Echtzeit beobachtet. Der Listener wird bei Abmeldung oder Benutzerwechsel entfernt und nach einem Offline-Start
+  bei der nächsten Serververbindung aktualisiert. Aktive Master dürfen die ausdrücklich bearbeitbaren Felder vorhandener Profile
+  direkt aktualisieren.
 - Die Anlage von Auth-Konto und Profil bleibt im Backend umgesetzt. E-Mail-Adresse, Passwort und Firebase-Auth-Status werden durch
   die clientseitige Profilbearbeitung nicht verändert.
 - Benutzerprofile unterstützen `userRole` mit `filiale`, `office`, `master` oder `mitarbeiter`. Die vierte Rolle ist damit
@@ -216,9 +222,11 @@ Stand: 26.09.2026. Dieses Dokument beschreibt den aktuellen Umsetzungsstand im C
   einer Profilaktualisierung. Die vorhandenen Rollen-Guards bleiben die funktionale Zugriffssicherung.
 - Das eigene Masterprofil kann nicht deaktiviert werden. Die Benutzerrolle ist für sämtliche Profile unveränderlich. Dieser
   Selbstschutz sowie die weiteren unveränderlichen Profilfelder sind zusätzlich durch Firestore Rules abgesichert.
-- Änderungen am aktuell angemeldeten Masterprofil werden unmittelbar in den lokalen Benutzer-Store übernommen. Andere bereits
-  angemeldete Benutzer erhalten geänderte UI-Freigaben spätestens nach einem Neuladen; die Firestore Rules werten den geänderten
-  Profilstand sofort aus.
+- Änderungen am aktuell angemeldeten Profil werden über den Echtzeit-Listener unmittelbar in den lokalen Benutzer-Store
+  übernommen. Bei einer Deaktivierung werden die sitzungsbezogenen Stammdaten zurückgesetzt und der `GlobalBannerService` zeigt
+  unter der Toolbar den nicht ausblendbaren Hinweis „Dieses Profil ist inaktiv. Bitte wende dich an einen Administrator.“. Ein
+  Listenerfehler verändert den zuletzt bestätigten Aktivstatus nicht. Es erfolgt keine automatische Abmeldung; die vorhandenen
+  Guards sichern neue fachliche Navigationen weiterhin ab, während die authentifizierte Passwortseite erreichbar bleibt.
 
 ## Firmen- und Filialverwaltung
 
@@ -400,13 +408,17 @@ Stand: 26.09.2026. Dieses Dokument beschreibt den aktuellen Umsetzungsstand im C
 
 Am 26.09.2026 für den aktuellen Frontend-Stand erfolgreich geprüft:
 
-- 335 Frontend-Tests einschließlich rollenbezogener flacher und verschachtelter Navigation, Bereichsfreigaben und konsistenter
+- 353 Frontend-Tests einschließlich rollenbezogener flacher und verschachtelter Navigation, Bereichsfreigaben und konsistenter
   Guard-Ausweichnavigation, vereinfachter Anmeldung, Benutzeranlage und -darstellung, der Rolle `mitarbeiter`,
   PWA-Updatebehandlung, Netzwerkstatus, Store-Snapshots, Datenstruktur-Anlage, zentraler Stammdateninitialisierung sowie Firmen-,
-  Filial- und Benutzerprofil-Bearbeitung.
+  Filial- und Benutzerprofil-Bearbeitung, Echtzeitbeobachtung des eigenen Profils sowie globalem Banner-Service und
+  Inaktivhinweis.
 - Die rollenbezogene Navigation wurde zusätzlich manuell mit Tastatur, sichtbarem Fokus und zugänglichen Bezeichnungen geprüft.
 - Datenstruktur-Anlage und Benutzerverwaltung wurden unter ihren getrennten Systemverwaltungsrouten auf Desktop und einem
   kleinen Viewport erfolgreich manuell geprüft.
+- Die Echtzeitbeobachtung des eigenen Profils wurde manuell mit Deaktivierung, Neustart, Wiederverbindung und erneuter Aktivierung
+  geprüft. Ein inaktives, weiterhin authentifiziertes Profil wird auf der Loginseite durch den globalen Banner kenntlich gemacht;
+  nach erneuter Aktivierung wechselt die Anwendung selbstständig zum Dashboard.
 - 52 Functions-Tests einschließlich technischer Anmeldedaten, doppelter Anmeldenamen, Mitarbeiterzugangsanlage, Rollenprüfung,
   Hierarchievalidierung und sicherer Kontoaktivierung.
 - 29 Firestore-Emulator-Tests für die Begrenzung der Rolle `mitarbeiter`, bestehende Rollen, neue Hierarchie, Untercollections,
@@ -416,7 +428,7 @@ Am 26.09.2026 für den aktuellen Frontend-Stand erfolgreich geprüft:
   jeweils passende Manifest, zehn erreichbare App-Icons, lokale Roboto- und Material-Icon-Schriften, `ngsw.json`,
   `ngsw-worker.js` und die Ressourcengruppen `app`, `fonts` und `assets`. Die Builds benötigen in der Codex-Umgebung Zugriff
   außerhalb der Sandbox, weil der native `esbuild`-Prozess innerhalb der eingeschränkten Umgebung mit Exit-Code 134 beendet wird.
-  Der aktuelle Standard-Produktionsbuild ist erfolgreich. Die bekannte Budgetwarnung beträgt rund 69 kB über dem initialen
+  Der aktuelle Standard-Produktionsbuild ist erfolgreich. Die bekannte Budgetwarnung beträgt rund 73 kB über dem initialen
   Limit von 1,50 MB.
 - Die Mitarbeiter-App-Shell wurde lokal nach vollständigem Beenden des Webservers in Desktop- und mobiler Viewport-Größe
   erfolgreich aus dem Service-Worker-Cache neu geladen. Die veröffentlichte Login-Seite wurde ohne Browserfehler geladen. Pur

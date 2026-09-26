@@ -1,7 +1,15 @@
 // pur-office/src/app/app.ts
 
 import { BreakpointObserver } from '@angular/cdk/layout';
-import { ChangeDetectionStrategy, Component, Signal, ViewChild, inject } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  Signal,
+  ViewChild,
+  effect,
+  inject,
+  untracked,
+} from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { MatSidenav, MatSidenavModule } from '@angular/material/sidenav';
 import { NavigationEnd, Router, RouterOutlet } from '@angular/router';
@@ -10,7 +18,11 @@ import { filter, map } from 'rxjs';
 import { environment } from '../environments/environment';
 import { AppSidenav } from './components/app-shell/app-sidenav/app-sidenav';
 import { AppToolbar } from './components/app-shell/app-toolbar/app-toolbar';
+import { GlobalBanner } from './components/app-shell/global-banner/global-banner';
+import { GlobalBannerService } from './services/core/global-banner.service';
 import { BenutzerStore } from './stores/app/benutzer.store';
+
+const INAKTIV_BANNER_SOURCE = 'benutzerprofil:inaktiv';
 
 type TRoutenKontext = {
   authLayout: boolean;
@@ -19,13 +31,14 @@ type TRoutenKontext = {
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet, MatSidenavModule, AppSidenav, AppToolbar],
+  imports: [RouterOutlet, MatSidenavModule, AppSidenav, AppToolbar, GlobalBanner],
   templateUrl: './app.html',
   styleUrl: './app.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class App {
   private readonly _breakpointObserver = inject(BreakpointObserver);
+  private readonly _globalBannerService = inject(GlobalBannerService);
   private readonly _router = inject(Router);
 
   readonly benutzerStore = inject(BenutzerStore);
@@ -51,6 +64,21 @@ export class App {
 
   constructor() {
     this.benutzerStore.initAuthState();
+    effect(() => {
+      const istInaktiv = this.benutzerStore.istInaktiv();
+      untracked(() => {
+        if (istInaktiv) {
+          this._globalBannerService.show({
+            kind: 'error',
+            text: 'Dieses Profil ist inaktiv. Bitte wende dich an einen Administrator.',
+            source: INAKTIV_BANNER_SOURCE,
+          });
+          return;
+        }
+
+        this._globalBannerService.clearIfSource(INAKTIV_BANNER_SOURCE);
+      });
+    });
   }
 
   get isSidenavOpened(): boolean {

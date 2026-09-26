@@ -17,6 +17,7 @@ import {
   doc,
   getDoc,
   getDocs,
+  onSnapshot,
   query,
   serverTimestamp,
   setDoc,
@@ -78,6 +79,14 @@ export const FIRESTORE_GET_DOC = new InjectionToken<typeof getDoc>('FIRESTORE_GE
   providedIn: 'root',
   factory: () => getDoc,
 });
+
+export const FIRESTORE_ON_SNAPSHOT = new InjectionToken<typeof onSnapshot>(
+  'FIRESTORE_ON_SNAPSHOT',
+  {
+    providedIn: 'root',
+    factory: () => onSnapshot,
+  },
+);
 
 export const FIRESTORE_COLLECTION = new InjectionToken<typeof collection>('FIRESTORE_COLLECTION', {
   providedIn: 'root',

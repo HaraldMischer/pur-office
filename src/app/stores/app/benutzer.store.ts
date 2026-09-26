@@ -43,6 +43,9 @@ export const BenutzerStore = signalStore(
     const istAktiv = computed(() => {
       return store.benutzerProfil()?.aktiv === true;
     });
+    const istInaktiv = computed(() => {
+      return store.benutzerProfil()?.aktiv === false;
+    });
     const erlaubteBereiche = computed(() => {
       return store.benutzerProfil()?.erlaubteBereiche ?? [];
     });
@@ -54,6 +57,7 @@ export const BenutzerStore = signalStore(
       isLoggedIn,
       istMaster,
       istAktiv,
+      istInaktiv,
       erlaubteBereiche,
       zugriffe,
     };
@@ -73,6 +77,7 @@ export const BenutzerStore = signalStore(
       let profilGeneration = 0;
       let profilAuftrag: { uid: string; promise: Promise<IBenutzerProfilDokument | null> } | null =
         null;
+      let profilBeobachtung: { uid: string; unsubscribe: () => void } | null = null;
 
       // ===== Methoden: Laden ======================
 
@@ -84,6 +89,8 @@ export const BenutzerStore = signalStore(
        * @throws Gibt Fehler des Profilladens an die aufrufende Stelle weiter.
        */
       function loadBenutzerProfil(uid: string): Promise<IBenutzerProfilDokument | null> {
+        startBenutzerProfilBeobachtung(uid);
+
         if (profilBenutzerId === uid && !profilAuftrag) {
           return Promise.resolve(store.benutzerProfil());
         }
@@ -151,6 +158,7 @@ export const BenutzerStore = signalStore(
             uid: credential.user.uid,
           });
           patchState(store, { isAuthenticated: true });
+          startBenutzerProfilBeobachtung(credential.user.uid);
           await loadBenutzerProfil(credential.user.uid);
         } catch (error: unknown) {
           patchState(store, { error: getFirebaseErrorMessage(error) });
@@ -324,7 +332,82 @@ export const BenutzerStore = signalStore(
         }
       }
 
+      function startBenutzerProfilBeobachtung(uid: string): void {
+        if (profilBeobachtung?.uid === uid) {
+          return;
+        }
+
+        const benutzerWirdGewechselt = profilBeobachtung !== null;
+        stopBenutzerProfilBeobachtung();
+        if (benutzerWirdGewechselt) {
+          profilGeneration++;
+          profilBenutzerId = null;
+          profilAuftrag = null;
+          stammdatenStore.reset();
+          patchState(store, { benutzerProfil: null, error: null });
+        }
+        profilBeobachtung = {
+          uid,
+          unsubscribe: benutzerService.observeBenutzerProfil(
+            uid,
+            (benutzerProfil) => {
+              handleBeobachtetesBenutzerProfil(uid, benutzerProfil);
+            },
+            (error) => {
+              if (profilBeobachtung?.uid === uid) {
+                patchState(store, { error: getFirebaseErrorMessage(error) });
+              }
+            },
+          ),
+        };
+      }
+
+      function handleBeobachtetesBenutzerProfil(
+        uid: string,
+        benutzerProfil: IBenutzerProfilDokument | null,
+      ): void {
+        if (profilBeobachtung?.uid !== uid) {
+          return;
+        }
+
+        const vorherigesProfil = store.benutzerProfil();
+        profilBenutzerId = uid;
+        patchState(store, { benutzerProfil, error: null });
+
+        if (!benutzerProfil?.aktiv) {
+          stammdatenStore.reset();
+          return;
+        }
+
+        if (hatDatenzugriffGeaendert(vorherigesProfil, benutzerProfil)) {
+          stammdatenStore.reset();
+        }
+        void stammdatenStore.loadStammdaten(uid, benutzerProfil);
+      }
+
+      function hatDatenzugriffGeaendert(
+        vorherigesProfil: IBenutzerProfilDokument | null,
+        benutzerProfil: IBenutzerProfilDokument,
+      ): boolean {
+        if (!vorherigesProfil?.aktiv) {
+          return false;
+        }
+
+        return (
+          vorherigesProfil.userRole !== benutzerProfil.userRole ||
+          JSON.stringify(vorherigesProfil.erlaubteBereiche) !==
+            JSON.stringify(benutzerProfil.erlaubteBereiche) ||
+          JSON.stringify(vorherigesProfil.zugriffe) !== JSON.stringify(benutzerProfil.zugriffe)
+        );
+      }
+
+      function stopBenutzerProfilBeobachtung(): void {
+        profilBeobachtung?.unsubscribe();
+        profilBeobachtung = null;
+      }
+
       function resetBenutzerProfilCache(): void {
+        stopBenutzerProfilBeobachtung();
         profilGeneration++;
         profilBenutzerId = null;
         profilAuftrag = null;
@@ -334,7 +417,10 @@ export const BenutzerStore = signalStore(
         'BenutzerStore',
         snapshot,
       );
-      destroyRef.onDestroy(unregisterSnapshot);
+      destroyRef.onDestroy(() => {
+        stopBenutzerProfilBeobachtung();
+        unregisterSnapshot();
+      });
 
       return {
         initAuthState,

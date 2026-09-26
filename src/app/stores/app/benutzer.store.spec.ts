@@ -2,6 +2,7 @@
 
 import { TestBed } from '@angular/core/testing';
 import { UserCredential } from '@angular/fire/auth';
+import { Subject } from 'rxjs';
 
 import { IBenutzerProfilDokument } from '../../commons/models/domain/benutzer';
 import { DebugLogService } from '../../services/core/debug-log.service';
@@ -18,6 +19,7 @@ describe('BenutzerStore', () => {
   };
   let benutzerServiceMock: {
     getBenutzerProfil: ReturnType<typeof vi.fn>;
+    observeBenutzerProfil: ReturnType<typeof vi.fn>;
   };
   let stammdatenStoreMock: {
     isLoaded: ReturnType<typeof vi.fn>;
@@ -30,6 +32,12 @@ describe('BenutzerStore', () => {
     logDatenGeladen: ReturnType<typeof vi.fn>;
   };
   let profil: IBenutzerProfilDokument;
+  let profilListener: Array<{
+    uid: string;
+    next: (profil: IBenutzerProfilDokument | null) => void;
+    error: (error: unknown) => void;
+    unsubscribe: ReturnType<typeof vi.fn>;
+  }>;
 
   beforeEach(() => {
     profil = {
@@ -47,6 +55,17 @@ describe('BenutzerStore', () => {
     };
     benutzerServiceMock = {
       getBenutzerProfil: vi.fn().mockResolvedValue(profil),
+      observeBenutzerProfil: vi.fn(
+        (
+          uid: string,
+          next: (profil: IBenutzerProfilDokument | null) => void,
+          error: (error: unknown) => void,
+        ) => {
+          const unsubscribe = vi.fn();
+          profilListener.push({ uid, next, error, unsubscribe });
+          return unsubscribe;
+        },
+      ),
     };
     stammdatenStoreMock = {
       isLoaded: vi.fn().mockReturnValue(false),
@@ -58,6 +77,7 @@ describe('BenutzerStore', () => {
       logDatenflussTitel: vi.fn(),
       logDatenGeladen: vi.fn(),
     };
+    profilListener = [];
 
     TestBed.configureTestingModule({
       providers: [
@@ -79,6 +99,7 @@ describe('BenutzerStore', () => {
     expect(store.error()).toBeNull();
     expect(store.isLoggedIn()).toBe(false);
     expect(store.istMaster()).toBe(false);
+    expect(store.istInaktiv()).toBe(false);
     expect(store.zugriffe()).toEqual({});
   });
 
@@ -109,6 +130,11 @@ describe('BenutzerStore', () => {
 
     expect(authServiceMock.login).toHaveBeenCalledWith('test-master', 'secret-password');
     expect(benutzerServiceMock.getBenutzerProfil).toHaveBeenCalledWith('benutzer-123');
+    expect(benutzerServiceMock.observeBenutzerProfil).toHaveBeenCalledWith(
+      'benutzer-123',
+      expect.any(Function),
+      expect.any(Function),
+    );
     expect(store.isAuthenticated()).toBe(true);
     expect(store.benutzerProfil()).toBe(profil);
     expect(store.isLoggedIn()).toBe(true);
@@ -159,13 +185,65 @@ describe('BenutzerStore', () => {
 
   it('should logout and clear the user profile', async () => {
     const store = TestBed.inject(BenutzerStore);
-    store.setBenutzerProfil(profil);
+    await store.login('test-office', 'secret-password');
 
     await store.logout();
 
     expect(authServiceMock.logout).toHaveBeenCalledOnce();
     expect(stammdatenStoreMock.reset).toHaveBeenCalled();
+    expect(profilListener[0].unsubscribe).toHaveBeenCalledOnce();
     expect(store.benutzerProfil()).toBeNull();
+  });
+
+  it('should update the profile in real time and reset data when it becomes inactive', async () => {
+    const store = TestBed.inject(BenutzerStore);
+    await store.login('test-office', 'secret-password');
+    stammdatenStoreMock.reset.mockClear();
+
+    profilListener[0].next({ ...profil, aktiv: false });
+
+    expect(store.benutzerProfil()).toEqual({ ...profil, aktiv: false });
+    expect(store.istInaktiv()).toBe(true);
+    expect(stammdatenStoreMock.reset).toHaveBeenCalledOnce();
+
+    profilListener[0].next(profil);
+
+    expect(store.istInaktiv()).toBe(false);
+    expect(stammdatenStoreMock.loadStammdaten).toHaveBeenLastCalledWith('benutzer-123', profil);
+  });
+
+  it('should preserve the last profile when the real-time listener fails', async () => {
+    const store = TestBed.inject(BenutzerStore);
+    await store.login('test-office', 'secret-password');
+
+    profilListener[0].error({ code: 'unavailable' });
+
+    expect(store.benutzerProfil()).toBe(profil);
+    expect(store.istInaktiv()).toBe(false);
+    expect(store.error()).toBe('Die Daten sind gerade nicht erreichbar. Bitte versuche es erneut.');
+  });
+
+  it('should replace the profile listener when the authenticated user changes', async () => {
+    const authState = new Subject<{ uid: string } | null>();
+    authServiceMock.getAuthState.mockReturnValue(authState);
+    benutzerServiceMock.getBenutzerProfil.mockImplementation(async (uid: string) => {
+      return { ...profil, anzeigename: uid };
+    });
+    const store = TestBed.inject(BenutzerStore);
+    store.initAuthState();
+
+    authState.next({ uid: 'benutzer-1' });
+    await vi.waitFor(() => {
+      expect(store.benutzerProfil()?.anzeigename).toBe('benutzer-1');
+    });
+    authState.next({ uid: 'benutzer-2' });
+    await vi.waitFor(() => {
+      expect(store.benutzerProfil()?.anzeigename).toBe('benutzer-2');
+    });
+
+    expect(profilListener.map((listener) => listener.uid)).toEqual(['benutzer-1', 'benutzer-2']);
+    expect(profilListener[0].unsubscribe).toHaveBeenCalledOnce();
+    expect(stammdatenStoreMock.reset).toHaveBeenCalled();
   });
 
   it('should store a friendly error when login fails', async () => {

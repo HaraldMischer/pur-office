@@ -9,6 +9,7 @@ import {
   FIRESTORE_DOC,
   FIRESTORE_GET_DOC,
   FIRESTORE_GET_DOCS,
+  FIRESTORE_ON_SNAPSHOT,
   FIRESTORE_SERVER_TIMESTAMP,
   FIRESTORE_SET_DOC,
 } from '../../commons/tokens/firebase.tokens';
@@ -31,6 +32,7 @@ export class FirestoreDbService {
   private readonly doc = inject(FIRESTORE_DOC);
   private readonly getDoc = inject(FIRESTORE_GET_DOC);
   private readonly getDocs = inject(FIRESTORE_GET_DOCS);
+  private readonly onSnapshot = inject(FIRESTORE_ON_SNAPSHOT);
   private readonly loadingService = inject(LoadingService);
   private readonly netzwerkStatusService = inject(NetzwerkStatusService);
   private readonly serverTimestamp = inject(FIRESTORE_SERVER_TIMESTAMP);
@@ -93,6 +95,38 @@ export class FirestoreDbService {
           daten: snapshot.data() as T,
         };
       });
+    });
+  }
+
+  /**
+   * Beobachtet ein einzelnes Firestore-Dokument in Echtzeit.
+   *
+   * @param documentPath - Vollständiger Pfad des Dokuments.
+   * @param next - Wird bei jedem Dokumentstand mit den Daten oder `null` aufgerufen.
+   * @param error - Wird bei einem Fehler des Echtzeit-Listeners aufgerufen.
+   * @returns Funktion zum Beenden des Echtzeit-Listeners.
+   */
+  observeDocument<T extends DocumentData>(
+    documentPath: string,
+    next: (dokument: IFirestoreDokument<T> | null) => void,
+    error: (error: unknown) => void,
+  ): () => void {
+    return this.runInContext(() => {
+      const documentRef = this.doc(this.firestore, documentPath);
+      return this.onSnapshot(
+        documentRef,
+        (snapshot) => {
+          next(
+            snapshot.exists()
+              ? {
+                  id: snapshot.id,
+                  daten: snapshot.data() as T,
+                }
+              : null,
+          );
+        },
+        error,
+      );
     });
   }
 

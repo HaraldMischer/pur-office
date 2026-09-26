@@ -1,0 +1,32 @@
+/* pur-office/src/app/components/app-shell/global-banner/global-banner.scss */
+
+.global-banner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin: 0;
+  padding: 12px calc(20px + env(safe-area-inset-right)) 12px calc(20px + env(safe-area-inset-left));
+  border-block-end: 1px solid currentColor;
+  font: var(--mat-sys-label-large);
+  text-align: center;
+
+  &--info {
+    background: var(--mat-sys-primary-container);
+    color: var(--mat-sys-on-primary-container);
+  }
+
+  &--warn {
+    background: var(--mat-sys-tertiary-container);
+    color: var(--mat-sys-on-tertiary-container);
+  }
+
+  &--error {
+    background: var(--mat-sys-error-container);
+    color: var(--mat-sys-on-error-container);
+  }
+
+  &__icon {
+    flex: 0 0 auto;
+  }
+}

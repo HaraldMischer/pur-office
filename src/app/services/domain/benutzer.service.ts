@@ -16,6 +16,10 @@ import {
 import { buildErlaubteBereiche } from '../../commons/utils/benutzer/erlaubte-bereiche';
 import { FirestoreDbService } from '../firebase/firestore-db.service';
 
+type TBenutzerProfilRohdaten = Omit<IBenutzerProfilDokument, 'zugriffe'> & {
+  zugriffe?: unknown;
+};
+
 @Injectable({
   providedIn: 'root',
 })
@@ -34,9 +38,9 @@ export class BenutzerService {
    * @throws Gibt Fehler des Firestore-Zugriffs an die aufrufende Stelle weiter.
    */
   async getBenutzerProfil(uid: string): Promise<IBenutzerProfilDokument | null> {
-    const dokument = await this.firestoreDbService.loadDocument<
-      Omit<IBenutzerProfilDokument, 'zugriffe'> & { zugriffe?: unknown }
-    >(FIRESTORE_DOCUMENT_PATHS.benutzerprofil(uid));
+    const dokument = await this.firestoreDbService.loadDocument<TBenutzerProfilRohdaten>(
+      FIRESTORE_DOCUMENT_PATHS.benutzerprofil(uid),
+    );
 
     if (!dokument) {
       return null;
@@ -46,15 +50,37 @@ export class BenutzerService {
   }
 
   /**
+   * Beobachtet das Benutzerprofil für die übergebene Firebase-Auth-UID in Echtzeit.
+   *
+   * @param uid - UID des angemeldeten Firebase-Benutzers.
+   * @param next - Wird bei jedem Profilstand mit dem normalisierten Profil oder `null` aufgerufen.
+   * @param error - Wird bei einem Fehler des Echtzeit-Listeners aufgerufen.
+   * @returns Funktion zum Beenden des Echtzeit-Listeners.
+   */
+  observeBenutzerProfil(
+    uid: string,
+    next: (profil: IBenutzerProfilDokument | null) => void,
+    error: (error: unknown) => void,
+  ): () => void {
+    return this.firestoreDbService.observeDocument<TBenutzerProfilRohdaten>(
+      FIRESTORE_DOCUMENT_PATHS.benutzerprofil(uid),
+      (dokument) => {
+        next(dokument ? this.mapBenutzerProfil(dokument.daten) : null);
+      },
+      error,
+    );
+  }
+
+  /**
    * Lädt alle Benutzerprofile für die Systemverwaltung.
    *
    * @returns Die nach Anzeigename sortierten Profile einschließlich ihrer Dokument-ID als UID.
    * @throws Gibt Fehler des Firestore-Zugriffs an die aufrufende Stelle weiter.
    */
   async loadBenutzerProfile(): Promise<IBenutzerProfilEintrag[]> {
-    const dokumente = await this.firestoreDbService.loadCollection<
-      Omit<IBenutzerProfilDokument, 'zugriffe'> & { zugriffe?: unknown }
-    >(FIRESTORE_COLLECTION_PATHS.benutzerprofile);
+    const dokumente = await this.firestoreDbService.loadCollection<TBenutzerProfilRohdaten>(
+      FIRESTORE_COLLECTION_PATHS.benutzerprofile,
+    );
 
     return dokumente
       .map((dokument) => ({
@@ -120,9 +146,7 @@ export class BenutzerService {
     return Object.fromEntries(zugriffe);
   }
 
-  private mapBenutzerProfil(
-    profil: Omit<IBenutzerProfilDokument, 'zugriffe'> & { zugriffe?: unknown },
-  ): IBenutzerProfilDokument {
+  private mapBenutzerProfil(profil: TBenutzerProfilRohdaten): IBenutzerProfilDokument {
     return {
       email: profil.email,
       anmeldename: profil.anmeldename,

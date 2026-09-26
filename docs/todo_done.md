@@ -1216,3 +1216,154 @@ Zu löschen:
 - [x] Benutzeranlage und Bearbeitung vorhandener Benutzerprofile bleiben gemeinsam auf der Benutzerverwaltungsseite verfügbar.
 - [x] Nicht berechtigte Rollen sehen keine Systemverwaltungsnavigation und können keine der Unterrouten öffnen.
 - [x] Automatisierte Tests, Build und manuelle Bedienprüfung sind erfolgreich.
+
+## 11. Pflichtbereiche für Benutzerprofile verbindlich machen
+
+### Ziel
+
+Das Dashboard bleibt für jede Benutzerrolle eine verpflichtende Hauptseite. Die Systemverwaltung gehört ausschließlich zu
+Masterprofilen. Beide Pflichtbereiche werden nicht mehr als frei wählbare Checkboxen dargestellt. Frontend, Callable Function und
+Firestore Rules setzen dieselbe Regel bei Anlage und Bearbeitung durch.
+
+### Betroffene Dateien
+
+Änderungen:
+
+- src/app/pages/systemverwaltung-page/benutzer-page/benutzer-anlage/
+- src/app/pages/systemverwaltung-page/benutzer-page/benutzer-page.spec.ts
+- src/app/pages/systemverwaltung-page/benutzer-page/benutzer-verwaltung/benutzer-bearbeiten-dialog/
+- src/app/services/domain/benutzer.service.ts
+- src/app/services/domain/benutzer.service.spec.ts
+- src/app/stores/domain/benutzer-verwaltung.store.ts
+- src/app/stores/domain/benutzer-verwaltung.store.spec.ts
+- functions/src/create-benutzer.ts
+- functions/src/create-benutzer.spec.ts
+- firestore.rules
+- rules-tests/firestore.rules.test.mjs
+- docs/projekt-plan.md
+- docs/projekt-stand.md
+
+Neu hinzuzufügen:
+
+- src/app/commons/utils/benutzer/erlaubte-bereiche.ts
+- src/app/commons/utils/benutzer/erlaubte-bereiche.spec.ts
+
+### Schritt 1: Pflichtbereiche zentral normalisieren
+
+- [x] Die optional wählbaren Bereiche `schichtplan`, `mitarbeiter` und `verwaltung` zentral festlegen.
+- [x] `dashboard` für jede Rolle und `systemverwaltung` ausschließlich für Master ergänzen.
+- [x] Manipulierte oder doppelte Pflichtbereichswerte aus Eingaben bereinigen.
+- [x] Bereits vorhandene Profile beim Laden auf die Pflichtbereichsregel normalisieren.
+
+### Schritt 2: Anlage und Bearbeitung vereinfachen
+
+- [x] In beiden Formularen ausschließlich die optionalen Bereiche als Checkboxen anzeigen.
+- [x] Anlage- und Aktualisierungspayloads vor dem Speichern normalisieren.
+
+### Schritt 3: Backend und Rules absichern
+
+- [x] Die Callable Function die Pflichtbereiche unabhängig vom Client verbindlich setzen lassen.
+- [x] Leere Auswahlen optionaler Bereiche bei der Anlage zulassen.
+- [x] Profilaktualisierungen ohne Dashboard oder mit einer zur Rolle unpassenden Systemverwaltung in den Firestore Rules ablehnen.
+
+### Tests und Abschluss
+
+- [x] Frontend-Tests für optionale Checkboxen und rollenabhängige Pflichtbereiche erfolgreich ausführen.
+- [x] Functions-Tests für serverseitige Normalisierung erfolgreich ausführen.
+- [x] Firestore-Emulator-Tests für die Pflichtbereichsregeln erfolgreich ausführen.
+- [x] Produktionsbuild erfolgreich ausführen.
+- [x] Benutzeranlage und Bearbeitungsdialog manuell prüfen.
+- [x] Callable Function und Firestore Rules deployen und mit Testkonten prüfen.
+
+### Erledigt, wenn
+
+- [x] Dashboard ist in jedem neu angelegten oder bearbeiteten Benutzerprofil enthalten.
+- [x] Systemverwaltung ist genau bei Masterprofilen enthalten.
+- [x] Dashboard und Systemverwaltung werden nicht als Checkboxen angezeigt.
+- [x] Nur Schichtplan, Mitarbeiter und Verwaltung bleiben frei wählbar.
+- [x] Automatisierte Tests und Build sind erfolgreich.
+- [x] Die produktive Firebase-Konfiguration ist deployed und mit realen Profilen geprüft.
+
+## 12. Eigenes Benutzerprofil in Echtzeit überwachen und Inaktivstatus global anzeigen
+
+### Ziel
+
+Das Profil des aktuell angemeldeten Benutzers wird während der gesamten Sitzung in Echtzeit überwacht. Wird es deaktiviert, zeigt
+die Anwendung global einen nicht ausblendbaren Hinweis an. Das gilt auch, wenn eine dauerhaft angemeldete Anwendung offline neu
+gestartet wird: Sobald wieder eine Internetverbindung besteht, wird der aktuelle Profilstatus vom Server übernommen und der Hinweis
+gegebenenfalls angezeigt. Eine persistente lokale Firestore-Datenhaltung ist dafür nicht erforderlich und bleibt einer späteren
+PWA-Konzeption vorbehalten.
+
+### Betroffene Dateien
+
+Änderungen:
+
+- src/app/app.ts
+- src/app/app.html
+- src/app/app.scss
+- src/app/app.spec.ts
+- src/app/commons/tokens/firebase.tokens.ts
+- src/app/services/firebase/firestore-db.service.ts
+- src/app/services/firebase/firestore-db.service.spec.ts
+- src/app/services/domain/benutzer.service.ts
+- src/app/services/domain/benutzer.service.spec.ts
+- src/app/stores/app/benutzer.store.ts
+- src/app/stores/app/benutzer.store.spec.ts
+- docs/projekt-plan.md
+- docs/projekt-stand.md
+
+Neu hinzuzufügen:
+
+- src/app/commons/models/app/global-banner.types.ts
+- src/app/services/core/global-banner.service.ts
+- src/app/services/core/global-banner.service.spec.ts
+- src/app/components/app-shell/global-banner/global-banner.ts
+- src/app/components/app-shell/global-banner/global-banner.html
+- src/app/components/app-shell/global-banner/global-banner.scss
+- src/app/components/app-shell/global-banner/global-banner.spec.ts
+
+### Schritt 1: Eigenes Profil in Echtzeit beobachten
+
+- [x] Für das Dokument `benutzerprofil/{uid}` einen Echtzeit-Listener über die technische Firestore-Anbindung bereitstellen.
+- [x] Profiländerungen über den fachlichen Benutzerservice an den Benutzer-Store weitergeben.
+- [x] Den Listener nach wiederhergestellter Anmeldung und bei einem Benutzerwechsel eindeutig starten.
+- [x] Den bisherigen Listener bei Abmeldung, Benutzerwechsel und beim Beenden des zugehörigen Kontexts zuverlässig entfernen.
+
+### Schritt 2: Online-, Offline- und Fehlerverhalten festlegen
+
+- [x] Beim Online-Start den aktuellen Profilstatus vom Server übernehmen.
+- [x] Beim Offline-Start die bestehende Anmeldung erhalten und auf die nächste verfügbare Serveraktualisierung warten.
+- [x] Nach wiederhergestellter Verbindung einen inzwischen geänderten Aktivstatus übernehmen.
+- [x] Listenerfehler kontrolliert behandeln, ohne einen aktiven Benutzer allein aufgrund eines Verbindungsfehlers als inaktiv zu
+      markieren.
+- [x] Die persistente Firestore-Datenhaltung in dieser Aufgabe ausdrücklich nicht aktivieren.
+
+### Schritt 3: Inaktivstatus global anzeigen
+
+- [x] Einen einfachen globalen Banner-Service für genau einen Hinweis mit Art, Text und Quelle bereitstellen.
+- [x] Eine nicht ausblendbare App-Shell-Component für die globale Darstellung unterhalb der Toolbar bereitstellen.
+- [x] Unterhalb der Toolbar einen globalen, nicht ausblendbaren Banner für ein inaktives eigenes Profil anzeigen.
+- [x] Den Text „Dieses Profil ist inaktiv. Bitte wende dich an einen Administrator.“ verwenden.
+- [x] Den Banner ausblenden, sobald kein inaktives angemeldetes Profil mehr vorliegt.
+- [x] Festlegen und absichern, welche Navigation für ein inaktives, weiterhin authentifiziertes Profil noch möglich ist,
+      insbesondere für Login- und Passwortseite.
+
+### Tests und Abschluss
+
+- [x] Service-Tests für Profilaktualisierung, Listenerfehler und das Beenden des Listeners ergänzen.
+- [x] Store-Tests für Anmeldung, Benutzerwechsel, Abmeldung, Deaktivierung und erneute Aktivierung ergänzen.
+- [x] Service-, Component- und App-Tests für Zustand, Sichtbarkeit, Inhalt und Ausblendung des globalen Banners ergänzen.
+- [x] Den Ablauf bei laufender Anwendung sowie nach einem Online- und Offline-Neustart manuell prüfen.
+- [x] `npm test` ohne Watch-Modus erfolgreich ausführen.
+- [x] Produktionsbuild erfolgreich ausführen.
+- [x] Architektur-, Betriebs- und Umsetzungsstand zur gewählten Lösung aktualisieren.
+
+### Erledigt, wenn
+
+- [x] Eine serverseitige Deaktivierung des eigenen Profils wird bei bestehender Verbindung ohne Neustart sichtbar.
+- [x] Nach einem offline gestarteten Anwendungslauf erscheint der Banner bei der nächsten Internetverbindung, wenn das Profil
+      inzwischen deaktiviert wurde.
+- [x] Abmeldung und Benutzerwechsel hinterlassen keinen Listener des vorherigen Profils.
+- [x] Verbindungsfehler führen nicht fälschlich zu einem Inaktivstatus.
+- [x] Der globale Banner ist barrierearm, nicht ausblendbar und in allen vereinbarten Anwendungsbereichen sichtbar.
+- [x] Automatisierte Tests, Produktionsbuild, manuelle Prüfungen und Dokumentation sind abgeschlossen.
