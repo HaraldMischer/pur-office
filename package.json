@@ -1,9 +1,8 @@
 {
-  "name": "pur-office",
+  "name": "pur-system",
   "version": "0.0.0",
   "scripts": {
-    "start-web": "npm run web:pur-office",
-    "web:pur-office": "ng serve --configuration development --port 4200",
+    "web:pur-system": "ng serve --configuration development --port 4200",
     "pwa:pur-master": "npm run build:master && serve -s dist/pur-master/browser -l 8080 -n",
     "pwa:pur-office": "npm run build:office && serve -s dist/pur-office/browser -l 8081 -n",
     "pwa:pur-filiale": "npm run build:filiale && serve -s dist/pur-filiale/browser -l 8082 -n",
@@ -17,7 +16,7 @@
     "deploy:pur-filiale": "printf 'Pur Filiale deployen? Firebase-Projekt: pur-system | Hosting: pur-filiale.web.app | Mit Service Worker | Fortfahren? (j/N) '; read -r confirm; if [ \"$confirm\" = \"j\" ]; then npm run build:filiale && firebase deploy --project pur-system --only hosting:filiale; else echo 'Deploy abgebrochen.'; exit 0; fi",
     "deploy:pur-mitarbeiter": "printf 'Pur Mitarbeiter deployen? Firebase-Projekt: pur-system | Hosting: pur-mitarbeiter.web.app | Mit Service Worker | Fortfahren? (j/N) '; read -r confirm; if [ \"$confirm\" = \"j\" ]; then npm run build:mitarbeiter && firebase deploy --project pur-system --only hosting:mitarbeiter; else echo 'Deploy abgebrochen.'; exit 0; fi",
     "deploy-rules": "firebase deploy --only firestore:rules",
-    "deploy-functions": "firebase deploy --only functions:pur-office",
+    "deploy-functions": "firebase deploy --only functions:pur-system",
     "build": "ng build",
     "test": "CI=1 ng test --watch=false",
     "test:rules": "firebase emulators:exec --project demo-pur-office --only firestore \"node --test rules-tests/firestore.rules.test.mjs\"",

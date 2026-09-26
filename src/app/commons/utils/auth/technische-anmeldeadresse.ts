@@ -22,11 +22,18 @@ function normalizeZeichen(value: string): string {
     .replace(/[\u0300-\u036f]/g, '');
 }
 
+function normalizeTrennzeichen(trennzeichen: string): string {
+  return trennzeichen.includes('-') ? '-' : '.';
+}
+
 /**
  * Normalisiert einen frei eingegebenen Namen für die Verwendung im Anmeldenamen.
  */
 export function normalizeNamensbestandteil(value: string): string {
-  return normalizeZeichen(value).replace(/[^a-z0-9]/g, '');
+  return normalizeZeichen(value)
+    .replace(/[^a-z0-9.\s-]/g, '')
+    .replace(/[.\s-]+/g, normalizeTrennzeichen)
+    .replace(/^[.-]+|[.-]+$/g, '');
 }
 
 /**
@@ -41,10 +48,7 @@ export function buildAnmeldename(value: string, userRole: TUserRole): string {
  * Normalisiert einen bereits zusammengesetzten Anmeldenamen für die Anmeldung.
  */
 export function normalizeAnmeldename(value: string): string {
-  return normalizeZeichen(value)
-    .replace(/[^a-z0-9-]/g, '')
-    .replace(/-+/g, '-')
-    .replace(/^-|-$/g, '');
+  return normalizeNamensbestandteil(value);
 }
 
 /**

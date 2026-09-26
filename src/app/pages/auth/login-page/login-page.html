@@ -7,7 +7,9 @@
       <mat-card-title>
         Anmelden
         @if (isDevelopmentMode) {
-          <button type="button" (click)="patchLoginForm()">pur-master</button>
+          <span class="flex-spacer"></span>
+          <button type="button" (click)="patchLoginForm('harry-master')">pur-master</button>
+          <button type="button" (click)="patchLoginForm('hagenerstr-filiale')">pur-filiale</button>
         }
       </mat-card-title>
       <mat-card-subtitle>Melde dich mit deinem Anmeldenamen an.</mat-card-subtitle>
@@ -18,7 +20,7 @@
       <form
         class="pur-form pur-form--grid"
         [formGroup]="loginForm"
-        aria-label="Bei Pur Office anmelden"
+        [attr.aria-label]="'Bei ' + appTitle + ' anmelden'"
         (ngSubmit)="submitLogin()"
       >
         <mat-form-field appearance="outline" class="pur-form__field">
@@ -41,9 +43,21 @@
           <input
             formControlName="password"
             matInput
-            type="password"
+            [type]="passwortSichtbar() ? 'text' : 'password'"
             autocomplete="current-password"
           />
+          <button
+            matIconButton
+            matSuffix
+            type="button"
+            [attr.aria-label]="passwortSichtbar() ? 'Passwort ausblenden' : 'Passwort anzeigen'"
+            [matTooltip]="passwortSichtbar() ? 'Passwort ausblenden' : 'Passwort anzeigen'"
+            (click)="togglePasswortSichtbarkeit()"
+          >
+            <mat-icon aria-hidden="true">{{
+              passwortSichtbar() ? 'visibility_off' : 'visibility'
+            }}</mat-icon>
+          </button>
 
           @if (loginForm.controls.password.hasError('required')) {
             <mat-error>Passwort ist erforderlich.</mat-error>

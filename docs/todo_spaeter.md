@@ -24,7 +24,7 @@ und Aktion. Dieses Todo ist bis zu einem solchen fachlichen Bedarf zurückgestel
 
 ### Schritt 1: Aktuellen Online-Betrieb festhalten
 
-- [x] Fachliche Datenzugriffe in Pur Office, Pur Filiale und Pur Mitarbeiter zunächst ausschließlich online vorsehen.
+- [x] Fachliche Datenzugriffe in Pur Master, Pur Office, Pur Filiale und Pur Mitarbeiter zunächst ausschließlich online vorsehen.
 - [x] Keine fachlichen Daten bewusst dauerhaft für eine spätere Offline-Anzeige speichern.
 - [x] Keine Offline-Änderungen und keine spätere Synchronisation fachlicher Änderungen vorsehen.
 - [x] Offline-App-Shell und fachliche Offline-Daten als getrennte Fähigkeiten behandeln.

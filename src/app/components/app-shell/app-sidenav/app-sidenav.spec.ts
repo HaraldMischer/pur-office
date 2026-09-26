@@ -50,20 +50,7 @@ describe('AppSidenav', () => {
     }).compileComponents();
   });
 
-  it.each([
-    ['master', 'Pur Master'],
-    ['office', 'Pur Office'],
-    ['filiale', 'Pur Filiale'],
-  ])('should render the app title for the %s role', (userRole, expectedTitle) => {
-    benutzerStoreMock.benutzerProfil.mockReturnValue({ userRole });
-    const fixture = TestBed.createComponent(AppSidenavHost);
-    fixture.detectChanges();
-    const compiled = fixture.nativeElement as HTMLElement;
-
-    expect(compiled.querySelector('.app-brand-toolbar')?.textContent).toContain(expectedTitle);
-  });
-
-  it('should render the fallback app title without a loaded profile', () => {
+  it('should render the configured product title', () => {
     const fixture = TestBed.createComponent(AppSidenavHost);
     fixture.detectChanges();
     const compiled = fixture.nativeElement as HTMLElement;

@@ -6,6 +6,7 @@ export const environment = {
   production: true,
   debugLog: false,
   serviceWorkerEnabled: true,
+  appTitle: 'Pur Master',
   loginUserRole: 'master' as 'filiale' | 'office' | 'mitarbeiter' | 'master' | null,
   firebase: firebaseConfig,
 };

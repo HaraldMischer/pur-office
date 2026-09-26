@@ -71,12 +71,12 @@ describe('AuthService', () => {
   it('should login with the technical address built from the login name', async () => {
     const service = TestBed.inject(AuthService);
 
-    await service.login('HaraldMischer--MASTER', 'secret-password');
+    await service.login('Harald.Mischer--MASTER', 'secret-password');
 
     expect(assertOnlineMock).toHaveBeenCalledOnce();
     expect(signInMock).toHaveBeenCalledWith(
       authMock,
-      'haraldmischer-master@pur-system.invalid',
+      'harald.mischer-master@pur-system.invalid',
       'secret-password',
     );
   });

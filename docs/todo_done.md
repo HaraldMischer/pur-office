@@ -598,6 +598,10 @@ hier weder angelegt noch gelöscht werden.
 
 ## 6. Done Todo: PWA-Grundlage und technischer Offline-Start
 
+> **Historischer Stand:** Dieses Todo dokumentiert die damalige Trennung zwischen Office-Webanwendung und Filial-PWA. Der
+> aktuelle Stand umfasst vier getrennte PWA-Varianten für Master, Office, Filiale und Mitarbeiter und ist in den
+> [PWA-Konfigurationen](./pwa-konfigurationen.md) beschrieben.
+
 ### Ziel
 
 Pur Filiale wird als Progressive Web App installierbar und kann auf unterstützten Desktop- und Mobilgeräten wie eine eigenständige

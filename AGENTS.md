@@ -58,9 +58,9 @@
 
 ## Template-Schreibweise
 
-- Größere zusammenhängende Template-Bereiche erhalten kurze HTML-Kommentare zur Orientierung, z. B. `<!-- Benutzerkarte -->` oder
-  `<!-- Hauptnavigation -->`. Nur den Bereich benennen, keine ausführlichen Erklärungen und keine Kommentare für jedes einzelne
-  Element.
+- Zusammenhängende Template-Bereiche und in umfangreichen Formularen auch einzelne fachlich relevante Felder dürfen kurze
+  HTML-Kommentare zur Orientierung erhalten, z. B. `<!-- Benutzerkarte -->`, `<!-- Hauptnavigation -->` oder `<!-- Passwort -->`.
+  Kommentare benennen ausschließlich den Bereich oder das Feld und enthalten keine ausführlichen Erklärungen.
 - Einfache Seiten-Sections werden ohne `aria-labelledby` geschrieben.
 - Dafür werden auch keine nur zu diesem Zweck angelegten `id`-Attribute auf Titeln verwendet.
 - `pur-form` wird immer mit genau einem Layout-Modifier verwendet, z. B. `pur-form pur-form--grid` oder `pur-form pur-form--flex`.
@@ -120,8 +120,12 @@
 - Leerzeilen trennen unterschiedliche Abschnitte oder klar unterschiedliche Arten von Logik.
 - Code in Components, Pages, Services und Stores wird nach den unten definierten Abschnittsblöcken geordnet.
 - Abschnittsblöcke werden nur angelegt, wenn der jeweilige Inhalt vorhanden ist; leere Abschnittsüberschriften werden weggelassen.
-- Arrow Functions werden grundsätzlich mit Block-Body und explizitem `return` geschrieben; die kompakte
-  Expression-Body-Schreibweise `() => wert` wird nicht verwendet.
+- Für eigenständige benannte Hilfsfunktionen werden Funktionsdeklarationen gegenüber als `const` definierten Arrow Functions
+  bevorzugt. Kurze Callbacks, beispielsweise für `map()`, `filter()`, `find()`, `some()`, `every()` und `sort()`, dürfen
+  weiterhin als Arrow Functions geschrieben werden.
+- Arrow Functions, die einen Wert zurückgeben, werden grundsätzlich mit Block-Body und explizitem `return` geschrieben; die
+  kompakte Expression-Body-Schreibweise `() => wert` wird nicht verwendet. Callbacks ohne Rückgabewert verwenden ebenfalls einen
+  Block-Body; ein inhaltlich bedeutungsloses `return` ist dort nicht erforderlich.
 - Callbacks von `computed()` werden immer mit Block-Body und explizitem `return` geschrieben; die kompakte
   Expression-Body-Schreibweise wie `computed(() => store.inProgress())` wird auch bei kurzen Berechnungen nicht verwendet.
 - Für kurze Array-Callbacks wie `map()`, `filter()`, `find()`, `some()`, `every()` und `sort()` bleibt die kompakte
@@ -209,7 +213,7 @@
 - Halte Änderungen auf die vereinbarte Aufgabe beschränkt; keine unnötigen Refactorings.
 - Erhalte bestehende Änderungen des Benutzers. Dateien nur löschen, wenn es zur vereinbarten Aufgabe gehört; keine destruktiven
   Git-Aktionen ohne ausdrücklichen Auftrag.
-- Verwende die vorhandenen npm-Skripte aus dem Projekt-Root. Der lokale Dev-Server startet mit `npm run start-web`.
+- Verwende die vorhandenen npm-Skripte aus dem Projekt-Root. Der lokale Dev-Server startet mit `npm run web:pur-system`.
 - Füge Dependencies nur bei begründetem Bedarf hinzu und aktualisiere `package.json` und `package-lock.json` gemeinsam.
 - Ergänze oder aktualisiere passende `.spec.ts` Dateien bei Verhaltensänderungen.
 - Führe vor Abschluss von Code-Änderungen `npm test` ohne Watch-Modus aus.

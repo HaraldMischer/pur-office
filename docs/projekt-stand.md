@@ -82,9 +82,10 @@ Stand: 25.09.2026. Dieses Dokument beschreibt den aktuellen Umsetzungsstand im C
   die clientseitige Profilbearbeitung nicht verändert.
 - Benutzerprofile unterstützen `userRole` mit `filiale`, `office`, `master` oder `mitarbeiter`. Die vierte Rolle ist damit
   sprachlich vom fachlichen Mitarbeiterdatensatz abgegrenzt.
-- Die zentralen Utilities für technische Anmeldedaten normalisieren Namen, bilden Anmeldenamen im Format
-  `<normalisierter-name>-<rolle>` und ergänzen die gemeinsame Domain `@pur-system.invalid`. Das Profilmodell speichert den
-  `anmeldename`; Benutzeranlage, Anmeldung, Benutzerverwaltung und Profilkarte verwenden den neuen Ablauf.
+- Die zentralen Utilities für technische Anmeldedaten normalisieren Leerzeichen als Punkte, erhalten vorhandene Punkte und
+  Bindestriche, bilden Anmeldenamen im Format `<normalisierter-name>-<rolle>` und ergänzen die gemeinsame Domain
+  `@pur-system.invalid`. Das Profilmodell speichert den `anmeldename`; Benutzeranlage, Anmeldung, Benutzerverwaltung und
+  Profilkarte verwenden den neuen Ablauf.
 - Allgemeine Bereichsfreigaben richten sich nach `erlaubteBereiche`; Systemverwaltung erfordert zusätzlich `userRole: master`,
   Verwaltung zusätzlich `userRole: office` oder `userRole: master`.
 - App-Routen sind mit `authGuard` geschützt.

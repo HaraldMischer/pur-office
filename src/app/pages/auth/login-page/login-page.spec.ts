@@ -67,13 +67,16 @@ describe('LoginPage', () => {
     const page = fixture.componentInstance;
 
     page.loginForm.setValue({
-      anmeldename: ' HaraldMischer--MASTER ',
+      anmeldename: ' Harald.Mischer--MASTER ',
       password: 'secret-password',
     });
 
     await page.submitLogin();
 
-    expect(benutzerStoreMock.login).toHaveBeenCalledWith('haraldmischer-master', 'secret-password');
+    expect(benutzerStoreMock.login).toHaveBeenCalledWith(
+      'harald.mischer-master',
+      'secret-password',
+    );
     expect(navigateSpy).toHaveBeenCalledWith(['/dashboard']);
   });
 
@@ -85,6 +88,39 @@ describe('LoginPage', () => {
     expect(compiled.querySelector('input[formControlName="anmeldename"]')).not.toBeNull();
     expect(compiled.querySelector('mat-select')).toBeNull();
     expect(compiled.textContent).toContain('Anmeldename');
+    expect(compiled.querySelector('form')?.getAttribute('aria-label')).toBe(
+      'Bei Pur-System anmelden',
+    );
+  });
+
+  it('should toggle password visibility without submitting or changing the password', () => {
+    const fixture = TestBed.createComponent(LoginPage);
+    const page = fixture.componentInstance;
+    page.loginForm.setValue({
+      anmeldename: 'test-master',
+      password: 'secret-password',
+    });
+    fixture.detectChanges();
+    const compiled = fixture.nativeElement as HTMLElement;
+    const input = compiled.querySelector<HTMLInputElement>('input[formControlName="password"]');
+    const button = compiled.querySelector<HTMLButtonElement>('button[matSuffix]');
+
+    expect(input?.type).toBe('password');
+    expect(button?.type).toBe('button');
+    expect(button?.getAttribute('aria-label')).toBe('Passwort anzeigen');
+
+    button?.click();
+    fixture.detectChanges();
+
+    expect(input?.type).toBe('text');
+    expect(button?.getAttribute('aria-label')).toBe('Passwort ausblenden');
+
+    button?.click();
+    fixture.detectChanges();
+
+    expect(input?.type).toBe('password');
+    expect(input?.value).toBe('secret-password');
+    expect(benutzerStoreMock.login).not.toHaveBeenCalled();
   });
 
   it('should not login when the form is invalid', async () => {

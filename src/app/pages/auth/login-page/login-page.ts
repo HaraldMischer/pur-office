@@ -1,12 +1,20 @@
 // pur-office/src/app/pages/auth/login-page/login-page.ts
 
-import { ChangeDetectionStrategy, Component, effect, inject, isDevMode } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  effect,
+  inject,
+  isDevMode,
+  signal,
+} from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { Router } from '@angular/router';
 
 import {
@@ -31,6 +39,7 @@ type TLoginForm = {
     MatFormFieldModule,
     MatIconModule,
     MatInputModule,
+    MatTooltipModule,
     ReactiveFormsModule,
   ],
   templateUrl: './login-page.html',
@@ -45,7 +54,9 @@ export class LoginPage {
   readonly inProgress = this._benutzerStore.inProgress;
   readonly isOnline = this._netzwerkStatusService.isOnline;
   readonly error = this._benutzerStore.error;
+  readonly appTitle = environment.appTitle;
   readonly isDevelopmentMode = isDevMode();
+  readonly passwortSichtbar = signal(false);
   readonly loginForm = new FormGroup<TLoginForm>({
     anmeldename: new FormControl('', {
       nonNullable: true,
@@ -91,9 +102,16 @@ export class LoginPage {
     await this._router.navigate(['/dashboard']);
   }
 
-  patchLoginForm(): void {
+  /**
+   * Schaltet die sichtbare Darstellung des eingegebenen Passworts um.
+   */
+  togglePasswortSichtbarkeit(): void {
+    this.passwortSichtbar.update((sichtbar) => !sichtbar);
+  }
+
+  patchLoginForm(anmeldename: string): void {
     this.loginForm.patchValue({
-      anmeldename: 'harry-master',
+      anmeldename: anmeldename,
       password: '',
     });
   }

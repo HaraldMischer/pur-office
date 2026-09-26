@@ -19,6 +19,7 @@ import { RouterLink, RouterLinkActive } from '@angular/router';
 
 import { TAppBereich } from '../../../commons/models/app/app-bereich';
 import { BenutzerStore } from '../../../stores/app/benutzer.store';
+import { environment } from '../../../../environments/environment';
 
 interface NavigationItem {
   readonly label: string;
@@ -49,18 +50,7 @@ export class AppSidenav {
 
   readonly isHandset = input(false);
   readonly navigationSelected = output<void>();
-  readonly title: Signal<string> = computed(() => {
-    switch (this.benutzerProfil()?.userRole) {
-      case 'master':
-        return 'Pur Master';
-      case 'office':
-        return 'Pur Office';
-      case 'filiale':
-        return 'Pur Filiale';
-      default:
-        return 'Pur-System';
-    }
-  });
+  readonly title = environment.appTitle;
   readonly navigationItems: Signal<readonly NavigationItem[]> = computed(() =>
     this._navigationItems().filter(
       (item) =>

@@ -16,7 +16,6 @@ import {
   FormGroupDirective,
   ReactiveFormsModule,
   ValidationErrors,
-  ValidatorFn,
   Validators,
 } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
@@ -28,7 +27,6 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { distinctUntilChanged } from 'rxjs';
 
-import { DatenzugriffAuswahl } from '../../../components/datenzugriff-auswahl/datenzugriff-auswahl';
 import { TAppBereich } from '../../../commons/models/app/app-bereich';
 import { IBenutzerAnlage, TUserRole } from '../../../commons/models/domain/benutzer';
 import {
@@ -36,6 +34,9 @@ import {
   normalizeNamensbestandteil,
 } from '../../../commons/utils/auth/technische-anmeldeadresse';
 import { BenutzerVerwaltungStore } from '../../../stores/domain/benutzer-verwaltung.store';
+import { DatenzugriffAuswahl } from '../../../components/datenzugriff-auswahl/datenzugriff-auswahl';
+
+// ===== Top-Level Helper =====================
 
 type TErlaubteBereicheForm = { [K in TAppBereich]: FormControl<boolean> };
 type TBenutzerAnlageForm = {
@@ -46,20 +47,18 @@ type TBenutzerAnlageForm = {
   passwort: FormControl<string>;
 };
 
-const nichtLeerValidator: ValidatorFn = (control: AbstractControl): ValidationErrors | null =>
-  String(control.value).trim() ? null : { required: true };
+function nichtLeerValidator(control: AbstractControl): ValidationErrors | null {
+  return String(control.value).trim() ? null : { required: true };
+}
 
-const namensbestandteilValidator: ValidatorFn = (
-  control: AbstractControl,
-): ValidationErrors | null =>
-  normalizeNamensbestandteil(String(control.value)) ? null : { required: true };
+function namensbestandteilValidator(control: AbstractControl): ValidationErrors | null {
+  return normalizeNamensbestandteil(String(control.value)) ? null : { required: true };
+}
 
-const mindestensEinBereichValidator: ValidatorFn = (
-  control: AbstractControl,
-): ValidationErrors | null => {
+function mindestensEinBereichValidator(control: AbstractControl): ValidationErrors | null {
   const bereiche = control.getRawValue() as Record<string, boolean>;
   return Object.values(bereiche).some(Boolean) ? null : { mindestensEinBereich: true };
-};
+}
 
 @Component({
   selector: 'app-benutzer-anlage',
@@ -79,8 +78,13 @@ const mindestensEinBereichValidator: ValidatorFn = (
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class BenutzerAnlage implements OnInit {
-  private readonly formDirective = viewChild.required(FormGroupDirective);
+  // ===== Interne Dependency Injection =========
   readonly verwaltungStore = inject(BenutzerVerwaltungStore);
+
+  // ===== View Queries =========================
+  private readonly formDirective = viewChild.required(FormGroupDirective);
+
+  // ===== Öffentliche Werte ====================
   readonly passwortSichtbar = signal(false);
   readonly rollen: ReadonlyArray<{ value: TUserRole; label: string }> = [
     { value: 'filiale', label: 'Filiale' },
@@ -140,10 +144,18 @@ export class BenutzerAnlage implements OnInit {
       });
   }
 
+  // ===== Lifecycle Hooks ======================
+  /**
+   * Lädt beim Initialisieren die verfügbaren Datenzugriffswerte.
+   */
   ngOnInit(): void {
     void this.verwaltungStore.loadAuswahl();
   }
 
+  // ===== Öffentliche Aktionen =================
+  /**
+   * Validiert und erstellt den Benutzer und setzt das Formular nach erfolgreicher Anlage zurück.
+   */
   async onSubmit(): Promise<void> {
     if (this.verwaltungStore.inProgress()) return;
 
@@ -158,6 +170,11 @@ export class BenutzerAnlage implements OnInit {
     }
   }
 
+  /**
+   * Prüft die rollenabhängige Datenzugriffsauswahl.
+   *
+   * @returns `true`, wenn die aktuelle Rolle eine gültige Zuordnung besitzt.
+   */
   datenAuswahlGueltig(): boolean {
     const rolle = this.benutzerForm.controls.userRole.value;
     if (rolle === 'master' || rolle === 'mitarbeiter') return true;
@@ -181,6 +198,11 @@ export class BenutzerAnlage implements OnInit {
     );
   }
 
+  /**
+   * Erstellt aus dem validierten Formular die Daten für die Benutzeranlage.
+   *
+   * @returns Die Anlagedaten oder `null`, wenn das Formular oder die Datenzugriffsauswahl ungültig ist.
+   */
   getBenutzerAnlage(): IBenutzerAnlage | null {
     const namensbestandteilControl = this.benutzerForm.controls.namensbestandteil;
     const anzeigenameControl = this.benutzerForm.controls.anzeigename;
@@ -212,10 +234,16 @@ export class BenutzerAnlage implements OnInit {
     };
   }
 
+  /**
+   * Wechselt die Sichtbarkeit des Passworts.
+   */
   togglePasswortSichtbarkeit(): void {
-    this.passwortSichtbar.update((sichtbar) => !sichtbar);
+    this.passwortSichtbar.update((sichtbar) => {
+      return !sichtbar;
+    });
   }
 
+  // ===== Interne Helfer =======================
   private updateSystemverwaltungFuerRolle(userRole: TUserRole): void {
     const systemverwaltungControl =
       this.benutzerForm.controls.erlaubteBereiche.controls.systemverwaltung;

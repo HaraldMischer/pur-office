@@ -11,23 +11,27 @@ import {
 
 describe('technische Anmeldeadresse', () => {
   it('normalisiert Leerzeichen, Großschreibung und deutsche Zeichen', () => {
-    expect(normalizeNamensbestandteil('  Jörg Weiß  ')).toBe('joergweiss');
+    expect(normalizeNamensbestandteil('  Jörg Weiß  ')).toBe('joerg.weiss');
   });
 
-  it('entfernt Akzente und Sonderzeichen aus dem Namensbestandteil', () => {
-    expect(normalizeNamensbestandteil("Émilie Anne-Marie O'Neil")).toBe('emilieannemarieoneil');
+  it('erhält Punkte und Bindestriche und entfernt andere Sonderzeichen', () => {
+    expect(normalizeNamensbestandteil("Émilie Anne-Marie O'Neil")).toBe('emilie.anne-marie.oneil');
+  });
+
+  it('bereinigt mehrfache und äußere Namenstrennzeichen', () => {
+    expect(normalizeNamensbestandteil(' . Harald  --  Mischer . ')).toBe('harald-mischer');
   });
 
   it.each<TUserRole>(['filiale', 'office', 'mitarbeiter', 'master'])(
     'hängt die Rolle %s an den normalisierten Namensbestandteil an',
     (userRole) => {
-      expect(buildAnmeldename('Harald Mischer', userRole)).toBe(`haraldmischer-${userRole}`);
+      expect(buildAnmeldename('Harald Mischer', userRole)).toBe(`harald.mischer-${userRole}`);
     },
   );
 
   it.each([
-    ['Hagener Str.', 'filiale', 'hagenerstr-filiale@pur-system.invalid'],
-    ['Harald Mischer', 'mitarbeiter', 'haraldmischer-mitarbeiter@pur-system.invalid'],
+    ['Hagener Str.', 'filiale', 'hagener.str-filiale@pur-system.invalid'],
+    ['Harald-Mischer', 'mitarbeiter', 'harald-mischer-mitarbeiter@pur-system.invalid'],
   ] as const)(
     'bildet für %s und die Rolle %s die appabhängige technische Adresse',
     (namensbestandteil, userRole, erwarteteAdresse) => {
@@ -38,12 +42,12 @@ describe('technische Anmeldeadresse', () => {
   );
 
   it('normalisiert einen vollständigen Anmeldenamen und erhält den Rollentrenner', () => {
-    expect(normalizeAnmeldename('  HaraldMischer--MASTER  ')).toBe('haraldmischer-master');
+    expect(normalizeAnmeldename('  Harald.Mischer--MASTER  ')).toBe('harald.mischer-master');
   });
 
   it('bildet die technische Firebase-Adresse mit der gemeinsamen Domain', () => {
-    expect(buildTechnischeAnmeldeadresse('HaraldMischer-MASTER')).toBe(
-      `haraldmischer-master@${TECHNISCHE_ANMELDE_DOMAIN}`,
+    expect(buildTechnischeAnmeldeadresse('Harald.Mischer-MASTER')).toBe(
+      `harald.mischer-master@${TECHNISCHE_ANMELDE_DOMAIN}`,
     );
   });
 

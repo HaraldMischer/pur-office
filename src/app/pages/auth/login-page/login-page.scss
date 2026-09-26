@@ -7,9 +7,6 @@
 
 .mat-mdc-card-title {
   display: flex;
-  align-items: baseline;
-
-  button {
-    margin-left: auto;
-  }
+  gap: 8px;
+  align-items: start;
 }

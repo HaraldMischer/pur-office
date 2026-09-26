@@ -9,7 +9,7 @@ Die gemeinsame Gegenüberstellung von Auslieferungsvarianten, vorgesehenem Einsa
 
 | Variante               | Adresse oder Ziel                 | Befehl                        | Angular-Konfiguration    | Ausgabe                        | Service Worker | Manifest        | Offline-App-Shell |
 | ---------------------- | --------------------------------- | ----------------------------- | ------------------------ | ------------------------------ | -------------- | --------------- | ----------------- |
-| Entwicklung            | `http://localhost:4200`           | `npm run web:pur-office`      | `development`            | Angular Dev Server             | aus            | Pur Office      | nein              |
+| Entwicklung            | `http://localhost:4200`           | `npm run web:pur-system`      | `development`            | Angular Dev Server             | aus            | Pur-System      | nein              |
 | Lokale Master-PWA      | `http://localhost:8080`           | `npm run pwa:pur-master`      | `production,master`      | `dist/pur-master/browser`      | an             | Pur Master      | ja                |
 | Lokale Office-PWA      | `http://localhost:8081`           | `npm run pwa:pur-office`      | `production`             | `dist/pur-office/browser`      | an             | Pur Office      | ja                |
 | Lokale Filial-PWA      | `http://localhost:8082`           | `npm run pwa:pur-filiale`     | `production,pwa`         | `dist/pur-filiale/browser`     | an             | Pur Filiale     | ja                |
@@ -23,7 +23,7 @@ Die Ports `8080` bis `8083` liefern lokal dieselben PWA-Builds aus, die für die
 vorgesehen sind. Alle vier Produktionsvarianten verwenden im Manifest den Darstellungsmodus `standalone` und besitzen eine
 Offline-App-Shell.
 
-`npm run start-web` bleibt als kurzer Alias für `npm run web:pur-office` verfügbar.
+Die allgemeine Entwicklungsumgebung wird mit `npm run web:pur-system` gestartet.
 
 Jede PWA ergänzt bei der Anmeldung automatisch ihre Benutzerrolle. Benutzer geben nur den Namensbestandteil ein; Master, Office,
 Filiale und Mitarbeiter bilden daraus jeweils den vollständigen Anmeldenamen mit dem passenden Rollensuffix.

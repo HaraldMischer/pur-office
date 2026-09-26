@@ -84,7 +84,7 @@ describe('App', () => {
     expect(toolbar.title()).toBe('');
   });
 
-  it('should show Pur-System in the toolbar without authentication', async () => {
+  it('should show the configured product title in the toolbar without authentication', async () => {
     const router = TestBed.inject(Router);
     const fixture = TestBed.createComponent(App);
 

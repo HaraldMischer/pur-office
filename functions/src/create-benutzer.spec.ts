@@ -50,14 +50,14 @@ describe('handleCreateBenutzer', () => {
       'unternehmer/u-1/firma/firma-1/filiale/filiale-1',
     ]);
     expect(dependencies.createAuthBenutzer).toHaveBeenCalledWith({
-      email: 'testbenutzer-office@pur-system.invalid',
+      email: 'test.benutzer-office@pur-system.invalid',
       displayName: data.anzeigename,
       password: data.passwort,
       disabled: true,
     });
     expect(dependencies.setBenutzerProfilDokument).toHaveBeenCalledWith('neu-123', {
-      anmeldename: 'testbenutzer-office',
-      email: 'testbenutzer-office@pur-system.invalid',
+      anmeldename: 'test.benutzer-office',
+      email: 'test.benutzer-office@pur-system.invalid',
       anzeigename: data.anzeigename,
       userRole: data.userRole,
       erlaubteBereiche: data.erlaubteBereiche,
@@ -66,8 +66,8 @@ describe('handleCreateBenutzer', () => {
     expect(dependencies.setBenutzerProfilDokument.mock.calls[0][1]).not.toHaveProperty('passwort');
     expect(result).toEqual({
       uid: 'neu-123',
-      anmeldename: 'testbenutzer-office',
-      email: 'testbenutzer-office@pur-system.invalid',
+      anmeldename: 'test.benutzer-office',
+      email: 'test.benutzer-office@pur-system.invalid',
     });
   });
 
@@ -143,15 +143,15 @@ describe('handleCreateBenutzer', () => {
     );
 
     expect(dependencies.createAuthBenutzer).toHaveBeenCalledWith({
-      email: 'testbenutzer-office@pur-system.invalid',
+      email: 'test.benutzer-office@pur-system.invalid',
       displayName: data.anzeigename,
       password: passwordData.passwort,
       disabled: true,
     });
     expect(result).toEqual({
       uid: 'neu-123',
-      anmeldename: 'testbenutzer-office',
-      email: 'testbenutzer-office@pur-system.invalid',
+      anmeldename: 'test.benutzer-office',
+      email: 'test.benutzer-office@pur-system.invalid',
     });
   });
 

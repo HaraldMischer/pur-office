@@ -147,7 +147,7 @@ describe('SystemverwaltungPage', () => {
       },
     });
     expect(component.getBenutzerAnlage()).toEqual({
-      namensbestandteil: 'testbenutzer',
+      namensbestandteil: 'test.benutzer',
       anzeigename: 'Test Benutzer',
       userRole: 'master',
       erlaubteBereiche: ['dashboard', 'schichtplan', 'verwaltung', 'systemverwaltung'],
@@ -164,18 +164,18 @@ describe('SystemverwaltungPage', () => {
     component.benutzerForm.controls.userRole.setValue('master');
     fixture.detectChanges();
 
-    expect(component.benutzerForm.controls.namensbestandteil.value).toBe('haraldmischer');
-    expect(component.getAnmeldenameVorschau()).toBe('haraldmischer-master');
+    expect(component.benutzerForm.controls.namensbestandteil.value).toBe('harald.mischer');
+    expect(component.getAnmeldenameVorschau()).toBe('harald.mischer-master');
     const readOnlyInputs = fixture.nativeElement.querySelectorAll('input[readonly]');
     expect(readOnlyInputs).toHaveLength(1);
-    expect(readOnlyInputs[0].value).toBe('haraldmischer-master');
+    expect(readOnlyInputs[0].value).toBe('harald.mischer-master');
     expect(fixture.nativeElement.textContent).not.toContain('Technische Adresse');
 
     component.benutzerForm.controls.anzeigename.setValue('Anderer Anzeigename');
     fixture.detectChanges();
 
-    expect(component.benutzerForm.controls.namensbestandteil.value).toBe('andereranzeigename');
-    expect(readOnlyInputs[0].value).toBe('andereranzeigename-master');
+    expect(component.benutzerForm.controls.namensbestandteil.value).toBe('anderer.anzeigename');
+    expect(readOnlyInputs[0].value).toBe('anderer.anzeigename-master');
   });
 
   it('should reject a display name without usable login characters', () => {
@@ -215,7 +215,7 @@ describe('SystemverwaltungPage', () => {
     );
     expect(fixture.debugElement.query(By.directive(DatenzugriffAuswahl))).toBeNull();
     expect(component.getBenutzerAnlage()).toEqual({
-      namensbestandteil: 'testmitarbeiter',
+      namensbestandteil: 'test.mitarbeiter',
       anzeigename: 'Test Mitarbeiter',
       userRole: 'mitarbeiter',
       erlaubteBereiche: ['dashboard', 'schichtplan'],

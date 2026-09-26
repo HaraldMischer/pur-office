@@ -98,7 +98,8 @@ Synchronisation und Konfliktbehandlung berücksichtigt.
 Ein Benutzer ist ein authentifizierter Firebase-Auth-User mit `uid`. Firebase Auth klärt die Identität des angemeldeten Benutzers.
 
 Jeder Benutzer besitzt zusätzlich einen unveränderlichen Anmeldenamen im Format `<normalisierter-name>-<rolle>`, beispielsweise
-`haraldmischer-master`. Leerzeichen und Sonderzeichen werden entfernt, deutsche Umlaute und `ß` werden eindeutig umgeschrieben.
+`harald.mischer-master` oder `harald-mischer-master`. Leerzeichen werden als Punkte normalisiert, vorhandene Punkte und
+Bindestriche bleiben erhalten, andere Sonderzeichen werden entfernt und deutsche Umlaute sowie `ß` eindeutig umgeschrieben.
 Firebase Auth verwendet intern die daraus gebildete technische Adresse `<anmeldename>@pur-system.invalid`. Der Rollenbestandteil
 im Anmeldenamen ist ausschließlich Teil der technischen Kennung und gewährt keine Berechtigungen.
 

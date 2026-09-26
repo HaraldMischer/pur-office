@@ -7,6 +7,7 @@ import { MatSidenav, MatSidenavModule } from '@angular/material/sidenav';
 import { NavigationEnd, Router, RouterOutlet } from '@angular/router';
 import { filter, map } from 'rxjs';
 
+import { environment } from '../environments/environment';
 import { AppSidenav } from './components/app-shell/app-sidenav/app-sidenav';
 import { AppToolbar } from './components/app-shell/app-toolbar/app-toolbar';
 import { BenutzerStore } from './stores/app/benutzer.store';
@@ -75,7 +76,7 @@ export class App {
 
     return {
       authLayout,
-      toolbarTitel: authLayout ? 'Pur-System' : (route.title ?? ''),
+      toolbarTitel: authLayout ? environment.appTitle : (route.title ?? ''),
     };
   }
 }
