@@ -58,13 +58,32 @@ export const routes: Routes = [
   },
   {
     path: 'systemverwaltung',
-    title: 'Systemverwaltung',
     canActivate: [authGuard, bereichGuard, masterGuard],
+    canActivateChild: [authGuard, bereichGuard, masterGuard],
     data: { bereich: 'systemverwaltung' },
-    loadComponent: () =>
-      import('./pages/systemverwaltung-page/systemverwaltung-page').then(
-        (m) => m.SystemverwaltungPage,
-      ),
+    children: [
+      {
+        path: '',
+        pathMatch: 'full',
+        redirectTo: 'datenstruktur',
+      },
+      {
+        path: 'datenstruktur',
+        title: 'Datenstruktur anlegen',
+        loadComponent: () =>
+          import('./pages/systemverwaltung-page/datenstruktur-anlage/datenstruktur-anlage').then(
+            (m) => m.DatenstrukturAnlage,
+          ),
+      },
+      {
+        path: 'benutzer',
+        title: 'Benutzerverwaltung',
+        loadComponent: () =>
+          import('./pages/systemverwaltung-page/benutzer-page/benutzer-page').then(
+            (m) => m.BenutzerPage,
+          ),
+      },
+    ],
   },
   {
     path: '**',

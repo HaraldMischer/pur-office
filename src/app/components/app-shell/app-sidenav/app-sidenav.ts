@@ -8,35 +8,34 @@ import {
   inject,
   input,
   output,
-  signal,
 } from '@angular/core';
-import { MatIconModule } from '@angular/material/icon';
 import { MatCardModule } from '@angular/material/card';
-import { MatListModule } from '@angular/material/list';
+import { MatIconModule } from '@angular/material/icon';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { RouterLink, RouterLinkActive } from '@angular/router';
 
-import { TAppBereich } from '../../../commons/models/app/app-bereich';
+import { INavigationLink, IRollenNavigation } from '../../../commons/models/app/navigation';
+import { getSichtbareRollenNavigation } from '../../../commons/utils/navigation/rollen-navigation';
 import { BenutzerStore } from '../../../stores/app/benutzer.store';
 import { environment } from '../../../../environments/environment';
+import { AppSidenavFlatNavigation } from './app-sidenav-flat-navigation/app-sidenav-flat-navigation';
+import { AppSidenavNestedNavigation } from './app-sidenav-nested-navigation/app-sidenav-nested-navigation';
 
-interface NavigationItem {
-  readonly label: string;
-  readonly icon: string;
-  readonly route: string;
-  readonly bereich: TAppBereich;
-  readonly masterOnly?: boolean;
+// ===== Top-Level Helper =====================
+
+function isNavigationLink(
+  eintrag: IRollenNavigation['eintraege'][number],
+): eintrag is INavigationLink {
+  return eintrag.typ === 'link';
 }
 
 @Component({
   selector: 'app-sidenav',
   imports: [
-    RouterLink,
-    RouterLinkActive,
+    AppSidenavFlatNavigation,
+    AppSidenavNestedNavigation,
     MatCardModule,
     MatIconModule,
-    MatListModule,
     MatToolbarModule,
     MatTooltipModule,
   ],
@@ -45,53 +44,30 @@ interface NavigationItem {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AppSidenav {
+  // ===== Interne Dependency Injection =========
   private readonly _benutzerStore = inject(BenutzerStore);
-  readonly benutzerProfil = this._benutzerStore.benutzerProfil;
 
+  // ===== Öffentliche API ======================
+  readonly benutzerProfil = this._benutzerStore.benutzerProfil;
   readonly isHandset = input(false);
   readonly navigationSelected = output<void>();
-  readonly title = environment.appTitle;
-  readonly navigationItems: Signal<readonly NavigationItem[]> = computed(() =>
-    this._navigationItems().filter(
-      (item) =>
-        this._benutzerStore.darfBereichNutzen(item.bereich) &&
-        (!item.masterOnly || this._benutzerStore.istMaster()),
-    ),
-  );
-  private readonly _navigationItems: Signal<readonly NavigationItem[]> = signal([
-    {
-      label: 'Dashboard',
-      icon: 'dashboard',
-      route: '/dashboard',
-      bereich: 'dashboard',
-    },
-    {
-      label: 'Schichtplan',
-      icon: 'calendar_month',
-      route: '/schichtplan',
-      bereich: 'schichtplan',
-    },
-    {
-      label: 'Mitarbeiter',
-      icon: 'groups',
-      route: '/mitarbeiter',
-      bereich: 'mitarbeiter',
-    },
-    {
-      label: 'Verwaltung',
-      icon: 'settings',
-      route: '/verwaltung',
-      bereich: 'verwaltung',
-    },
-    {
-      label: 'Systemverwaltung',
-      icon: 'admin_panel_settings',
-      route: '/systemverwaltung',
-      bereich: 'systemverwaltung',
-      masterOnly: true,
-    },
-  ]);
 
+  // ===== Öffentliche Werte ====================
+  readonly title = environment.appTitle;
+
+  // ===== Öffentliche Ableitungen ==============
+  readonly navigation: Signal<IRollenNavigation | null> = computed(() => {
+    const profil = this.benutzerProfil();
+    return profil ? getSichtbareRollenNavigation(profil) : null;
+  });
+  readonly flacheNavigationEintraege: Signal<readonly INavigationLink[]> = computed(() => {
+    return this.navigation()?.eintraege.filter(isNavigationLink) ?? [];
+  });
+
+  // ===== Öffentliche Aktionen =================
+  /**
+   * Schließt die Sidebar nach einer Linkauswahl auf kleinen Bildschirmen.
+   */
   closeOnHandset(): void {
     if (!this.isHandset()) {
       return;

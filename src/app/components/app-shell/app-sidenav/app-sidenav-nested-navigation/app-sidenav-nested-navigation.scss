@@ -1,0 +1,65 @@
+// pur-office/src/app/components/app-shell/app-sidenav/app-sidenav-nested-navigation/app-sidenav-nested-navigation.scss
+
+:host {
+  display: block;
+}
+
+.app-sidenav-nested-navigation {
+  &__tree {
+    padding-block: 8px;
+    background: transparent;
+  }
+
+  &__item {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    box-sizing: border-box;
+    width: 100%;
+    min-height: 48px;
+    padding-inline: 16px;
+    border: 0;
+    border-radius: 28px;
+    background: transparent;
+    color: var(--mat-sys-on-surface);
+    font: inherit;
+    text-align: start;
+    text-decoration: none;
+    cursor: pointer;
+
+    &:hover {
+      background: var(--mat-sys-surface-container-high);
+    }
+
+    &:focus-visible {
+      outline: 2px solid var(--mat-sys-primary);
+      outline-offset: -2px;
+    }
+
+    [matListItemTitle] {
+      flex: 1 1 auto;
+    }
+
+    [matListItemMeta] {
+      margin-inline-start: auto;
+    }
+  }
+
+  &__children {
+    padding-inline-start: 16px;
+
+    &--hidden {
+      display: none;
+    }
+  }
+}
+
+mat-tree-node,
+mat-nested-tree-node {
+  display: block;
+}
+
+.active-nav-item {
+  background: var(--mat-sys-secondary-container);
+  color: var(--mat-sys-on-secondary-container);
+}

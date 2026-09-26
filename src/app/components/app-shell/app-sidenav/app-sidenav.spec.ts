@@ -4,9 +4,21 @@ import { Component } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 
-import { TAppBereich } from '../../../commons/models/app/app-bereich';
+import { IBenutzerProfilDokument, TUserRole } from '../../../commons/models/domain/benutzer';
 import { BenutzerStore } from '../../../stores/app/benutzer.store';
 import { AppSidenav } from './app-sidenav';
+
+function createProfil(userRole: TUserRole): IBenutzerProfilDokument {
+  return {
+    email: 'test@example.com',
+    anmeldename: `test-${userRole}`,
+    anzeigename: 'Test',
+    aktiv: true,
+    userRole,
+    erlaubteBereiche: ['dashboard', 'schichtplan', 'mitarbeiter', 'verwaltung', 'systemverwaltung'],
+    zugriffe: {},
+  };
+}
 
 @Component({
   imports: [AppSidenav],
@@ -19,19 +31,11 @@ class AppSidenavHost {
 describe('AppSidenav', () => {
   let benutzerStoreMock: {
     benutzerProfil: ReturnType<typeof vi.fn>;
-    darfBereichNutzen: ReturnType<typeof vi.fn>;
-    istMaster: ReturnType<typeof vi.fn>;
   };
 
   beforeEach(async () => {
     benutzerStoreMock = {
-      benutzerProfil: vi.fn().mockReturnValue(null),
-      darfBereichNutzen: vi.fn((bereich: TAppBereich) =>
-        ['dashboard', 'schichtplan', 'mitarbeiter', 'verwaltung', 'systemverwaltung'].includes(
-          bereich,
-        ),
-      ),
-      istMaster: vi.fn().mockReturnValue(true),
+      benutzerProfil: vi.fn().mockReturnValue(createProfil('master')),
     };
 
     await TestBed.configureTestingModule({
@@ -60,9 +64,9 @@ describe('AppSidenav', () => {
 
   it('should show the account name and login name', () => {
     benutzerStoreMock.benutzerProfil.mockReturnValue({
-      anzeigename: 'Pur System Master',
+      ...createProfil('master'),
       anmeldename: 'pur-system-master',
-      email: 'pur-system-master@example.com',
+      anzeigename: 'Pur System Master',
     });
     const fixture = TestBed.createComponent(AppSidenavHost);
     fixture.detectChanges();
@@ -74,19 +78,23 @@ describe('AppSidenav', () => {
   });
 
   it('should show the fallback without a profile', () => {
+    benutzerStoreMock.benutzerProfil.mockReturnValue(null);
     const fixture = TestBed.createComponent(AppSidenavHost);
     fixture.detectChanges();
-    const card = (fixture.nativeElement as HTMLElement).querySelector('.pur-card--user');
+    const compiled = fixture.nativeElement as HTMLElement;
+    const card = compiled.querySelector('.pur-card--user');
 
     expect(card?.textContent).toContain('Nicht angemeldet');
     expect(card?.querySelector('small')).toBeNull();
+    expect(compiled.querySelector('app-sidenav-flat-navigation')).toBeNull();
+    expect(compiled.querySelector('app-sidenav-nested-navigation')).toBeNull();
   });
 
   it('should render the allowed main navigation', () => {
     const fixture = TestBed.createComponent(AppSidenavHost);
     fixture.detectChanges();
     const compiled = fixture.nativeElement as HTMLElement;
-    const navigationText = compiled.querySelector('mat-nav-list')?.textContent;
+    const navigationText = compiled.querySelector('[aria-label="Hauptnavigation"]')?.textContent;
 
     expect(navigationText).toContain('Dashboard');
     expect(navigationText).toContain('Schichtplan');
@@ -95,14 +103,35 @@ describe('AppSidenav', () => {
     expect(navigationText).toContain('Systemverwaltung');
   });
 
-  it('should hide navigation entries without permission', () => {
-    benutzerStoreMock.darfBereichNutzen.mockImplementation((bereich: TAppBereich) =>
-      ['dashboard'].includes(bereich),
-    );
+  it('should expand system administration and show both child routes for master', () => {
     const fixture = TestBed.createComponent(AppSidenavHost);
     fixture.detectChanges();
     const compiled = fixture.nativeElement as HTMLElement;
-    const navigationText = compiled.querySelector('mat-nav-list')?.textContent;
+    const toggle = compiled.querySelector<HTMLButtonElement>('button[mat-list-item]');
+    const children = compiled.querySelector('.app-sidenav-nested-navigation__children');
+
+    expect(toggle?.textContent).toContain('Systemverwaltung');
+    expect(toggle?.getAttribute('aria-label')).toBe('Systemverwaltung ausklappen');
+    expect(children?.classList).toContain('app-sidenav-nested-navigation__children--hidden');
+
+    toggle?.click();
+    fixture.detectChanges();
+
+    expect(toggle?.getAttribute('aria-label')).toBe('Systemverwaltung einklappen');
+    expect(children?.classList).not.toContain('app-sidenav-nested-navigation__children--hidden');
+    expect(children?.textContent).toContain('Datenstruktur anlegen');
+    expect(children?.textContent).toContain('Benutzerverwaltung');
+  });
+
+  it('should hide navigation entries without permission', () => {
+    benutzerStoreMock.benutzerProfil.mockReturnValue({
+      ...createProfil('master'),
+      erlaubteBereiche: ['dashboard'],
+    });
+    const fixture = TestBed.createComponent(AppSidenavHost);
+    fixture.detectChanges();
+    const compiled = fixture.nativeElement as HTMLElement;
+    const navigationText = compiled.querySelector('[aria-label="Hauptnavigation"]')?.textContent;
 
     expect(navigationText).toContain('Dashboard');
     expect(navigationText).not.toContain('Schichtplan');
@@ -111,15 +140,29 @@ describe('AppSidenav', () => {
   });
 
   it('should hide administration from users without the master role', () => {
-    benutzerStoreMock.istMaster.mockReturnValue(false);
+    benutzerStoreMock.benutzerProfil.mockReturnValue(createProfil('office'));
     const fixture = TestBed.createComponent(AppSidenavHost);
     fixture.detectChanges();
     const compiled = fixture.nativeElement as HTMLElement;
-    const navigationText = compiled.querySelector('mat-nav-list')?.textContent;
+    const navigationText = compiled.querySelector('[aria-label="Hauptnavigation"]')?.textContent;
 
     expect(navigationText).toContain('Dashboard');
     expect(navigationText).toContain('Verwaltung');
     expect(navigationText).not.toContain('Systemverwaltung');
+  });
+
+  it.each([
+    ['master', 'app-sidenav-nested-navigation'],
+    ['office', 'app-sidenav-flat-navigation'],
+    ['filiale', 'app-sidenav-flat-navigation'],
+    ['mitarbeiter', 'app-sidenav-flat-navigation'],
+  ] as const)('should use the configured navigation renderer for %s', (userRole, selector) => {
+    benutzerStoreMock.benutzerProfil.mockReturnValue(createProfil(userRole));
+    const fixture = TestBed.createComponent(AppSidenavHost);
+    fixture.detectChanges();
+    const compiled = fixture.nativeElement as HTMLElement;
+
+    expect(compiled.querySelector(selector)).not.toBeNull();
   });
 
   it('should emit a navigation selection on handset', () => {

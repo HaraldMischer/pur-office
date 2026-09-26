@@ -282,6 +282,12 @@ Die App-Shell wird in wiederverwendbare Components unter `src/app/components/app
 - `app-sidenav` enthält die Sidebar mit Hauptnavigation.
 - `app-toolbar` enthält die obere Toolbar mit App-Aktionen.
 
+Die Navigation wird für jede `userRole` zentral mit ihrer Darstellungsart konfiguriert. Flache Navigationen und verschachtelte
+Navigationen mit nicht navigierbaren, ausklappbaren Gruppen verwenden getrennte Darstellungskomponenten. Maßgeblich ist die Rolle
+aus dem geladenen Benutzerprofil; sichtbar werden nur die für diese Rolle vorgesehenen Links, deren Bereich zusätzlich in
+`erlaubteBereiche` freigegeben ist. Dieselbe Auswertung bestimmt die erreichbaren Start- und Ausweichrouten. Die vorhandenen
+Routenguards bleiben unabhängig davon die verbindliche Zugriffskontrolle.
+
 ### Navigationsbereiche
 
 Die Sidebar enthält die Hauptnavigation der Anwendung. Aktuell sind fünf Bereiche vorgesehen:
@@ -296,6 +302,7 @@ Die Sidebar enthält die Hauptnavigation der Anwendung. Aktuell sind fünf Berei
    Die Route erfordert zusätzlich die Bereichsfreigabe `verwaltung`; Filialkonten bleiben ausgeschlossen.
 
 5. **Systemverwaltung (`/systemverwaltung`):** Administrativer Bereich für `master`. Er umfasst die hierarchische
-   Datenstruktur-Anlage, die Anlage vorkonfigurierter Benutzerzugänge und die Bearbeitung vorhandener Benutzerprofile. Die
+   Datenstruktur-Anlage unter `/systemverwaltung/datenstruktur` sowie Benutzeranlage und Bearbeitung vorhandener Benutzerprofile
+   unter `/systemverwaltung/benutzer`. In der Sidebar ist der Bereich eine ausklappbare Gruppe mit beiden Unterseiten. Die
    Auth-Benutzeranlage erfolgt serverseitig über eine geschützte Firebase Cloud Function mit Firebase Admin SDK; fachliche
-   Stammdaten darf der Master direkt in Firestore schreiben.
+   Stammdaten darf der Master direkt in Firestore schreiben. `/systemverwaltung` leitet auf die Datenstruktur-Anlage weiter.

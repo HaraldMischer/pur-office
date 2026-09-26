@@ -1033,3 +1033,181 @@ Neu hinzugefügt:
 - [x] Rollenbestandteil und Auslieferungsvariante verleihen keine Berechtigungen außerhalb des gespeicherten Benutzerprofils.
 - [x] Neue Konten werden vollständig nach dem neuen Anmeldemodell angelegt.
 - [x] Automatisierte Tests, Produktionsbuilds und reale Anmeldeprüfungen sind erfolgreich.
+
+## 10. Done Todo: Rollenbezogene hierarchische Navigation und Systemverwaltung aufteilen
+
+### 10.1 Rollenbezogene hierarchische App-Shell-Navigation vorbereiten
+
+#### Ziel
+
+Die App-Shell erhält eine zentral konfigurierte, rollenbezogene Navigationsstruktur, die sowohl direkte Links als auch
+ausklappbare Gruppen mit Unterpunkten unterstützt. Die sichtbare Navigation ergibt sich aus der `userRole`, den für diese Rolle
+grundsätzlich vorgesehenen Navigationseinträgen und den im Benutzerprofil gespeicherten `erlaubteBereiche`. Guards bleiben die
+verbindliche Zugriffskontrolle. Eine eigene Component stellt flache Navigationslisten dar, eine zweite Component übernimmt
+verschachtelte Navigationen mit ausklappbaren Gruppen.
+
+#### Betroffene Dateien
+
+Änderungen:
+
+- src/app/components/app-shell/app-sidenav/app-sidenav.ts
+- src/app/components/app-shell/app-sidenav/app-sidenav.html
+- src/app/components/app-shell/app-sidenav/app-sidenav.scss
+- src/app/components/app-shell/app-sidenav/app-sidenav.spec.ts
+- src/app/guards/guard-navigation.ts
+- src/app/guards/guard-navigation.spec.ts
+
+Neu hinzuzufügen:
+
+- src/app/commons/models/app/navigation.ts
+- src/app/commons/constants/navigation.constants.ts
+- src/app/commons/constants/navigation.constants.spec.ts
+- src/app/commons/utils/navigation/rollen-navigation.ts
+- src/app/commons/utils/navigation/rollen-navigation.spec.ts
+- src/app/components/app-shell/app-sidenav/app-sidenav-flat-navigation/app-sidenav-flat-navigation.ts
+- src/app/components/app-shell/app-sidenav/app-sidenav-flat-navigation/app-sidenav-flat-navigation.html
+- src/app/components/app-shell/app-sidenav/app-sidenav-flat-navigation/app-sidenav-flat-navigation.scss
+- src/app/components/app-shell/app-sidenav/app-sidenav-flat-navigation/app-sidenav-flat-navigation.spec.ts
+- src/app/components/app-shell/app-sidenav/app-sidenav-nested-navigation/app-sidenav-nested-navigation.ts
+- src/app/components/app-shell/app-sidenav/app-sidenav-nested-navigation/app-sidenav-nested-navigation.html
+- src/app/components/app-shell/app-sidenav/app-sidenav-nested-navigation/app-sidenav-nested-navigation.scss
+- src/app/components/app-shell/app-sidenav/app-sidenav-nested-navigation/app-sidenav-nested-navigation.spec.ts
+
+#### Schritt 1: Navigationsmodell festlegen
+
+- [x] Ein typsicheres Navigationsmodell für direkte Links und nicht navigierbare Gruppen mit untergeordneten Einträgen anlegen.
+- [x] Für jede `userRole` eine eigene Navigationsstruktur und die Darstellung `flat` oder `nested` zentral konfigurieren.
+- [x] Gemeinsame Navigationseinträge ohne unnötige Duplizierung wiederverwenden.
+- [x] Routen, Labels, Material-Icons und zugehörige `TAppBereich`-Werte ausschließlich in der zentralen Konfiguration pflegen.
+- [x] Festlegen, dass die Rolle aus dem geladenen Benutzerprofil maßgeblich bleibt und nicht aus der Auslieferungsvariante
+      abgeleitet wird.
+
+#### Schritt 2: Getrennte Darstellungskomponenten umsetzen
+
+- [x] Die bisherige `mat-nav-list` in eine eigenständige Component für flache Navigationen überführen.
+- [x] Eine eigenständige Component für verschachtelte Navigationen mit direkten Links und ausklappbaren Gruppen anlegen.
+- [x] Beide Components über denselben Input für die bereits rollen- und bereichsbezogen gefilterten Navigationseinträge
+      anbinden.
+- [x] Beide Components über denselben Output über die Auswahl eines Navigationslinks informieren lassen.
+- [x] Gruppen über einen eindeutig beschrifteten Schalter auf- und zuklappbar machen und untergeordnete Routen visuell
+      einrücken.
+- [x] Gruppen ohne sichtbare Unterpunkte vollständig ausblenden.
+- [x] Aktive Unterrouten hervorheben und ihre übergeordnete Gruppe beim direkten Seitenaufruf automatisch öffnen.
+- [x] Auf kleinen Bildschirmen die Sidebar erst nach Auswahl eines Links schließen; das Öffnen einer Gruppe schließt sie nicht.
+
+#### Schritt 3: Rollenbezogene Darstellung in der App-Shell auswählen
+
+- [x] In `AppSidenav` anhand der Navigationskonfiguration der aktiven `userRole` zwischen flacher und verschachtelter Component
+      wählen.
+- [x] Nur Links an die Darstellungskomponente übergeben, die sowohl in der Navigationsstruktur der Rolle als auch in
+      `erlaubteBereiche` enthalten sind.
+- [x] Benutzerkarte, Produkttitel und das Schließen der Sidebar auf kleinen Bildschirmen weiterhin zentral in `AppSidenav`
+      koordinieren.
+- [x] Verhindern, dass die beiden Darstellungskomponenten eigene Rollen- oder Berechtigungslogik duplizieren.
+
+#### Schritt 4: Navigation und Ausweichrouten konsistent halten
+
+- [x] Die Ermittlung erreichbarer Start- und Ausweichrouten an dieselbe Rollen- und Bereichslogik anbinden.
+- [x] Verhindern, dass ein Navigationseintrag sichtbar wird, dessen Route für die jeweilige Rolle nicht erreichbar ist.
+- [x] Die Rollen- und Bereichsprüfung weiterhin durch die vorhandenen Routenguards absichern.
+
+#### Tests und Abschluss
+
+- [x] Die flache Navigation isoliert auf Links, aktiven Zustand und Auswahlereignis testen.
+- [x] Die verschachtelte Navigation isoliert auf direkte Links, Gruppen, Unterpunkte und Auswahlereignis testen.
+- [x] In `AppSidenav` die Auswahl der richtigen Darstellung für alle vier Rollen sowie erlaubte und nicht erlaubte Bereiche
+      testen.
+- [x] Auf- und Zuklappen, automatische Öffnung bei aktiver Unterroute, ausgeblendete leere Gruppen und das Verhalten auf kleinen
+      Bildschirmen prüfen.
+- [x] Guard-Tests für rollenbezogene Start- und Ausweichrouten aktualisieren.
+- [x] Navigation mit Tastatur, sichtbarem Fokus und geeigneten zugänglichen Bezeichnungen manuell prüfen.
+- [x] `projekt-plan.md` und `projekt-stand.md` nach der Umsetzung aktualisieren.
+- [x] `npm test` und `npm run build` erfolgreich ausführen.
+
+#### Erledigt, wenn
+
+- [x] Jede Benutzerrolle verwendet eine eigene zentral definierte Navigationsstruktur.
+- [x] Rollen mit flacher Navigation verwenden die dafür vorgesehene Component.
+- [x] Rollen mit direkten Links und ausklappbaren Gruppen verwenden die verschachtelte Navigations-Component.
+- [x] `AppSidenav` wählt die Darstellung rollenbezogen aus, ohne Rollen- oder Berechtigungslogik in den
+      Darstellungskomponenten zu duplizieren.
+- [x] Sichtbare Navigation, erlaubte Bereiche und Routenguards führen nicht zu widersprüchlichen Zugriffsergebnissen.
+- [x] Automatisierte Tests und die manuelle Bedienprüfung sind erfolgreich.
+
+### 10.2 Systemverwaltung in zwei Unterseiten aufteilen
+
+#### Ziel
+
+Der bisherige lange Bereich `Systemverwaltung` wird in der Sidebar als ausklappbare Gruppe dargestellt. Die Gruppe enthält die
+Unterpunkte `Datenstruktur anlegen` und `Benutzerverwaltung`. Die Benutzerverwaltung bündelt weiterhin die Anlage neuer Benutzer
+und die Bearbeitung vorhandener Benutzerprofile. Beide Unterseiten verwenden zunächst gemeinsam den bestehenden
+Bereichsschlüssel `systemverwaltung` und bleiben ausschließlich für aktive Master erreichbar.
+
+#### Betroffene Dateien
+
+Änderungen:
+
+- src/app/app.routes.ts
+- src/app/app.routes.spec.ts
+- src/app/components/app-shell/app-sidenav/app-sidenav.spec.ts
+- src/app/commons/constants/navigation.constants.spec.ts
+- src/app/commons/constants/navigation.constants.ts
+- src/app/guards/guard-navigation.ts
+- src/app/guards/guard-navigation.spec.ts
+- src/app/pages/systemverwaltung-page/datenstruktur-anlage/datenstruktur-anlage.ts
+- src/app/pages/systemverwaltung-page/datenstruktur-anlage/datenstruktur-anlage.spec.ts
+
+Neu hinzuzufügen:
+
+- src/app/pages/systemverwaltung-page/benutzer-page/benutzer-page.ts
+- src/app/pages/systemverwaltung-page/benutzer-page/benutzer-page.html
+- src/app/pages/systemverwaltung-page/benutzer-page/benutzer-page.scss
+- src/app/pages/systemverwaltung-page/benutzer-page/benutzer-page.spec.ts
+
+Zu löschen:
+
+- src/app/pages/systemverwaltung-page/systemverwaltung-page.ts
+- src/app/pages/systemverwaltung-page/systemverwaltung-page.html
+- src/app/pages/systemverwaltung-page/systemverwaltung-page.scss
+- src/app/pages/systemverwaltung-page/systemverwaltung-page.spec.ts
+
+#### Schritt 1: Unterrouten festlegen
+
+- [x] `systemverwaltung` als komponentenlosen Elternpfad mit untergeordneten Routen konfigurieren.
+- [x] Die Unterroute `/systemverwaltung/datenstruktur` für die bestehende Datenstruktur-Anlage einrichten.
+- [x] Die Unterroute `/systemverwaltung/benutzer` für Benutzeranlage und Benutzerverwaltung einrichten.
+- [x] `/systemverwaltung` auf `/systemverwaltung/datenstruktur` weiterleiten, damit bestehende Aufrufe ein eindeutiges Ziel haben.
+- [x] Beide Unterrouten mit Bereichs- und Masterprüfung schützen und direkte Aufrufe ohne Berechtigung sicher umleiten.
+
+#### Schritt 2: Seiten fachlich trennen
+
+- [x] Die Datenstruktur-Anlage als eigenständigen Seiteninhalt unter ihrer Unterroute darstellen.
+- [x] Eine `BenutzerPage` anlegen, die `Benutzer anlegen` und `Benutzer verwalten` in dieser Reihenfolge bündelt.
+- [x] Die nicht mehr benötigte `SystemverwaltungPage` einschließlich Template, Styles und Spec entfernen.
+- [x] Seitentitel, Toolbar-Titel und Überschriften an die jeweils geöffnete Unterseite anpassen.
+- [x] Die bestehende Formular-, Store- und Service-Logik ohne fachliche Verhaltensänderung weiterverwenden.
+
+#### Schritt 3: Systemverwaltung in die hierarchische Navigation aufnehmen
+
+- [x] `Systemverwaltung` in der Master-Navigation als nicht navigierbare, ausklappbare Gruppe konfigurieren.
+- [x] `Datenstruktur anlegen` und `Benutzerverwaltung` als untergeordnete Navigationslinks aufnehmen.
+- [x] Die Gruppe bei einer aktiven Systemverwaltungs-Unterroute automatisch geöffnet darstellen.
+- [x] Für andere Rollen weder die Gruppe noch ihre Unterpunkte anzeigen.
+
+#### Tests und Abschluss
+
+- [x] Routing-Tests für Weiterleitung, direkte Unterrouten und Master-Schutz ergänzen.
+- [x] Component-Tests für die getrennten Seiten und die weiterhin eingebundenen Fachkomponenten ergänzen beziehungsweise
+      anpassen.
+- [x] Sidebar-Tests für Gruppenschalter, Unterpunkte, aktiven Zustand und rollenabhängige Sichtbarkeit ergänzen.
+- [x] Beide Unterseiten auf Desktop und einem kleinen Viewport manuell prüfen.
+- [x] `projekt-plan.md` und `projekt-stand.md` nach der Umsetzung aktualisieren.
+- [x] `npm test` und `npm run build` erfolgreich ausführen.
+
+#### Erledigt, wenn
+
+- [x] `Systemverwaltung` lässt sich in der Master-Sidebar auf- und zuklappen.
+- [x] Datenstruktur-Anlage und Benutzerverwaltung sind über eigene, direkt aufrufbare Unterrouten erreichbar.
+- [x] Benutzeranlage und Bearbeitung vorhandener Benutzerprofile bleiben gemeinsam auf der Benutzerverwaltungsseite verfügbar.
+- [x] Nicht berechtigte Rollen sehen keine Systemverwaltungsnavigation und können keine der Unterrouten öffnen.
+- [x] Automatisierte Tests, Build und manuelle Bedienprüfung sind erfolgreich.

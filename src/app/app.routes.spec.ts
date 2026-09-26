@@ -15,7 +15,6 @@ describe('app routes', () => {
       ['mitarbeiter', 'Mitarbeiter'],
       ['passwort', 'Passwort ändern'],
       ['verwaltung', 'Verwaltung'],
-      ['systemverwaltung', 'Systemverwaltung'],
     ]);
 
     expectedTitles.forEach((title, path) => {
@@ -37,13 +36,40 @@ describe('app routes', () => {
     expect(passwordRoute?.loadComponent).toBeDefined();
   });
 
-  it('should protect the administration route by area and master role', () => {
+  it('should protect the componentless administration parent by area and master role', () => {
     const systemverwaltungRoute = routes.find((route) => route.path === 'systemverwaltung');
 
     expect(systemverwaltungRoute).toBeDefined();
     expect(systemverwaltungRoute?.data?.['bereich']).toBe('systemverwaltung');
     expect(systemverwaltungRoute?.canActivate).toEqual([authGuard, bereichGuard, masterGuard]);
-    expect(systemverwaltungRoute?.loadComponent).toBeDefined();
+    expect(systemverwaltungRoute?.canActivateChild).toEqual([authGuard, bereichGuard, masterGuard]);
+    expect(systemverwaltungRoute?.loadComponent).toBeUndefined();
+  });
+
+  it('should redirect administration to the data structure route', () => {
+    const systemverwaltungRoute = routes.find((route) => route.path === 'systemverwaltung');
+    const redirectRoute = systemverwaltungRoute?.children?.find((route) => route.path === '');
+
+    expect(redirectRoute).toEqual({
+      path: '',
+      pathMatch: 'full',
+      redirectTo: 'datenstruktur',
+    });
+  });
+
+  it('should provide separate data structure and user administration routes', () => {
+    const systemverwaltungRoute = routes.find((route) => route.path === 'systemverwaltung');
+    const datenstrukturRoute = systemverwaltungRoute?.children?.find(
+      (route) => route.path === 'datenstruktur',
+    );
+    const benutzerRoute = systemverwaltungRoute?.children?.find(
+      (route) => route.path === 'benutzer',
+    );
+
+    expect(datenstrukturRoute?.title).toBe('Datenstruktur anlegen');
+    expect(datenstrukturRoute?.loadComponent).toBeDefined();
+    expect(benutzerRoute?.title).toBe('Benutzerverwaltung');
+    expect(benutzerRoute?.loadComponent).toBeDefined();
   });
 
   it('should protect the management route by area and allowed roles', () => {

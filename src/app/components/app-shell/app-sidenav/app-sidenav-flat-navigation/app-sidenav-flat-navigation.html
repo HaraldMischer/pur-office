@@ -1,0 +1,15 @@
+<!-- pur-office/src/app/components/app-shell/app-sidenav/app-sidenav-flat-navigation/app-sidenav-flat-navigation.html -->
+
+<mat-nav-list aria-label="Hauptnavigation">
+  @for (eintrag of eintraege(); track eintrag.id) {
+    <a
+      mat-list-item
+      [routerLink]="eintrag.route"
+      routerLinkActive="active-nav-item"
+      (click)="selectNavigation()"
+    >
+      <mat-icon matListItemIcon aria-hidden="true">{{ eintrag.icon }}</mat-icon>
+      <span matListItemTitle>{{ eintrag.label }}</span>
+    </a>
+  }
+</mat-nav-list>

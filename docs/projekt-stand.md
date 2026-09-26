@@ -20,8 +20,13 @@ Stand: 26.09.2026. Dieses Dokument beschreibt den aktuellen Umsetzungsstand im C
 - Material-Sidenav-Layout ist in der App-Shell eingebaut.
 - `app-sidenav` liegt unter `src/app/components/app-shell/app-sidenav`.
 - `app-toolbar` liegt unter `src/app/components/app-shell/app-toolbar`.
-- Die Sidebar enthält Links für Dashboard, Schichtplan, Mitarbeiter, Verwaltung und Systemverwaltung, sofern der jeweilige Bereich
-  im Benutzerprofil freigegeben ist.
+- Für jede `userRole` ist eine eigene Navigationsstruktur einschließlich der Darstellung `flat` oder `nested` zentral
+  konfiguriert. Die Rolle aus dem geladenen Benutzerprofil und dessen `erlaubteBereiche` bestimmen gemeinsam die sichtbaren
+  Links.
+- Flache und verschachtelte Navigationen verwenden getrennte Darstellungskomponenten. Die verschachtelte Component unterstützt
+  direkte Links, nicht navigierbare ausklappbare Gruppen, eingerückte Unterpunkte und das automatische Öffnen der Gruppe einer
+  aktiven Unterroute. Die Master-Navigation stellt `Systemverwaltung` als solche Gruppe mit den Unterpunkten
+  `Datenstruktur anlegen` und `Benutzerverwaltung` dar.
 - Die Toolbar zeigt den Titel der aktiven Route und den Menübutton.
 - Die Toolbar bietet einen Dark-/Light-Mode-Umschalter und im Entwicklungsmodus einen Button für die Snapshots der aktiven Stores.
 - Die Toolbar zeigt während zentral registrierter Datenabfragen eine globale unbestimmte Progress-Bar.
@@ -37,8 +42,10 @@ Stand: 26.09.2026. Dieses Dokument beschreibt den aktuellen Umsetzungsstand im C
 - `mitarbeiter-page` wurde unter `src/app/pages/mitarbeiter-page` angelegt.
 - Routen für `/dashboard`, `/schichtplan` und `/mitarbeiter` werden per `loadComponent` geladen.
 - `/` leitet auf `/dashboard` weiter.
-- Die Route `/systemverwaltung` und die `systemverwaltung-page` enthalten die Bereiche Datenstruktur anlegen, Benutzer anlegen und
-  Benutzer verwalten.
+- Die komponentenlose Route `/systemverwaltung` ist der geschützte Elternpfad für `/systemverwaltung/datenstruktur` und
+  `/systemverwaltung/benutzer` und leitet ohne Unterpfad auf die Datenstruktur-Anlage weiter.
+- Die Datenstruktur-Anlage ist unter ihrer eigenen Unterroute erreichbar. Die `BenutzerPage` bündelt unter der zweiten Unterroute
+  weiterhin Benutzeranlage und Benutzerverwaltung.
 - Die Route `/verwaltung` enthält die Auswahl zugeordneter Stammdaten und die Bearbeitung bestehender Firmen- und Filialdaten.
 - Die geschützte Route `/passwort` ermöglicht angemeldeten Benutzern eine Passwortänderung.
 
@@ -90,7 +97,8 @@ Stand: 26.09.2026. Dieses Dokument beschreibt den aktuellen Umsetzungsstand im C
   Verwaltung zusätzlich `userRole: office` oder `userRole: master`.
 - App-Routen sind mit `authGuard` geschützt.
 - Bereichsrouten werden über `bereichGuard` und `data: { bereich: ... }` abgesichert.
-- Sidebar-Navigation wird über `erlaubteBereiche` eingeschränkt.
+- Sidebar-Navigation sowie Start- und Ausweichrouten verwenden dieselbe zentrale Rollen- und Bereichsauswertung. Die vorhandenen
+  Routenguards bleiben die verbindliche Zugriffssicherung.
 - Der `verwaltungGuard` schließt Filialkonten auch dann von `/verwaltung` aus, wenn deren Profil den Bereichsschlüssel fälschlich
   enthält.
 - Firmen-/Filial-Zugriffe werden im Benutzerprofil als verschachtelte Map `Unternehmer-ID -> Firma-ID -> Filial-IDs` abgebildet.
@@ -101,8 +109,8 @@ Stand: 26.09.2026. Dieses Dokument beschreibt den aktuellen Umsetzungsstand im C
 - Der Bereich Systemverwaltung ist im Client durch `erlaubteBereiche` und `userRole: master` geschützt.
 - Verweigert ein Bereichs- oder Rollenguard eine Route, wird bevorzugt zum erlaubten Dashboard und andernfalls zum ersten für die
   Rolle tatsächlich erreichbaren Bereich umgeleitet. Ist kein Bereich erreichbar, führt die Ausweichnavigation zum Login.
-- Die `SystemverwaltungPage` ist ein Container für die eigenständigen Bereiche Datenstruktur-Anlage, Benutzeranlage und
-  Benutzerverwaltung.
+- Datenstruktur-Anlage und Benutzerverwaltung besitzen getrennte Unterrouten mit eigenen Toolbar-Titeln. Der bisherige gemeinsame
+  Seitencontainer wurde entfernt; die `BenutzerPage` enthält Benutzeranlage und Bearbeitung vorhandener Benutzerprofile.
 - Das Formular gliedert sich in Zugangsdaten, erlaubte Bereiche und Datenzugriff. Alle Gruppen verwenden `div`-Elemente mit
   sichtbaren Überschriften, ohne `role="group"`, `aria-label` oder `aria-labelledby`, statt `fieldset`/`legend`. Die
   `h2`-Überschriften werden zentral über `pur-form__group-titel` in `forms.scss` gestaltet. Zugangsdaten enthalten Anzeigename,
@@ -380,11 +388,15 @@ Stand: 26.09.2026. Dieses Dokument beschreibt den aktuellen Umsetzungsstand im C
 
 ## Tests und Build
 
-Am 25.09.2026 für den aktuellen Frontend-Stand erfolgreich geprüft:
+Am 26.09.2026 für den aktuellen Frontend-Stand erfolgreich geprüft:
 
-- 296 Frontend-Tests einschließlich vereinfachter Anmeldung, Benutzeranlage und -darstellung, der Rolle `mitarbeiter`,
-  Bereichsfreigaben und sicherer Guard-Ausweichnavigation, PWA-Updatebehandlung, Netzwerkstatus, Store-Snapshots,
-  Datenstruktur-Anlage, zentraler Stammdateninitialisierung sowie Firmen-, Filial- und Benutzerprofil-Bearbeitung.
+- 329 Frontend-Tests einschließlich rollenbezogener flacher und verschachtelter Navigation, Bereichsfreigaben und konsistenter
+  Guard-Ausweichnavigation, vereinfachter Anmeldung, Benutzeranlage und -darstellung, der Rolle `mitarbeiter`,
+  PWA-Updatebehandlung, Netzwerkstatus, Store-Snapshots, Datenstruktur-Anlage, zentraler Stammdateninitialisierung sowie Firmen-,
+  Filial- und Benutzerprofil-Bearbeitung.
+- Die rollenbezogene Navigation wurde zusätzlich manuell mit Tastatur, sichtbarem Fokus und zugänglichen Bezeichnungen geprüft.
+- Datenstruktur-Anlage und Benutzerverwaltung wurden unter ihren getrennten Systemverwaltungsrouten auf Desktop und einem
+  kleinen Viewport erfolgreich manuell geprüft.
 - 47 Functions-Tests einschließlich technischer Anmeldedaten, doppelter Anmeldenamen, Mitarbeiterzugangsanlage, Rollenprüfung,
   Hierarchievalidierung und sicherer Kontoaktivierung.
 - 28 Firestore-Emulator-Tests für die Begrenzung der Rolle `mitarbeiter`, bestehende Rollen, neue Hierarchie, Untercollections,
@@ -394,7 +406,8 @@ Am 25.09.2026 für den aktuellen Frontend-Stand erfolgreich geprüft:
   jeweils passende Manifest, zehn erreichbare App-Icons, lokale Roboto- und Material-Icon-Schriften, `ngsw.json`,
   `ngsw-worker.js` und die Ressourcengruppen `app`, `fonts` und `assets`. Die Builds benötigen in der Codex-Umgebung Zugriff
   außerhalb der Sandbox, weil der native `esbuild`-Prozess innerhalb der eingeschränkten Umgebung mit Exit-Code 134 beendet wird.
-  Die bekannte Budgetwarnung beträgt rund 26 kB über dem initialen Limit von 1,50 MB.
+  Der aktuelle Standard-Produktionsbuild ist erfolgreich. Die bekannte Budgetwarnung beträgt rund 67 kB über dem initialen
+  Limit von 1,50 MB.
 - Die Mitarbeiter-App-Shell wurde lokal nach vollständigem Beenden des Webservers in Desktop- und mobiler Viewport-Größe
   erfolgreich aus dem Service-Worker-Cache neu geladen. Die veröffentlichte Login-Seite wurde ohne Browserfehler geladen. Pur
   Mitarbeiter wurde anschließend erfolgreich auf dem Desktop und auf einem physischen iPhone installiert und jeweils als

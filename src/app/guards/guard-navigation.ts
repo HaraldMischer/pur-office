@@ -1,15 +1,10 @@
 // pur-office/src/app/guards/guard-navigation.ts
 
-import { TAppBereich } from '../commons/models/app/app-bereich';
 import { IBenutzerProfilDokument } from '../commons/models/domain/benutzer';
-
-const BEREICH_ROUTES: Record<TAppBereich, string> = {
-  dashboard: '/dashboard',
-  schichtplan: '/schichtplan',
-  mitarbeiter: '/mitarbeiter',
-  verwaltung: '/verwaltung',
-  systemverwaltung: '/systemverwaltung',
-};
+import {
+  getNavigationLinks,
+  getSichtbareRollenNavigation,
+} from '../commons/utils/navigation/rollen-navigation';
 
 /**
  * Ermittelt eine tatsächlich erreichbare Ausweichroute für das Benutzerprofil.
@@ -18,16 +13,9 @@ const BEREICH_ROUTES: Record<TAppBereich, string> = {
  * @returns Die bevorzugte erlaubte Route oder `null`, wenn keine erreichbar ist.
  */
 export function getErlaubteStartRoute(profil: IBenutzerProfilDokument): string | null {
-  const erreichbareBereiche = profil.erlaubteBereiche.filter((bereich) => {
-    if (bereich === 'systemverwaltung') return profil.userRole === 'master';
-    if (bereich === 'verwaltung') {
-      return profil.userRole === 'office' || profil.userRole === 'master';
-    }
-    return true;
-  });
-  const startBereich = erreichbareBereiche.includes('dashboard')
-    ? 'dashboard'
-    : erreichbareBereiche[0];
+  const navigation = getSichtbareRollenNavigation(profil);
+  const links = getNavigationLinks(navigation.eintraege);
+  const startLink = links.find((link) => link.bereich === 'dashboard') ?? links[0];
 
-  return startBereich ? BEREICH_ROUTES[startBereich] : null;
+  return startLink?.route ?? null;
 }

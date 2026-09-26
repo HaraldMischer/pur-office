@@ -43,7 +43,7 @@ describe('getErlaubteStartRoute', () => {
   it('should allow systemverwaltung for a master user', () => {
     const profil = createProfil('master', ['systemverwaltung']);
 
-    expect(getErlaubteStartRoute(profil)).toBe('/systemverwaltung');
+    expect(getErlaubteStartRoute(profil)).toBe('/systemverwaltung/datenstruktur');
   });
 
   it.each([

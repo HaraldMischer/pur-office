@@ -1,0 +1,10 @@
+// pur-office/src/app/components/app-shell/app-sidenav/app-sidenav-flat-navigation/app-sidenav-flat-navigation.scss
+
+:host {
+  display: block;
+}
+
+.active-nav-item {
+  background: var(--mat-sys-secondary-container);
+  color: var(--mat-sys-on-secondary-container);
+}

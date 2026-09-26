@@ -1,28 +1,28 @@
-// pur-office/src/app/pages/systemverwaltung-page/systemverwaltung-page.spec.ts
+// pur-office/src/app/pages/systemverwaltung-page/benutzer-page/benutzer-page.spec.ts
 
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { signal } from '@angular/core';
 import { FormGroupDirective } from '@angular/forms';
 import { By } from '@angular/platform-browser';
-import { DatenzugriffAuswahl } from '../../components/datenzugriff-auswahl/datenzugriff-auswahl';
+import { DatenzugriffAuswahl } from '../../../components/datenzugriff-auswahl/datenzugriff-auswahl';
 import { TestBed } from '@angular/core/testing';
 
-import { DatenzugriffService } from '../../services/domain/datenzugriff.service';
-import { BenutzerService } from '../../services/domain/benutzer.service';
-import { AuthService } from '../../services/firebase/auth.service';
-import { BenutzerVerwaltungService } from '../../services/firebase/benutzer-verwaltung.service';
-import { BenutzerStore } from '../../stores/app/benutzer.store';
-import { BenutzerVerwaltungStore } from '../../stores/domain/benutzer-verwaltung.store';
-import { FirmaStore } from '../../stores/domain/firma.store';
-import { FilialeStore } from '../../stores/domain/filiale.store';
-import { UnternehmerStore } from '../../stores/domain/unternehmer.store';
-import { BenutzerAnlage } from './benutzer-anlage/benutzer-anlage';
-import { SystemverwaltungPage } from './systemverwaltung-page';
+import { DatenzugriffService } from '../../../services/domain/datenzugriff.service';
+import { BenutzerService } from '../../../services/domain/benutzer.service';
+import { AuthService } from '../../../services/firebase/auth.service';
+import { BenutzerVerwaltungService } from '../../../services/firebase/benutzer-verwaltung.service';
+import { BenutzerStore } from '../../../stores/app/benutzer.store';
+import { BenutzerVerwaltungStore } from '../../../stores/domain/benutzer-verwaltung.store';
+import { FirmaStore } from '../../../stores/domain/firma.store';
+import { FilialeStore } from '../../../stores/domain/filiale.store';
+import { UnternehmerStore } from '../../../stores/domain/unternehmer.store';
+import { BenutzerAnlage } from '../benutzer-anlage/benutzer-anlage';
+import { BenutzerPage } from './benutzer-page';
 
-describe('SystemverwaltungPage', () => {
+describe('BenutzerPage', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [BenutzerAnlage, SystemverwaltungPage, NoopAnimationsModule],
+      imports: [BenutzerAnlage, BenutzerPage, NoopAnimationsModule],
       providers: [
         BenutzerVerwaltungStore,
         {
@@ -108,7 +108,7 @@ describe('SystemverwaltungPage', () => {
   });
 
   it('should render role and area controls', () => {
-    const fixture = TestBed.createComponent(SystemverwaltungPage);
+    const fixture = TestBed.createComponent(BenutzerPage);
     fixture.detectChanges();
     const compiled = fixture.nativeElement as HTMLElement;
 
@@ -117,12 +117,8 @@ describe('SystemverwaltungPage', () => {
       Array.from(compiled.querySelectorAll('.pur-page-section__title')).map((titel) =>
         titel.textContent?.trim(),
       ),
-    ).toEqual(['Datenstruktur anlegen', 'Benutzer anlegen', 'Benutzer verwalten']);
-    expect(compiled.querySelectorAll('mat-step-header')).toHaveLength(3);
-    expect(compiled.querySelector('mat-stepper')?.textContent).toContain('Unternehmer');
-    expect(compiled.querySelector('mat-stepper')?.textContent).toContain('Firma');
-    expect(compiled.querySelector('mat-stepper')?.textContent).toContain('Filiale');
-    expect(compiled.querySelectorAll('mat-divider')).toHaveLength(2);
+    ).toEqual(['Benutzer anlegen', 'Benutzer verwalten']);
+    expect(compiled.querySelectorAll('mat-divider')).toHaveLength(1);
     expect(compiled.querySelector('mat-select')).toBeTruthy();
     expect(compiled.querySelectorAll('mat-checkbox')).toHaveLength(5);
     const bereichCheckboxen = compiled.querySelectorAll<HTMLInputElement>('input[type="checkbox"]');
@@ -333,7 +329,7 @@ describe('SystemverwaltungPage', () => {
   it('should clear user management feedback when leaving the page', () => {
     const store = TestBed.inject(BenutzerVerwaltungStore);
     const clearFeedback = vi.spyOn(store, 'clearFeedback');
-    const fixture = TestBed.createComponent(SystemverwaltungPage);
+    const fixture = TestBed.createComponent(BenutzerPage);
 
     fixture.destroy();
 

@@ -121,6 +121,8 @@ describe('DatenstrukturAnlage', () => {
     const stepper = fixture.debugElement.query(By.directive(MatStepper))
       .componentInstance as MatStepper;
 
+    expect(compiled.classList).toContain('pur-page');
+    expect(compiled.classList).toContain('pur-page--limited');
     expect(stepper.linear).toBe(true);
     expect(compiled.querySelectorAll('mat-step-header')).toHaveLength(3);
     expect(

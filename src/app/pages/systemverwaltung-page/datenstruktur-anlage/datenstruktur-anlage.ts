@@ -36,6 +36,7 @@ type TAuswahlForm = {
   ],
   templateUrl: './datenstruktur-anlage.html',
   styleUrl: './datenstruktur-anlage.scss',
+  host: { class: 'pur-page pur-page--limited' },
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class DatenstrukturAnlage implements OnInit {

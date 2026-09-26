@@ -1,0 +1,50 @@
+<!-- pur-office/src/app/components/app-shell/app-sidenav/app-sidenav-nested-navigation/app-sidenav-nested-navigation.html -->
+
+<mat-tree
+  #tree
+  class="app-sidenav-nested-navigation__tree"
+  aria-label="Hauptnavigation"
+  [dataSource]="sichtbareEintraege()"
+  [childrenAccessor]="childrenAccessor"
+  [expansionKey]="getExpansionKey"
+>
+  <!-- Navigationslink -->
+  <mat-nested-tree-node *matTreeNodeDef="let eintrag">
+    @if (eintrag.typ === 'link') {
+      <a
+        class="app-sidenav-nested-navigation__item"
+        mat-list-item
+        [routerLink]="eintrag.route"
+        routerLinkActive="active-nav-item"
+        (click)="selectNavigation()"
+      >
+        <mat-icon matListItemIcon aria-hidden="true">{{ eintrag.icon }}</mat-icon>
+        <span matListItemTitle>{{ eintrag.label }}</span>
+      </a>
+    }
+  </mat-nested-tree-node>
+
+  <!-- Navigationsgruppe -->
+  <mat-nested-tree-node *matTreeNodeDef="let eintrag; when: isGruppe" [isExpandable]="true">
+    <button
+      class="app-sidenav-nested-navigation__item"
+      mat-list-item
+      matTreeNodeToggle
+      type="button"
+      [attr.aria-label]="eintrag.label + (tree.isExpanded(eintrag) ? ' einklappen' : ' ausklappen')"
+    >
+      <mat-icon matListItemIcon aria-hidden="true">{{ eintrag.icon }}</mat-icon>
+      <span matListItemTitle>{{ eintrag.label }}</span>
+      <mat-icon matListItemMeta aria-hidden="true">
+        {{ tree.isExpanded(eintrag) ? 'expand_less' : 'expand_more' }}
+      </mat-icon>
+    </button>
+
+    <div
+      class="app-sidenav-nested-navigation__children"
+      [class.app-sidenav-nested-navigation__children--hidden]="!tree.isExpanded(eintrag)"
+    >
+      <ng-container matTreeNodeOutlet />
+    </div>
+  </mat-nested-tree-node>
+</mat-tree>
